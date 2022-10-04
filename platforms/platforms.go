@@ -68,5 +68,7 @@ func processMessage(handler *commands.Handler, p Platform, msg message.Message, 
 		logs.Printf("[%s-> %s/%s]: %s", p.Name(), out.Channel, p.Username(), out.Text)
 	}
 
-	p.Send(*out)
+	if err := p.Send(*out); err != nil {
+		logs.Printf("Failed to send message %v: %v", msg, err)
+	}
 }

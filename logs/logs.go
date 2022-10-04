@@ -2,12 +2,12 @@
 package logs
 
 import (
-	baselog "log"
+	"log"
 	"os"
 )
 
 // Logger is a singleton logger to use for logging.
-var Logger = baselog.New(os.Stderr, "", baselog.Ldate|baselog.Ltime|baselog.Lmicroseconds)
+var Logger = log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lmicroseconds)
 
 // Printf calls l.Output to print to the logger.
 // Arguments are handled in the manner of fmt.Printf.

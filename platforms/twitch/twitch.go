@@ -24,7 +24,7 @@ type Twitch struct {
 	accessToken string
 	// c is the channel to send incoming messages on.
 	c chan message.Message
-	// i is the twitch IRC connection.
+	// i is the twitch IRC client.
 	i *twitchirc.Client
 }
 
@@ -33,7 +33,7 @@ func (t *Twitch) Name() string { return "Twitch" }
 func (t *Twitch) Username() string { return t.username }
 
 func (t *Twitch) Send(m message.Message) error {
-	t.i.Say(m.Channel, m.Text)
+	go t.i.Say(m.Channel, m.Text)
 	return nil
 }
 
@@ -65,12 +65,11 @@ func (t *Twitch) Connect() error {
 	}
 
 	logs.Printf("Connecting to Twitch IRC...")
-	go (func() error {
+	go func() {
 		if err := t.i.Connect(); err != nil {
-			return fmt.Errorf("failed to connect to twitch IRC: %w", err)
+			logs.Printf("failed to connect to twitch IRC: %v", err)
 		}
-		return nil
-	})()
+	}()
 
 	return nil
 }

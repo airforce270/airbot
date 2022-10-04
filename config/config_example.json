@@ -4,8 +4,8 @@
   "platforms": {
     "twitch": {
       "enabled": false,
-      "accessToken": "",
       "username": "",
+      "accessToken": "",
       "isVerifiedBot": false,
       "channels": [
         ""
