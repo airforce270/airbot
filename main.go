@@ -1,3 +1,4 @@
+// Package main contains the main logic for airbot.
 package main
 
 import (
@@ -33,8 +34,7 @@ func startListeningForSigterm() {
 	go func() {
 		<-c
 		for _, f := range cleanupFuncs {
-			err := f.f()
-			if err != nil {
+			if err := f.f(); err != nil {
 				logs.Printf("cleanup function %s failed: %v", f.name, err)
 			}
 		}
@@ -53,13 +53,13 @@ func main() {
 	logs.Printf("Reading config from %s...", configFileName)
 	cfg, err := config.Read(configFileName)
 	if err != nil {
-		logs.Fatalf("failed to read config from %s: %v\n", configFileName, err)
+		logs.Fatalf("failed to read config from %s: %v", configFileName, err)
 	}
 
 	logs.Printf("Building platforms...")
 	ps, err := platforms.Build(cfg)
 	if err != nil {
-		logs.Fatalf("failed to build platforms: %v\n", err)
+		logs.Fatalf("failed to build platforms: %v", err)
 	}
 
 	for _, p := range ps {
