@@ -1,0 +1,15 @@
+{
+  "logIncomingMessages": true,
+  "logOutgoingMessages": true,
+  "platforms": {
+    "twitch": {
+      "enabled": false,
+      "accessToken": "",
+      "username": "",
+      "isVerifiedBot": false,
+      "channels": [
+        ""
+      ]
+    }
+  }
+}
