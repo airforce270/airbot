@@ -6,6 +6,8 @@ import (
 	"airbot/logs"
 	"airbot/message"
 	"airbot/platforms/twitch"
+
+	"gorm.io/gorm"
 )
 
 // Platform represents a connection to a given platform (i.e. Twitch, Discord)
@@ -27,7 +29,7 @@ type Platform interface {
 }
 
 // Build builds connections to enabled platforms based on the config.
-func Build(cfg *config.Config) ([]Platform, error) {
+func Build(cfg *config.Config, db *gorm.DB) ([]Platform, error) {
 	var p []Platform
 	if twc := cfg.Platforms.Twitch; twc.Enabled {
 		logs.Printf("Building Twitch platform...")

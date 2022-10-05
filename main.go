@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"airbot/config"
+	"airbot/database"
 	"airbot/logs"
 	"airbot/platforms"
 )
@@ -56,17 +57,28 @@ func main() {
 		logs.Fatalf("failed to read config from %s: %v", configFileName, err)
 	}
 
-	logs.Printf("Building platforms...")
-	ps, err := platforms.Build(cfg)
+	logs.Printf("Connecting to database...")
+	db, err := database.Connect(os.Getenv("POSTGRES_DB"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"))
+	if err != nil {
+		logs.Fatalf("failed to connect to database: %v", configFileName, err)
+	}
+
+	logs.Printf("Performing database migrations...")
+	if database.Migrate(db); err != nil {
+		logs.Fatalf("failed to perform database migrations: %v", err)
+	}
+
+	logs.Printf("Preparing chat connections...")
+	ps, err := platforms.Build(cfg, db)
 	if err != nil {
 		logs.Fatalf("failed to build platforms: %v", err)
 	}
 
 	for _, p := range ps {
-		logs.Printf("Connecting to platform %s...", p.Name())
+		logs.Printf("Connecting to %s...", p.Name())
 		p.Connect()
 
-		logs.Printf("Starting to handle messages on platform %s...", p.Name())
+		logs.Printf("Starting to handle messages on %s...", p.Name())
 		go platforms.StartHandling(p, cfg.LogIncoming, cfg.LogOutgoing)
 		cleanupFuncs = append(cleanupFuncs, cleanupFunc{name: p.Name(), f: p.Disconnect})
 	}

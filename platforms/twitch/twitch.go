@@ -83,7 +83,7 @@ func (t *Twitch) Disconnect() error {
 	return t.i.Disconnect()
 }
 
-// New creates a new Twitch.
+// New creates a new Twitch connection.
 func New(username string, channels []string, accessToken string, isVerifiedBot bool) *Twitch {
 	return &Twitch{
 		username:      username,
