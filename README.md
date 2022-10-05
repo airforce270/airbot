@@ -10,8 +10,8 @@ Support planned for many features (gamba, etc.) and platforms (Twitch, Discord, 
 
 To run the bot:
 
-- [Install Go](https://go.dev/doc/install)
+- [Install Docker](https://docs.docker.com/get-docker/)
 - Clone the repository and change into it
 - Copy `config/config_example.json` to `config.json` in the main directory
 - Fill in the empty fields in `config.json`, notably API keys and usernames
-- Run `go run main.go`
+- Run `./start.sh`
