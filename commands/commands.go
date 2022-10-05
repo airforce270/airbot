@@ -9,8 +9,8 @@ import (
 	"airbot/message"
 )
 
-// commands contains all commands that can be run.
-var commands []basecommand.Command
+// allCommands contains all allCommands that can be run.
+var allCommands []basecommand.Command
 
 // Handler handles messages.
 type Handler struct {
@@ -20,7 +20,7 @@ type Handler struct {
 
 // Handle handles incoming messages, possibly returning a message to be sent in response.
 func (h *Handler) Handle(msg *message.Message) (*message.Message, error) {
-	for _, command := range commands {
+	for _, command := range allCommands {
 		if !strings.HasPrefix(msg.Text, command.Prefix) {
 			continue
 		}
@@ -31,5 +31,5 @@ func (h *Handler) Handle(msg *message.Message) (*message.Message, error) {
 }
 
 func init() {
-	commands = append(commands, echo.Commands...)
+	allCommands = append(allCommands, echo.Commands...)
 }
