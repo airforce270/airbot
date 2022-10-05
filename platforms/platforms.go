@@ -29,9 +29,8 @@ type Platform interface {
 // Build builds connections to enabled platforms based on the config.
 func Build(cfg *config.Config) ([]Platform, error) {
 	var p []Platform
-	if cfg.Platforms.Twitch.Enabled {
+	if twc := cfg.Platforms.Twitch; twc.Enabled {
 		logs.Printf("Building Twitch platform...")
-		twc := cfg.Platforms.Twitch
 		p = append(p, twitch.New(twc.Username, twc.Channels, twc.AccessToken, twc.IsVerifiedBot))
 	}
 	return p, nil
