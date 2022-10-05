@@ -11,7 +11,10 @@ Support planned for many features (gamba, etc.) and platforms (Twitch, Discord, 
 To run the bot:
 
 - [Install Docker](https://docs.docker.com/get-docker/)
+  - Docker Compose is also needed. If you install Docker Desktop, it's included.
 - Clone the repository and change into it
 - Copy `config/config_example.json` to `config.json` in the main directory
 - Fill in the empty fields in `config.json`, notably API keys and usernames
+- Copy `.example.env` to `.env` in the main directory
+- Set a value for `POSTGRES_PASSWORD` in `.env`
 - Run `./start.sh`

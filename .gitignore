@@ -17,3 +17,4 @@ airbot
 
 # Config
 config.json
+.env
