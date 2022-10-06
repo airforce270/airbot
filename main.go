@@ -60,7 +60,7 @@ func main() {
 	logs.Printf("Connecting to database...")
 	db, err := database.Connect(os.Getenv("POSTGRES_DB"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"))
 	if err != nil {
-		logs.Fatalf("failed to connect to database: %v", configFileName, err)
+		logs.Fatalf("failed to connect to database: %v", err)
 	}
 
 	logs.Printf("Performing database migrations...")
