@@ -1,0 +1,9 @@
+services:
+  server:
+    image: ghcr.io/airforce270/airbot:release
+    env_file: .env
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - ./config.json:/go/src/github.com/airforce270/airbot/config.json
