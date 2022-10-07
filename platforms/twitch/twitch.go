@@ -62,7 +62,7 @@ func (t *Twitch) Connect() error {
 	}
 
 	for _, channel := range t.channels {
-		logs.Printf("Joining Twitch channel %s...", channel)
+		logs.Printf("Joining Twitch channel %s...", channel.Name)
 		i.Join(channel.Name)
 	}
 
@@ -78,7 +78,7 @@ func (t *Twitch) Connect() error {
 
 func (t *Twitch) Disconnect() error {
 	for _, channel := range t.channels {
-		logs.Printf("Leaving Twitch channel %s...", channel)
+		logs.Printf("Leaving Twitch channel %s...", channel.Name)
 		t.i.Depart(channel.Name)
 	}
 	logs.Printf("Disconnecting from Twitch IRC...")
