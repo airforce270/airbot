@@ -34,9 +34,15 @@ type twitchConfig struct {
 	// IsVerifiedBot is whether the bot's account is a verified bot on Twitch.
 	// See https://dev.twitch.tv/docs/irc#verified-bots
 	IsVerifiedBot bool `json:"isVerifiedBot"`
-	// Twitch channels the bot should join and listen to messages in.
-	// Should be channel names, not IDs.
-	Channels []string `json:"channels"`
+	// Channels is the Twitch channels the bot should join and listen to messages in.
+	Channels []TwitchChannelConfig `json:"channels"`
+}
+
+type TwitchChannelConfig struct {
+	// Name is the name of the channel to join.
+	Name string `json:"name"`
+	// Prefix is the prefix to listen for on the channel.
+	Prefix string `json:"prefix"`
 }
 
 // Read reads the config data from the given path.

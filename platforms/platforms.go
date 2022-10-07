@@ -6,6 +6,7 @@ import (
 	"airbot/logs"
 	"airbot/message"
 	"airbot/platforms/twitch"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -18,7 +19,7 @@ type Platform interface {
 	Username() string
 
 	// Listen returns a channel that will provide incoming messages.
-	Listen() chan message.Message
+	Listen() chan message.IncomingMessage
 	// Send sends a message.
 	Send(m message.Message) error
 
@@ -51,12 +52,18 @@ func StartHandling(p Platform, logIncoming, logOutgoing bool) {
 }
 
 // processMessage processes a single message and may send a message in response.
-func processMessage(handler *commands.Handler, p Platform, msg message.Message, logIncoming, logOutgoing bool) {
+func processMessage(handler *commands.Handler, p Platform, msg message.IncomingMessage, logIncoming, logOutgoing bool) {
 	if logIncoming {
-		logs.Printf("[%s<- %s/%s]: %s", p.Name(), msg.Channel, p.Username(), msg.Text)
+		logs.Printf("[%s<- %s/%s]: %s", p.Name(), msg.Message.Channel, p.Username(), msg.Message.Text)
 	}
 
-	out, err := handler.Handle(&msg)
+	if strings.HasPrefix(msg.Message.Text, msg.Prefix) {
+		msg.Message.Text = strings.Replace(msg.Message.Text, msg.Prefix, "", 1)
+	} else {
+		return
+	}
+
+	out, err := handler.Handle(&msg.Message)
 	if err != nil {
 		logs.Printf("Failed to handle message %v: %v", msg, err)
 		return

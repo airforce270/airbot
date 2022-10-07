@@ -4,6 +4,7 @@ package twitch
 import (
 	"fmt"
 
+	"airbot/config"
 	"airbot/logs"
 	"airbot/message"
 
@@ -18,12 +19,10 @@ type Twitch struct {
 	// See https://dev.twitch.tv/docs/irc#verified-bots
 	isVerifiedBot bool
 	// channels is the Twitch channels to join.
-	channels []string
+	channels []config.TwitchChannelConfig
 	// accessToken is the OAuth token to use when connecting.
 	// See https://dev.twitch.tv/docs/irc/authenticate-bot#getting-an-access-token
 	accessToken string
-	// c is the channel to send incoming messages on.
-	c chan message.Message
 	// i is the twitch IRC client.
 	i *twitchirc.Client
 }
@@ -37,17 +36,20 @@ func (t *Twitch) Send(m message.Message) error {
 	return nil
 }
 
-func (t *Twitch) Listen() chan message.Message {
-	t.c = make(chan message.Message)
+func (t *Twitch) Listen() chan message.IncomingMessage {
+	c := make(chan message.IncomingMessage)
 	t.i.OnPrivateMessage(func(msg twitchirc.PrivateMessage) {
-		t.c <- message.Message{
-			Text:    msg.Message,
-			Channel: msg.Channel,
-			User:    msg.User.Name,
-			Time:    msg.Time,
+		c <- message.IncomingMessage{
+			Message: message.Message{
+				Text:    msg.Message,
+				Channel: msg.Channel,
+				User:    msg.User.Name,
+				Time:    msg.Time,
+			},
+			Prefix: t.prefix(msg.Channel),
 		}
 	})
-	return t.c
+	return c
 }
 
 func (t *Twitch) Connect() error {
@@ -61,7 +63,7 @@ func (t *Twitch) Connect() error {
 
 	for _, channel := range t.channels {
 		logs.Printf("Joining Twitch channel %s...", channel)
-		i.Join(channel)
+		i.Join(channel.Name)
 	}
 
 	logs.Printf("Connecting to Twitch IRC...")
@@ -77,14 +79,23 @@ func (t *Twitch) Connect() error {
 func (t *Twitch) Disconnect() error {
 	for _, channel := range t.channels {
 		logs.Printf("Leaving Twitch channel %s...", channel)
-		t.i.Depart(channel)
+		t.i.Depart(channel.Name)
 	}
 	logs.Printf("Disconnecting from Twitch IRC...")
 	return t.i.Disconnect()
 }
 
+func (t *Twitch) prefix(channel string) string {
+	for _, ch := range t.channels {
+		if ch.Name == channel {
+			return ch.Prefix
+		}
+	}
+	return ""
+}
+
 // New creates a new Twitch connection.
-func New(username string, channels []string, accessToken string, isVerifiedBot bool) *Twitch {
+func New(username string, channels []config.TwitchChannelConfig, accessToken string, isVerifiedBot bool) *Twitch {
 	return &Twitch{
 		username:      username,
 		channels:      channels,
