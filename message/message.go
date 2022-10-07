@@ -15,3 +15,8 @@ type Message struct {
 	// Time is when the message was sent.
 	Time time.Time
 }
+
+type IncomingMessage struct {
+	Message Message
+	Prefix  string
+}
