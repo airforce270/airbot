@@ -18,7 +18,7 @@ func TestTriHard(t *testing.T) {
 		{
 			desc: "handled message",
 			input: &message.Message{
-				Text:    "TriHard any homies",
+				Text:    "$trihard",
 				User:    "someone",
 				Channel: "somechannel",
 				Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -27,26 +27,6 @@ func TestTriHard(t *testing.T) {
 				Text:    "TriHard 7",
 				Channel: "somechannel",
 			},
-		},
-		{
-			desc: "unhandled but close message",
-			input: &message.Message{
-				Text:    "TriHard 7",
-				User:    "someone",
-				Channel: "somechannel",
-				Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
-			},
-			want: nil,
-		},
-		{
-			desc: "unhandled message",
-			input: &message.Message{
-				Text:    "PeepoGlad :rose:",
-				User:    "someone",
-				Channel: "somechannel",
-				Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
-			},
-			want: nil,
 		},
 	}
 

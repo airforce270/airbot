@@ -8,7 +8,7 @@ import (
 
 // Commands contains this package's commands.
 var Commands = []basecommand.Command{
-	{Prefix: "TriHard", F: triHard},
+	{Prefix: "trihard", F: triHard},
 }
 
 func triHard(msg *message.Message) (*message.Message, error) {
