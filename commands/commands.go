@@ -2,8 +2,6 @@
 package commands
 
 import (
-	"strings"
-
 	"airbot/commands/basecommand"
 	"airbot/commands/echo"
 	"airbot/message"
@@ -13,23 +11,26 @@ import (
 var allCommands []basecommand.Command
 
 // Handler handles messages.
-type Handler struct {
-	// Username is the bot's username.
-	Username string
-}
+type Handler struct{}
 
-// Handle handles incoming messages, possibly returning a message to be sent in response.
-func (h *Handler) Handle(msg *message.Message) (*message.Message, error) {
+// Handle handles incoming messages, possibly returning messages to be sent in response.
+func (h *Handler) Handle(msg *message.IncomingMessage) ([]*message.Message, error) {
+	var outCmds []*message.Message
 	for _, command := range allCommands {
-		if !strings.HasPrefix(msg.Text, command.Prefix) {
+		if !command.Pattern.MatchString(msg.Message.Text) && !command.Pattern.MatchString(msg.MessageTextWithoutPrefix()) {
 			continue
 		}
-		return command.F(msg)
-	}
 
-	return nil, nil
+		respCmds, err := command.Handle(msg)
+		if err != nil {
+			return nil, err
+		}
+
+		outCmds = append(outCmds, respCmds...)
+	}
+	return outCmds, nil
 }
 
 func init() {
-	allCommands = append(allCommands, echo.Commands...)
+	allCommands = append(allCommands, echo.Commands[:]...)
 }

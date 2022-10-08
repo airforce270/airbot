@@ -12,20 +12,25 @@ import (
 func TestTriHard(t *testing.T) {
 	tests := []struct {
 		desc  string
-		input *message.Message
-		want  *message.Message
+		input *message.IncomingMessage
+		want  []*message.Message
 	}{
 		{
 			desc: "handled message",
-			input: &message.Message{
-				Text:    "$trihard",
-				User:    "someone",
-				Channel: "somechannel",
-				Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					Text:    "$TriHard",
+					User:    "someone",
+					Channel: "somechannel",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix: "$",
 			},
-			want: &message.Message{
-				Text:    "TriHard 7",
-				Channel: "somechannel",
+			want: []*message.Message{
+				{
+					Text:    "TriHard 7",
+					Channel: "somechannel",
+				},
 			},
 		},
 	}

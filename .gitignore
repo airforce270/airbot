@@ -17,4 +17,5 @@ airbot
 
 # Config
 config.json
+.config.json.swp
 .env
