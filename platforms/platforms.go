@@ -6,7 +6,6 @@ import (
 	"airbot/logs"
 	"airbot/message"
 	"airbot/platforms/twitch"
-	"strings"
 
 	"gorm.io/gorm"
 )
@@ -57,26 +56,22 @@ func processMessage(handler *commands.Handler, p Platform, msg message.IncomingM
 		logs.Printf("[%s<- %s/%s]: %s", p.Name(), msg.Message.Channel, p.Username(), msg.Message.Text)
 	}
 
-	if strings.HasPrefix(msg.Message.Text, msg.Prefix) {
-		msg.Message.Text = strings.Replace(msg.Message.Text, msg.Prefix, "", 1)
-	} else {
-		return
-	}
-
-	out, err := handler.Handle(&msg.Message)
+	outMsgs, err := handler.Handle(&msg)
 	if err != nil {
 		logs.Printf("Failed to handle message %v: %v", msg, err)
 		return
 	}
-	if out == nil {
+	if len(outMsgs) == 0 {
 		return
 	}
 
-	if logOutgoing {
-		logs.Printf("[%s-> %s/%s]: %s", p.Name(), out.Channel, p.Username(), out.Text)
-	}
+	for _, out := range outMsgs {
+		if logOutgoing {
+			logs.Printf("[%s-> %s/%s]: %s", p.Name(), out.Channel, p.Username(), out.Text)
+		}
 
-	if err := p.Send(*out); err != nil {
-		logs.Printf("Failed to send message %v: %v", msg, err)
+		if err := p.Send(*out); err != nil {
+			logs.Printf("Failed to send message %v: %v", msg, err)
+		}
 	}
 }

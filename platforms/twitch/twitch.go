@@ -3,6 +3,7 @@ package twitch
 
 import (
 	"fmt"
+	"strings"
 
 	"airbot/config"
 	"airbot/logs"
@@ -20,6 +21,8 @@ type Twitch struct {
 	isVerifiedBot bool
 	// channels is the Twitch channels to join.
 	channels []config.TwitchChannelConfig
+	// prefixes is a map of channel names to prefixes.
+	prefixes map[string]string
 	// accessToken is the OAuth token to use when connecting.
 	// See https://dev.twitch.tv/docs/irc/authenticate-bot#getting-an-access-token
 	accessToken string
@@ -86,20 +89,29 @@ func (t *Twitch) Disconnect() error {
 }
 
 func (t *Twitch) prefix(channel string) string {
-	for _, ch := range t.channels {
-		if ch.Name == channel {
-			return ch.Prefix
-		}
+	p, ok := t.prefixes[strings.ToLower(channel)]
+	if !ok {
+		logs.Printf("No prefix found for channel %s", channel)
+		return ""
 	}
-	return ""
+	return p
 }
 
 // New creates a new Twitch connection.
 func New(username string, channels []config.TwitchChannelConfig, accessToken string, isVerifiedBot bool) *Twitch {
 	return &Twitch{
 		username:      username,
-		channels:      channels,
-		accessToken:   accessToken,
 		isVerifiedBot: isVerifiedBot,
+		channels:      channels,
+		prefixes:      *buildPrefixes(channels),
+		accessToken:   accessToken,
 	}
+}
+
+func buildPrefixes(channels []config.TwitchChannelConfig) *map[string]string {
+	prefixes := map[string]string{}
+	for _, channel := range channels {
+		prefixes[strings.ToLower(channel.Name)] = channel.Prefix
+	}
+	return &prefixes
 }

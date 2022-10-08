@@ -1,7 +1,10 @@
 // Package message provides a platform-agnostic message type.
 package message
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 // Message represents a chat message.
 type Message struct {
@@ -19,4 +22,8 @@ type Message struct {
 type IncomingMessage struct {
 	Message Message
 	Prefix  string
+}
+
+func (m *IncomingMessage) MessageTextWithoutPrefix() string {
+	return strings.Replace(m.Message.Text, m.Prefix, "", 1)
 }
