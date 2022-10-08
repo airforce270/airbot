@@ -33,25 +33,25 @@ func Build(cfg *config.Config, db *gorm.DB) ([]Platform, error) {
 	var p []Platform
 	if twc := cfg.Platforms.Twitch; twc.Enabled {
 		logs.Printf("Building Twitch platform...")
-		p = append(p, twitch.New(twc.Username, twc.Channels, twc.AccessToken, twc.IsVerifiedBot))
+		p = append(p, twitch.New(twc.Username, twc.Channels, twc.AccessToken, twc.IsVerifiedBot, db))
 	}
 	return p, nil
 }
 
 // StartHandling starts handling commands coming from the given platform.
 // This function blocks and should be run within a goroutine.
-func StartHandling(p Platform, logIncoming, logOutgoing bool) {
+func StartHandling(p Platform, db *gorm.DB, logIncoming, logOutgoing bool) {
 	handler := commands.Handler{}
 	c := p.Listen()
 
 	for {
 		msg := <-c
-		go processMessage(&handler, p, msg, logIncoming, logOutgoing)
+		go processMessage(&handler, db, p, msg, logIncoming, logOutgoing)
 	}
 }
 
 // processMessage processes a single message and may send a message in response.
-func processMessage(handler *commands.Handler, p Platform, msg message.IncomingMessage, logIncoming, logOutgoing bool) {
+func processMessage(handler *commands.Handler, db *gorm.DB, p Platform, msg message.IncomingMessage, logIncoming, logOutgoing bool) {
 	if logIncoming {
 		logs.Printf("[%s<- %s/%s]: %s", p.Name(), msg.Message.Channel, p.Username(), msg.Message.Text)
 	}
