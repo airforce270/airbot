@@ -53,7 +53,7 @@ func StartHandling(p Platform, db *gorm.DB, logIncoming, logOutgoing bool) {
 // processMessage processes a single message and may send a message in response.
 func processMessage(handler *commands.Handler, db *gorm.DB, p Platform, msg message.IncomingMessage, logIncoming, logOutgoing bool) {
 	if logIncoming {
-		logs.Printf("[%s<- %s/%s]: %s", p.Name(), msg.Message.Channel, p.Username(), msg.Message.Text)
+		logs.Printf("[%s<- %s/%s]: %s", p.Name(), msg.Message.Channel, msg.Message.User, msg.Message.Text)
 	}
 
 	outMsgs, err := handler.Handle(&msg)
