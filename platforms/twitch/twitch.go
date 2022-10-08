@@ -4,12 +4,15 @@ package twitch
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"airbot/config"
+	"airbot/database/model"
 	"airbot/logs"
 	"airbot/message"
 
 	twitchirc "github.com/gempir/go-twitch-irc/v3"
+	"gorm.io/gorm"
 )
 
 // Twitch implements Platform for a connection to Twitch chat.
@@ -28,6 +31,8 @@ type Twitch struct {
 	accessToken string
 	// i is the twitch IRC client.
 	i *twitchirc.Client
+	// db is a a reference to the database connection.
+	db *gorm.DB
 }
 
 func (t *Twitch) Name() string { return "Twitch" }
@@ -42,6 +47,7 @@ func (t *Twitch) Send(m message.Message) error {
 func (t *Twitch) Listen() chan message.IncomingMessage {
 	c := make(chan message.IncomingMessage)
 	t.i.OnPrivateMessage(func(msg twitchirc.PrivateMessage) {
+		go t.persistUserAndMessage(msg.User.ID, msg.User.DisplayName, msg.Message, msg.Channel, msg.Time)
 		c <- message.IncomingMessage{
 			Message: message.Message{
 				Text:    msg.Message,
@@ -97,14 +103,27 @@ func (t *Twitch) prefix(channel string) string {
 	return p
 }
 
+func (t *Twitch) persistUserAndMessage(twitchID, twitchName, message, channel string, sentTime time.Time) {
+	var user model.User
+	t.db.FirstOrCreate(&user, model.User{TwitchID: twitchID})
+	t.db.Model(&user).Updates(model.User{TwitchName: twitchName})
+	t.db.Create(&model.Message{
+		Text:    message,
+		Channel: channel,
+		User:    user,
+		Time:    sentTime,
+	})
+}
+
 // New creates a new Twitch connection.
-func New(username string, channels []config.TwitchChannelConfig, accessToken string, isVerifiedBot bool) *Twitch {
+func New(username string, channels []config.TwitchChannelConfig, accessToken string, isVerifiedBot bool, db *gorm.DB) *Twitch {
 	return &Twitch{
 		username:      username,
 		isVerifiedBot: isVerifiedBot,
 		channels:      channels,
 		prefixes:      *buildPrefixes(channels),
 		accessToken:   accessToken,
+		db:            db,
 	}
 }
 
