@@ -9,8 +9,9 @@ import (
 // Commands contains this package's commands.
 var Commands = [...]basecommand.Command{
 	{
-		Pattern: basecommand.PrefixPattern("TriHard"),
-		Handle:  triHard,
+		Pattern:    basecommand.PrefixPattern("TriHard"),
+		Handle:     triHard,
+		PrefixOnly: false,
 	},
 }
 

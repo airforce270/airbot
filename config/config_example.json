@@ -5,6 +5,7 @@
     "twitch": {
       "enabled": false,
       "username": "",
+      "clientId": "",
       "accessToken": "",
       "isVerifiedBot": false,
       "channels": [

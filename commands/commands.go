@@ -4,7 +4,9 @@ package commands
 import (
 	"airbot/commands/basecommand"
 	"airbot/commands/echo"
+	"airbot/commands/twitch"
 	"airbot/message"
+	"strings"
 )
 
 // allCommands contains all allCommands that can be run.
@@ -17,7 +19,10 @@ type Handler struct{}
 func (h *Handler) Handle(msg *message.IncomingMessage) ([]*message.Message, error) {
 	var outCmds []*message.Message
 	for _, command := range allCommands {
-		if !command.Pattern.MatchString(msg.Message.Text) && !command.Pattern.MatchString(msg.MessageTextWithoutPrefix()) {
+		if command.PrefixOnly && !strings.HasPrefix(msg.Message.Text, msg.Prefix) {
+			continue
+		}
+		if !command.Pattern.MatchString(msg.MessageTextWithoutPrefix()) {
 			continue
 		}
 
@@ -33,4 +38,5 @@ func (h *Handler) Handle(msg *message.IncomingMessage) ([]*message.Message, erro
 
 func init() {
 	allCommands = append(allCommands, echo.Commands[:]...)
+	allCommands = append(allCommands, twitch.Commands[:]...)
 }

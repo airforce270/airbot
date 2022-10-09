@@ -1,3 +1,4 @@
+// Package platforms contains the Platform interface and related.
 package platforms
 
 import (
@@ -29,11 +30,13 @@ type Platform interface {
 }
 
 // Build builds connections to enabled platforms based on the config.
-func Build(cfg *config.Config, db *gorm.DB) ([]Platform, error) {
-	var p []Platform
+func Build(cfg *config.Config, db *gorm.DB) (map[string]Platform, error) {
+	p := map[string]Platform{}
 	if twc := cfg.Platforms.Twitch; twc.Enabled {
 		logs.Printf("Building Twitch platform...")
-		p = append(p, twitch.New(twc.Username, twc.Channels, twc.AccessToken, twc.IsVerifiedBot, db))
+		tw := twitch.New(twc.Username, twc.Channels, twc.ClientID, twc.AccessToken, twc.IsVerifiedBot, db)
+		twitch.Instance = tw
+		p[tw.Name()] = tw
 	}
 	return p, nil
 }

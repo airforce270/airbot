@@ -71,12 +71,14 @@ func main() {
 	logs.Printf("Preparing chat connections...")
 	ps, err := platforms.Build(cfg, db)
 	if err != nil {
-		logs.Fatalf("failed to build platforms: %v", err)
+		logs.Fatalf("Failed to build platforms: %v", err)
 	}
 
 	for _, p := range ps {
 		logs.Printf("Connecting to %s...", p.Name())
-		p.Connect()
+		if err := p.Connect(); err != nil {
+			logs.Fatalf("Failed to connect to %s: %v", p.Name(), err)
+		}
 
 		logs.Printf("Starting to handle messages on %s...", p.Name())
 		go platforms.StartHandling(p, db, cfg.LogIncoming, cfg.LogOutgoing)
