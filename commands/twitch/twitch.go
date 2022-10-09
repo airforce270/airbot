@@ -53,7 +53,7 @@ func title(msg *message.IncomingMessage) ([]*message.Message, error) {
 	return []*message.Message{
 		{
 			Channel: msg.Message.Channel,
-			Text:    fmt.Sprintf("%s's title: %s", targetChannel, channel.Title),
+			Text:    fmt.Sprintf("%s's title: %s", channel.BroadcasterName, channel.Title),
 		},
 	}, nil
 }
@@ -78,7 +78,7 @@ func currentGame(msg *message.IncomingMessage) ([]*message.Message, error) {
 	return []*message.Message{
 		{
 			Channel: msg.Message.Channel,
-			Text:    fmt.Sprintf("%s is currenly playing %s", targetChannel, channel.GameName),
+			Text:    fmt.Sprintf("%s is currenly playing %s", channel.BroadcasterName, channel.GameName),
 		},
 	}, nil
 }
