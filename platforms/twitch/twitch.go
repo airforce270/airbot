@@ -135,7 +135,6 @@ func (t *Twitch) Channel(channel string) (*helix.ChannelInformation, error) {
 	if err != nil {
 		return nil, err
 	}
-	logs.Printf("channels:%v", resp.Data.Channels)
 	if len(resp.Data.Channels) == 0 {
 		return nil, fmt.Errorf("no channels found for %s", channel)
 	}
