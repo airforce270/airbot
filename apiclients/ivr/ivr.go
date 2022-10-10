@@ -16,6 +16,8 @@ var ivrBaseURL = "https://api.ivr.fi"
 type ivrTwitchUserResponse struct {
 	// IsBanned is whether the user is banned on Twitch or not.
 	IsBanned bool `json:"banned"`
+	// BanReason is the reason the user was banned.
+	BanReason string `json:"banReason"`
 	// DisplayName is the user's name as it's displayed.
 	DisplayName string `json:"displayName"`
 	// Login is the user's login username. Usually DisplayName lowercased.
@@ -149,16 +151,8 @@ type panelInfo struct {
 	ID string `json:"id"`
 }
 
-// IsVerifiedBot looks up whether a user on Twitch is a verified bot.
-func IsVerifiedBot(username string) (bool, error) {
-	user, err := fetchUser(username)
-	if err != nil {
-		return false, err
-	}
-	return user.IsVerifiedBot, nil
-}
-
-func fetchUser(username string) (*ivrTwitchUserResponse, error) {
+// FetchUser fetches a user's info from the IVR API.
+func FetchUser(username string) (*ivrTwitchUserResponse, error) {
 	reqURL := fmt.Sprintf("%s/v2/twitch/user/%s?id=false", ivrBaseURL, username)
 	httpResp, err := http.Get(reqURL)
 	if err != nil {
