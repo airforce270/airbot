@@ -2,11 +2,12 @@
 package commands
 
 import (
-	"airbot/commands/basecommand"
-	"airbot/commands/echo"
-	"airbot/commands/twitch"
-	"airbot/message"
 	"strings"
+
+	"github.com/airforce270/airbot/commands/basecommand"
+	"github.com/airforce270/airbot/commands/echo"
+	"github.com/airforce270/airbot/commands/twitch"
+	"github.com/airforce270/airbot/message"
 )
 
 // allCommands contains all allCommands that can be run.
@@ -17,7 +18,7 @@ type Handler struct{}
 
 // Handle handles incoming messages, possibly returning messages to be sent in response.
 func (h *Handler) Handle(msg *message.IncomingMessage) ([]*message.Message, error) {
-	var outCmds []*message.Message
+	var outMsgs []*message.Message
 	for _, command := range allCommands {
 		if command.PrefixOnly && !strings.HasPrefix(msg.Message.Text, msg.Prefix) {
 			continue
@@ -26,14 +27,14 @@ func (h *Handler) Handle(msg *message.IncomingMessage) ([]*message.Message, erro
 			continue
 		}
 
-		respCmds, err := command.Handle(msg)
+		respMsgs, err := command.Handle(msg)
 		if err != nil {
 			return nil, err
 		}
 
-		outCmds = append(outCmds, respCmds...)
+		outMsgs = append(outMsgs, respMsgs...)
 	}
-	return outCmds, nil
+	return outMsgs, nil
 }
 
 func init() {

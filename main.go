@@ -7,10 +7,10 @@ import (
 	"sync"
 	"syscall"
 
-	"airbot/config"
-	"airbot/database"
-	"airbot/logs"
-	"airbot/platforms"
+	"github.com/airforce270/airbot/config"
+	"github.com/airforce270/airbot/database"
+	"github.com/airforce270/airbot/logs"
+	"github.com/airforce270/airbot/platforms"
 )
 
 // configFileName contains the name of the config file to be read.

@@ -2,8 +2,8 @@
 package echo
 
 import (
-	"airbot/commands/basecommand"
-	"airbot/message"
+	"github.com/airforce270/airbot/commands/basecommand"
+	"github.com/airforce270/airbot/message"
 )
 
 // Commands contains this package's commands.

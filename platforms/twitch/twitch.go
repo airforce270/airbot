@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"airbot/apiclients/ivr"
-	"airbot/config"
-	"airbot/database/model"
-	"airbot/logs"
-	"airbot/message"
+	"github.com/airforce270/airbot/apiclients/ivr"
+	"github.com/airforce270/airbot/config"
+	"github.com/airforce270/airbot/database/model"
+	"github.com/airforce270/airbot/logs"
+	"github.com/airforce270/airbot/message"
 
 	twitchirc "github.com/gempir/go-twitch-irc/v3"
 	"github.com/nicklaw5/helix/v2"

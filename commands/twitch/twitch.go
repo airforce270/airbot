@@ -6,10 +6,10 @@ import (
 	"regexp"
 	"strings"
 
-	"airbot/apiclients/ivr"
-	"airbot/commands/basecommand"
-	"airbot/message"
-	twitchplatform "airbot/platforms/twitch"
+	"github.com/airforce270/airbot/apiclients/ivr"
+	"github.com/airforce270/airbot/commands/basecommand"
+	"github.com/airforce270/airbot/message"
+	twitchplatform "github.com/airforce270/airbot/platforms/twitch"
 )
 
 // Commands contains this package's commands.

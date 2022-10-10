@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"airbot/message"
+	"github.com/airforce270/airbot/message"
 )
 
 // Command represents a command the bot handles.

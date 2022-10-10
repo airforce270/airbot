@@ -2,11 +2,11 @@
 package platforms
 
 import (
-	"airbot/commands"
-	"airbot/config"
-	"airbot/logs"
-	"airbot/message"
-	"airbot/platforms/twitch"
+	"github.com/airforce270/airbot/commands"
+	"github.com/airforce270/airbot/config"
+	"github.com/airforce270/airbot/logs"
+	"github.com/airforce270/airbot/message"
+	"github.com/airforce270/airbot/platforms/twitch"
 
 	"gorm.io/gorm"
 )

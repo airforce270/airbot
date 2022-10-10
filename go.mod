@@ -1,4 +1,4 @@
-module airbot
+module github.com/airforce270/airbot
 
 go 1.19
 

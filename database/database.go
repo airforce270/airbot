@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"airbot/database/model"
+	"github.com/airforce270/airbot/database/model"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
