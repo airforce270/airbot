@@ -19,6 +19,10 @@ var (
 
 	ivrTwitchUserNotVerifiedBotResp = `{"banned":false,"displayName":"xQc","login":"xqc","id":"71092938","bio":"THE BEST AT ABSOLUTELY EVERYTHING. THE JUICER. LEADER OF THE JUICERS.","follows":207,"followers":11226373,"profileViewCount":524730962,"chatColor":"#0000FF","logo":"https://static-cdn.jtvnw.net/jtv_user_pictures/xqc-profile_image-9298dca608632101-600x600.jpeg","banner":"https://static-cdn.jtvnw.net/jtv_user_pictures/83e86af1-9a6c-42b1-98e2-3f6238a744b5-profile_banner-480.png","verifiedBot":false,"createdAt":"2014-09-12T23:50:05.989719Z","updatedAt":"2022-10-06T20:43:00.256907Z","emotePrefix":"xqc","roles":{"isAffiliate":false,"isPartner":true,"isStaff":null},"badges":[{"setID":"partner","title":"Verified","description":"Verified","version":"1"}],"chatSettings":{"chatDelayMs":0,"followersOnlyDurationMinutes":1440,"slowModeDurationSeconds":null,"blockLinks":false,"isSubscribersOnlyModeEnabled":false,"isEmoteOnlyModeEnabled":false,"isFastSubsModeEnabled":false,"isUniqueChatModeEnabled":false,"requireVerifiedAccount":false,"rules":["English please","Fresh memes"]},"stream":null,"lastBroadcast":{"startedAt":"2022-10-06T22:47:39.840638Z","title":"🟧JUICED EP2. !FANSLY🟧CLICK NOW🟧FT. JERMA🟧& AUSTIN🟧& LUDWIG🟧& CONNOREATSPANTS🟧& ME🟧JOIN NOW🟧FAST🟧BEFORE I LOSE IT🟧BIG🟧#SPONSORED"},"panels":[{"id":"124112525"},{"id":"98109996"},{"id":"44997828"},{"id":"32221884"},{"id":"12592823"},{"id":"6720150"},{"id":"77693957"},{"id":"12592818"},{"id":"8847001"},{"id":"22113669"},{"id":"8847029"},{"id":"22360616"},{"id":"14506832"},{"id":"22360618"}]}`
 	ivrTwitchUserVerifiedBotResp    = `{"banned":false,"displayName":"iP0G","login":"ip0g","id":"429509069","bio":"very p0g","follows":136,"followers":63,"profileViewCount":658,"chatColor":"#00FFFF","logo":"https://static-cdn.jtvnw.net/jtv_user_pictures/dd669686-7694-418f-bd83-5ad418b5bb3b-profile_image-600x600.png","banner":null,"verifiedBot":true,"createdAt":"2019-04-12T05:34:52.280629Z","updatedAt":"2022-09-16T00:10:21.56657Z","emotePrefix":"","roles":{"isAffiliate":false,"isPartner":false,"isStaff":null},"badges":[{"setID":"game-developer","title":"Game Developer","description":"Game Developer for:","version":"1"}],"chatSettings":{"chatDelayMs":0,"followersOnlyDurationMinutes":0,"slowModeDurationSeconds":null,"blockLinks":false,"isSubscribersOnlyModeEnabled":false,"isEmoteOnlyModeEnabled":false,"isFastSubsModeEnabled":false,"isUniqueChatModeEnabled":false,"requireVerifiedAccount":false,"rules":[]},"stream":null,"lastBroadcast":{"startedAt":"2022-03-04T05:45:02.37469Z","title":null},"panels":[{"id":"123839619"}]}`
+
+	ivrModsAndVIPsNoneResp        = `{"mods":[],"vips":[],"ttl":1016}`
+	ivrModsAndVIPsModsOnlyResp    = `{"mods":[{"id":"429509069","login":"ip0g","displayName":"iP0G","grantedAt":"2022-10-03T19:55:00.137915435Z"},{"id":"834890604","login":"af2bot","displayName":"af2bot","grantedAt":"2022-10-09T08:13:17.829797513Z"}],"vips":[],"ttl":null}`
+	ivrModsAndVIPsModsAndVIPsResp = `{"mods":[{"id":"100135110","login":"streamelements","displayName":"StreamElements","grantedAt":"2018-07-24T08:29:21.757709759Z"},{"id":"237719657","login":"fossabot","displayName":"Fossabot","grantedAt":"2020-08-16T20:51:55.198556309Z"},{"id":"191202519","login":"spintto","displayName":"spintto","grantedAt":"2022-03-08T14:59:43.671830635Z"},{"id":"514751411","login":"hnoace","displayName":"HNoAce","grantedAt":"2022-08-09T13:35:14.99544541Z"}],"vips":[{"id":"150790620","login":"bakonsword","displayName":"bakonsword","grantedAt":"2022-02-20T19:39:12.355546493Z"},{"id":"145484970","login":"alyjiaht_t","displayName":"alyjiahT_T","grantedAt":"2022-02-25T05:42:16.048233372Z"},{"id":"205748697","login":"avbest","displayName":"AVBest","grantedAt":"2022-03-08T14:31:49.869620222Z"},{"id":"69184756","login":"zaintew_","displayName":"Zaintew_","grantedAt":"2022-09-17T21:43:57.737612548Z"},{"id":"505131195","login":"captkayy","displayName":"captkayy","grantedAt":"2022-09-25T20:15:59.332859708Z"},{"id":"425925187","login":"seagrad","displayName":"seagrad","grantedAt":"2022-10-05T05:51:51.432004125Z"},{"id":"222316577","login":"dafkeee","displayName":"Dafkeee","grantedAt":"2022-10-05T05:52:02.130647633Z"}],"ttl":494}`
 )
 
 type fakeServer struct {
@@ -256,7 +260,140 @@ func TestFetchUser(t *testing.T) {
 			}
 
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Errorf("FetchUser() diff (-want +got):\n%s", diff)
+				t.Errorf("FetchUser() diff (,want +got):\n%s", diff)
+			}
+		})
+		server.Reset()
+	}
+}
+
+func TestFetchModsAndVIPs(t *testing.T) {
+	server := newFakeServer()
+	server.Init()
+	defer server.Close()
+
+	tests := []struct {
+		desc    string
+		useResp string
+		want    *ivrModsAndVIPsResponse
+	}{
+		{
+			desc:    "no mods or vips",
+			useResp: ivrModsAndVIPsNoneResp,
+			want: &ivrModsAndVIPsResponse{
+				Mods: []*ModOrVIPUser{},
+				VIPs: []*ModOrVIPUser{},
+			},
+		},
+		{
+			desc:    "mods only",
+			useResp: ivrModsAndVIPsModsOnlyResp,
+			want: &ivrModsAndVIPsResponse{
+				Mods: []*ModOrVIPUser{
+					{
+						ID:          "429509069",
+						Login:       "ip0g",
+						DisplayName: "iP0G",
+						GrantedAt:   time.Date(2022, 10, 3, 19, 55, 0, 137915435, time.UTC),
+					},
+					{
+						ID:          "834890604",
+						Login:       "af2bot",
+						DisplayName: "af2bot",
+						GrantedAt:   time.Date(2022, 10, 9, 8, 13, 17, 829797513, time.UTC),
+					},
+				},
+				VIPs: []*ModOrVIPUser{},
+			},
+		},
+		{
+			desc:    "large, many mods and vips",
+			useResp: ivrModsAndVIPsModsAndVIPsResp,
+			want: &ivrModsAndVIPsResponse{
+				Mods: []*ModOrVIPUser{
+					{
+						ID:          "100135110",
+						Login:       "streamelements",
+						DisplayName: "StreamElements",
+						GrantedAt:   time.Date(2018, 7, 24, 8, 29, 21, 757709759, time.UTC),
+					},
+					{
+						ID:          "237719657",
+						Login:       "fossabot",
+						DisplayName: "Fossabot",
+						GrantedAt:   time.Date(2020, 8, 16, 20, 51, 55, 198556309, time.UTC),
+					},
+					{
+						ID:          "191202519",
+						Login:       "spintto",
+						DisplayName: "spintto",
+						GrantedAt:   time.Date(2022, 3, 8, 14, 59, 43, 671830635, time.UTC),
+					},
+					{
+						ID:          "514751411",
+						Login:       "hnoace",
+						DisplayName: "HNoAce",
+						GrantedAt:   time.Date(2022, 8, 9, 13, 35, 14, 995445410, time.UTC),
+					},
+				},
+				VIPs: []*ModOrVIPUser{
+					{
+						ID:          "150790620",
+						Login:       "bakonsword",
+						DisplayName: "bakonsword",
+						GrantedAt:   time.Date(2022, 2, 20, 19, 39, 12, 355546493, time.UTC),
+					},
+					{
+						ID:          "145484970",
+						Login:       "alyjiaht_t",
+						DisplayName: "alyjiahT_T",
+						GrantedAt:   time.Date(2022, 2, 25, 5, 42, 16, 48233372, time.UTC),
+					},
+					{
+						ID:          "205748697",
+						Login:       "avbest",
+						DisplayName: "AVBest",
+						GrantedAt:   time.Date(2022, 3, 8, 14, 31, 49, 869620222, time.UTC),
+					},
+					{
+						ID:          "69184756",
+						Login:       "zaintew_",
+						DisplayName: "Zaintew_",
+						GrantedAt:   time.Date(2022, 9, 17, 21, 43, 57, 737612548, time.UTC),
+					},
+					{
+						ID:          "505131195",
+						Login:       "captkayy",
+						DisplayName: "captkayy",
+						GrantedAt:   time.Date(2022, 9, 25, 20, 15, 59, 332859708, time.UTC),
+					},
+					{
+						ID:          "425925187",
+						Login:       "seagrad",
+						DisplayName: "seagrad",
+						GrantedAt:   time.Date(2022, 10, 5, 5, 51, 51, 432004125, time.UTC),
+					},
+					{
+						ID:          "222316577",
+						Login:       "dafkeee",
+						DisplayName: "Dafkeee",
+						GrantedAt:   time.Date(2022, 10, 5, 5, 52, 2, 130647633, time.UTC),
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		server.Resp = tc.useResp
+		t.Run(tc.desc, func(t *testing.T) {
+			got, err := FetchModsAndVIPs("fakeusername")
+			if err != nil {
+				t.Fatalf("FetchModsAndVIPs() unexpected error: %v", err)
+			}
+
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Errorf("FetchModsAndVIPs() diff (-want +got):\n%s", diff)
 			}
 		})
 		server.Reset()

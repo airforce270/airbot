@@ -151,9 +151,56 @@ type panelInfo struct {
 	ID string `json:"id"`
 }
 
+// ivrModsAndVIPsResponse contains information about the mods and VIPs of a channel.
+type ivrModsAndVIPsResponse struct {
+	// Mods is the moderators of the channel.
+	Mods []*ModOrVIPUser `json:"mods"`
+	// VIPs is the VIPs of the channel.
+	VIPs []*ModOrVIPUser `json:"vips"`
+}
+
+// ModOrVipUser contains information about a mod/VIP user.
+type ModOrVIPUser struct {
+	// ID is the user's Twitch ID.
+	ID string `json:"id"`
+	// Login is the user's twitch username.
+	Login string `json:"login"`
+	// DisplayName is the user's display name.
+	DisplayName string `json:"displayName"`
+	// GrantedAt is when the user was made a mod/VIP.
+	GrantedAt time.Time `json:"grantedAt"`
+}
+
 // FetchUser fetches a user's info from the IVR API.
 func FetchUser(username string) (*ivrTwitchUserResponse, error) {
-	reqURL := fmt.Sprintf("%s/v2/twitch/user/%s?id=false", ivrBaseURL, username)
+	body, err := ivrGet(fmt.Sprintf("%s/v2/twitch/user/%s?id=false", ivrBaseURL, username))
+	if err != nil {
+		return nil, err
+	}
+
+	resp := ivrTwitchUserResponse{}
+	if err = json.Unmarshal(body, &resp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
+	}
+
+	return &resp, nil
+}
+
+func FetchModsAndVIPs(channel string) (*ivrModsAndVIPsResponse, error) {
+	body, err := ivrGet(fmt.Sprintf("%s/v2/twitch/modvip/%s", ivrBaseURL, channel))
+	if err != nil {
+		return nil, err
+	}
+
+	resp := ivrModsAndVIPsResponse{}
+	if err = json.Unmarshal(body, &resp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
+	}
+
+	return &resp, nil
+}
+
+func ivrGet(reqURL string) (respBody []byte, err error) {
 	httpResp, err := http.Get(reqURL)
 	if err != nil {
 		return nil, err
@@ -166,15 +213,11 @@ func FetchUser(username string) (*ivrTwitchUserResponse, error) {
 		return nil, fmt.Errorf("no data returned from IVR API: %v", httpResp)
 	}
 	defer httpResp.Body.Close()
+
 	body, err := io.ReadAll(httpResp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response from IVR API: %w", err)
 	}
 
-	resp := ivrTwitchUserResponse{}
-	if err = json.Unmarshal(body, &resp); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
-	}
-
-	return &resp, nil
+	return body, nil
 }

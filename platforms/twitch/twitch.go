@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"airbot/apiclients/ivr"
 	"airbot/config"
 	"airbot/database/model"
 	"airbot/logs"
@@ -23,11 +24,13 @@ var Instance *Twitch
 type Twitch struct {
 	// username is the Twitch username the bot is running as.
 	username string
+	// id is the Twitch ID of the account the bot is running as.
+	id string
 	// isVerifiedBot is whether the user running as is a verified bot on Twitch.
 	// See https://dev.twitch.tv/docs/irc#verified-bots
 	isVerifiedBot bool
 	// channels is the Twitch channels to join.
-	channels []config.TwitchChannelConfig
+	channels []*twitchChannel
 	// prefixes is a map of channel names to prefixes.
 	prefixes map[string]string
 	// clientID is the OAuth Client ID to use when connecting.
@@ -48,7 +51,23 @@ func (t *Twitch) Name() string { return "Twitch" }
 func (t *Twitch) Username() string { return t.username }
 
 func (t *Twitch) Send(m message.Message) error {
-	go t.i.Say(m.Channel, m.Text)
+	var channel *twitchChannel
+	for _, c := range t.channels {
+		if c.Name == m.Channel {
+			channel = c
+		}
+	}
+	if channel == nil {
+		return fmt.Errorf("can't send message to unjoined channel %q", m.Channel)
+	}
+
+	// If the bot has "normal permissions" (not verified, mod, or VIP),
+	// sending the message too quickly will get it held back.
+	if !t.isVerifiedBot && !channel.BotIsModerator && !channel.BotIsVIP {
+		time.Sleep(time.Millisecond * 400)
+	}
+
+	t.i.Say(m.Channel, m.Text)
 	return nil
 }
 
@@ -99,6 +118,17 @@ func (t *Twitch) Connect() error {
 		return err
 	}
 	t.h = h
+
+	botUser, err := t.User(t.username)
+	if err != nil {
+		return err
+	}
+	if botUser == nil {
+		return fmt.Errorf("no user returned for bot (%s): %w", t.username, err)
+	}
+	t.id = botUser.ID
+
+	go t.listenForModAndVIPChanges()
 
 	return nil
 }
@@ -165,17 +195,77 @@ func (t *Twitch) persistUserAndMessage(twitchID, twitchName, message, channel st
 	})
 }
 
+func (t *Twitch) listenForModAndVIPChanges() {
+	for {
+		for _, channel := range t.channels {
+			modsAndVIPs, err := ivr.FetchModsAndVIPs(channel.Name)
+			if err != nil {
+				logs.Printf("Failed to look up mods and VIPs for %s: %v", channel.Name, err)
+				break
+			}
+			go t.updateModStatusForChannel(channel, modsAndVIPs.Mods)
+			go t.updateVIPStatusForChannel(channel, modsAndVIPs.VIPs)
+		}
+
+		time.Sleep(time.Second * 30)
+	}
+}
+
+func (t *Twitch) updateModStatusForChannel(channel *twitchChannel, mods []*ivr.ModOrVIPUser) {
+	for _, mod := range mods {
+		if mod.ID == t.id || t.username == channel.Name {
+			logs.Printf("Determined bot is a mod in channel %q", channel.Name)
+			channel.BotIsModerator = true
+			return
+		}
+	}
+	logs.Printf("Determined bot is not a mod in channel %q", channel.Name)
+	channel.BotIsModerator = false
+}
+
+func (t *Twitch) updateVIPStatusForChannel(channel *twitchChannel, vips []*ivr.ModOrVIPUser) {
+	for _, vip := range vips {
+		if vip.ID == t.id {
+			logs.Printf("Determined bot is a VIP in channel %q", channel.Name)
+			channel.BotIsVIP = true
+			return
+		}
+	}
+	logs.Printf("Determined bot is not a VIP in channel %q", channel.Name)
+	channel.BotIsVIP = false
+}
+
 // New creates a new Twitch connection.
 func New(username string, channels []config.TwitchChannelConfig, clientID, accessToken string, isVerifiedBot bool, db *gorm.DB) *Twitch {
 	return &Twitch{
 		username:      username,
 		isVerifiedBot: isVerifiedBot,
-		channels:      channels,
+		channels:      buildChannels(channels),
 		prefixes:      *buildPrefixes(channels),
 		clientID:      clientID,
 		accessToken:   accessToken,
 		db:            db,
 	}
+}
+
+type twitchChannel struct {
+	Name           string
+	Prefix         string
+	BotIsModerator bool
+	BotIsVIP       bool
+}
+
+func buildChannels(channels []config.TwitchChannelConfig) []*twitchChannel {
+	var builtChannels []*twitchChannel
+	for _, channel := range channels {
+		builtChannels = append(builtChannels, &twitchChannel{
+			Name:           channel.Name,
+			Prefix:         channel.Prefix,
+			BotIsModerator: false,
+			BotIsVIP:       false,
+		})
+	}
+	return builtChannels
 }
 
 func buildPrefixes(channels []config.TwitchChannelConfig) *map[string]string {
