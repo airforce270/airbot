@@ -34,7 +34,7 @@ func Build(cfg *config.Config, db *gorm.DB) (map[string]Platform, error) {
 	p := map[string]Platform{}
 	if twc := cfg.Platforms.Twitch; twc.Enabled {
 		logs.Printf("Building Twitch platform...")
-		tw := twitch.New(twc.Username, twc.Channels, twc.ClientID, twc.AccessToken, twc.IsVerifiedBot, db)
+		tw := twitch.New(twc.Username, twc.Channels, twc.ClientID, twc.AccessToken, db)
 		twitch.Instance = tw
 		p[tw.Name()] = tw
 	}
@@ -74,7 +74,7 @@ func processMessage(handler *commands.Handler, db *gorm.DB, p Platform, msg mess
 		}
 
 		if err := p.Send(*out); err != nil {
-			logs.Printf("Failed to send message %v: %v", msg, err)
+			logs.Printf("Failed to send message %v: %v", out, err)
 		}
 	}
 }

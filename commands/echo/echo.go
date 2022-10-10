@@ -11,7 +11,7 @@ var Commands = [...]basecommand.Command{
 	{
 		Pattern:    basecommand.PrefixPattern("TriHard"),
 		Handle:     triHard,
-		PrefixOnly: false,
+		PrefixOnly: true,
 	},
 }
 

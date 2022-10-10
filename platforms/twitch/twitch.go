@@ -53,7 +53,7 @@ func (t *Twitch) Username() string { return t.username }
 func (t *Twitch) Send(m message.Message) error {
 	var channel *twitchChannel
 	for _, c := range t.channels {
-		if c.Name == m.Channel {
+		if strings.EqualFold(c.Name, m.Channel) {
 			channel = c
 		}
 	}
@@ -93,21 +93,36 @@ func (t *Twitch) Connect() error {
 	i := twitchirc.NewClient(t.username, fmt.Sprintf("oauth:%s", t.accessToken))
 	t.i = i
 
+	t.i.OnUserNoticeMessage(func(msg twitchirc.UserNoticeMessage) { logs.Printf("[Twitch] USERNOTICE: %s", msg.Raw) })
+	t.i.OnNoticeMessage(func(msg twitchirc.NoticeMessage) { logs.Printf("[Twitch] NOTICE: %s", msg.Raw) })
+
+	ivrUser, err := ivr.FetchUser(t.username)
+	if err != nil {
+		fmt.Printf("Failed to fetch info about %s from IVR, assuming not a verified bot: %v", t.username, err)
+		t.isVerifiedBot = false
+	} else {
+		t.isVerifiedBot = ivrUser.IsVerifiedBot
+	}
+
 	if t.isVerifiedBot {
+		logs.Printf("[Twitch] Bot user %s is a verified bot, using increased rate limit", t.username)
 		t.i.SetJoinRateLimiter(twitchirc.CreateVerifiedRateLimiter())
 	}
 
-	for _, channel := range t.channels {
-		logs.Printf("Joining Twitch channel %s...", channel.Name)
-		i.Join(channel.Name)
-	}
-
 	logs.Printf("Connecting to Twitch IRC...")
+	twitchIRCReady := make(chan bool)
+	t.i.OnConnect(func() { twitchIRCReady <- true })
 	go func() {
 		if err := t.i.Connect(); err != nil {
 			panic(fmt.Sprintf("failed to connect to twitch IRC: %v", err))
 		}
 	}()
+	<-twitchIRCReady
+
+	for _, channel := range t.channels {
+		logs.Printf("Joining Twitch channel %s...", channel.Name)
+		i.Join(channel.Name)
+	}
 
 	logs.Printf("Connecting to Twitch API...")
 	h, err := helix.NewClient(&helix.Options{
@@ -214,37 +229,36 @@ func (t *Twitch) listenForModAndVIPChanges() {
 func (t *Twitch) updateModStatusForChannel(channel *twitchChannel, mods []*ivr.ModOrVIPUser) {
 	for _, mod := range mods {
 		if mod.ID == t.id || t.username == channel.Name {
-			logs.Printf("Determined bot is a mod in channel %q", channel.Name)
+			logs.Printf("[Twitch] Determined bot is a mod in channel %q", channel.Name)
 			channel.BotIsModerator = true
 			return
 		}
 	}
-	logs.Printf("Determined bot is not a mod in channel %q", channel.Name)
+	logs.Printf("[Twitch] Determined bot is not a mod in channel %q", channel.Name)
 	channel.BotIsModerator = false
 }
 
 func (t *Twitch) updateVIPStatusForChannel(channel *twitchChannel, vips []*ivr.ModOrVIPUser) {
 	for _, vip := range vips {
 		if vip.ID == t.id {
-			logs.Printf("Determined bot is a VIP in channel %q", channel.Name)
+			logs.Printf("[Twitch] Determined bot is a VIP in channel %q", channel.Name)
 			channel.BotIsVIP = true
 			return
 		}
 	}
-	logs.Printf("Determined bot is not a VIP in channel %q", channel.Name)
+	logs.Printf("[Twitch] Determined bot is not a VIP in channel %q", channel.Name)
 	channel.BotIsVIP = false
 }
 
 // New creates a new Twitch connection.
-func New(username string, channels []config.TwitchChannelConfig, clientID, accessToken string, isVerifiedBot bool, db *gorm.DB) *Twitch {
+func New(username string, channels []config.TwitchChannelConfig, clientID, accessToken string, db *gorm.DB) *Twitch {
 	return &Twitch{
-		username:      username,
-		isVerifiedBot: isVerifiedBot,
-		channels:      buildChannels(channels),
-		prefixes:      *buildPrefixes(channels),
-		clientID:      clientID,
-		accessToken:   accessToken,
-		db:            db,
+		username:    username,
+		channels:    buildChannels(channels),
+		prefixes:    *buildPrefixes(channels),
+		clientID:    clientID,
+		accessToken: accessToken,
+		db:          db,
 	}
 }
 
