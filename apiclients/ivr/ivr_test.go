@@ -24,8 +24,9 @@ var (
 	ivrModsAndVIPsModsOnlyResp    = `{"mods":[{"id":"429509069","login":"ip0g","displayName":"iP0G","grantedAt":"2022-10-03T19:55:00.137915435Z"},{"id":"834890604","login":"af2bot","displayName":"af2bot","grantedAt":"2022-10-09T08:13:17.829797513Z"}],"vips":[],"ttl":null}`
 	ivrModsAndVIPsModsAndVIPsResp = `{"mods":[{"id":"100135110","login":"streamelements","displayName":"StreamElements","grantedAt":"2018-07-24T08:29:21.757709759Z"},{"id":"237719657","login":"fossabot","displayName":"Fossabot","grantedAt":"2020-08-16T20:51:55.198556309Z"},{"id":"191202519","login":"spintto","displayName":"spintto","grantedAt":"2022-03-08T14:59:43.671830635Z"},{"id":"514751411","login":"hnoace","displayName":"HNoAce","grantedAt":"2022-08-09T13:35:14.99544541Z"}],"vips":[{"id":"150790620","login":"bakonsword","displayName":"bakonsword","grantedAt":"2022-02-20T19:39:12.355546493Z"},{"id":"145484970","login":"alyjiaht_t","displayName":"alyjiahT_T","grantedAt":"2022-02-25T05:42:16.048233372Z"},{"id":"205748697","login":"avbest","displayName":"AVBest","grantedAt":"2022-03-08T14:31:49.869620222Z"},{"id":"69184756","login":"zaintew_","displayName":"Zaintew_","grantedAt":"2022-09-17T21:43:57.737612548Z"},{"id":"505131195","login":"captkayy","displayName":"captkayy","grantedAt":"2022-09-25T20:15:59.332859708Z"},{"id":"425925187","login":"seagrad","displayName":"seagrad","grantedAt":"2022-10-05T05:51:51.432004125Z"},{"id":"222316577","login":"dafkeee","displayName":"Dafkeee","grantedAt":"2022-10-05T05:52:02.130647633Z"}],"ttl":494}`
 
-	ivrFoundersNoneResp   = `{"founders":[]}`
-	ivrFoundersNormalResp = `{"founders":[{"isSubscribed":false,"entitlementStart":"2022-07-31T00:41:06Z","id":"415575292","login":"fishyykingyy","displayName":"FishyyKingyy"},{"isSubscribed":false,"entitlementStart":"2022-08-13T19:46:18Z","id":"267287250","login":"eljulidi1337","displayName":"eljulidi1337"},{"isSubscribed":true,"entitlementStart":"2022-08-16T15:24:49Z","id":"89075062","login":"sammist","displayName":"SamMist"},{"isSubscribed":true,"entitlementStart":"2022-08-16T15:41:52Z","id":"190634299","login":"leochansz","displayName":"Leochansz"},{"isSubscribed":false,"entitlementStart":"2022-08-17T05:07:54Z","id":"143232353","login":"lexieuzumaki7","displayName":"lexieuzumaki7"},{"isSubscribed":false,"entitlementStart":"2022-08-17T21:44:28Z","id":"65602310","login":"contravz","displayName":"ContraVz"},{"isSubscribed":true,"entitlementStart":"2022-08-18T00:41:48Z","id":"232875294","login":"rott______","displayName":"rott______"},{"isSubscribed":false,"entitlementStart":"2022-08-18T00:48:10Z","id":"610912094","login":"dankjuicer","displayName":"DankJuicer"},{"isSubscribed":false,"entitlementStart":"2022-08-20T20:39:11Z","id":"671024739","login":"kronikz____","displayName":"kronikZ____"},{"isSubscribed":true,"entitlementStart":"2022-08-24T01:48:53Z","id":"408538669","login":"blemplob","displayName":"blemplob"}]}`
+	ivrFoundersNone404Resp = `{"statusCode":404,"requestID":"6e26880e-7b25-448d-bef5-f35c1f41afab","error":{"message":"Specified user has no founders."}}`
+	ivrFoundersNoneResp    = `{"founders":[]}`
+	ivrFoundersNormalResp  = `{"founders":[{"isSubscribed":false,"entitlementStart":"2022-07-31T00:41:06Z","id":"415575292","login":"fishyykingyy","displayName":"FishyyKingyy"},{"isSubscribed":false,"entitlementStart":"2022-08-13T19:46:18Z","id":"267287250","login":"eljulidi1337","displayName":"eljulidi1337"},{"isSubscribed":true,"entitlementStart":"2022-08-16T15:24:49Z","id":"89075062","login":"sammist","displayName":"SamMist"},{"isSubscribed":true,"entitlementStart":"2022-08-16T15:41:52Z","id":"190634299","login":"leochansz","displayName":"Leochansz"},{"isSubscribed":false,"entitlementStart":"2022-08-17T05:07:54Z","id":"143232353","login":"lexieuzumaki7","displayName":"lexieuzumaki7"},{"isSubscribed":false,"entitlementStart":"2022-08-17T21:44:28Z","id":"65602310","login":"contravz","displayName":"ContraVz"},{"isSubscribed":true,"entitlementStart":"2022-08-18T00:41:48Z","id":"232875294","login":"rott______","displayName":"rott______"},{"isSubscribed":false,"entitlementStart":"2022-08-18T00:48:10Z","id":"610912094","login":"dankjuicer","displayName":"DankJuicer"},{"isSubscribed":false,"entitlementStart":"2022-08-20T20:39:11Z","id":"671024739","login":"kronikz____","displayName":"kronikZ____"},{"isSubscribed":true,"entitlementStart":"2022-08-24T01:48:53Z","id":"408538669","login":"blemplob","displayName":"blemplob"}]}`
 )
 
 type fakeServer struct {
@@ -413,6 +414,13 @@ func TestFetchFounders(t *testing.T) {
 		useResp string
 		want    *foundersResponse
 	}{
+		{
+			desc:    "no founders 404",
+			useResp: ivrFoundersNone404Resp,
+			want: &foundersResponse{
+				Founders: nil,
+			},
+		},
 		{
 			desc:    "no founders",
 			useResp: ivrFoundersNoneResp,

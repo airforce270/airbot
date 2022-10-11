@@ -153,6 +153,15 @@ func founders(msg *message.IncomingMessage) ([]*message.Message, error) {
 
 	founders, err := ivr.FetchFounders(targetChannel)
 	if err != nil {
+		if strings.Contains(err.Error(), "Specified user has no founders.") {
+			return []*message.Message{
+				{
+					Channel: msg.Message.Channel,
+					Text:    fmt.Sprintf("%s has no founders", targetChannel),
+				},
+			}, nil
+		}
+
 		return nil, err
 	}
 
