@@ -16,6 +16,7 @@ import (
 var Commands = [...]basecommand.Command{
 	banReasonCommand,
 	currentGameCommand,
+	foundersCommand,
 	modsCommand,
 	nameColorCommand,
 	titleCommand,
@@ -23,7 +24,7 @@ var Commands = [...]basecommand.Command{
 	vipsCommand,
 }
 
-const maxModsOrVIPsPerMessage = 15
+const maxUsersPerMessage = 15
 
 var (
 	banReasonCommandPattern = basecommand.PrefixPattern("(?:banreason|br)")
@@ -41,6 +42,14 @@ var (
 		PrefixOnly: true,
 	}
 	currentGamePattern = regexp.MustCompile(currentGameCommandPattern.String() + `(\w+).*`)
+
+	foundersCommandPattern = basecommand.PrefixPattern("founders")
+	foundersCommand        = basecommand.Command{
+		Pattern:    foundersCommandPattern,
+		Handle:     founders,
+		PrefixOnly: true,
+	}
+	foundersPattern = regexp.MustCompile(foundersCommandPattern.String() + `(\w+).*`)
 
 	modsCommandPattern = basecommand.PrefixPattern("mods")
 	modsCommand        = basecommand.Command{
@@ -135,6 +144,47 @@ func currentGame(msg *message.IncomingMessage) ([]*message.Message, error) {
 	}, nil
 }
 
+func founders(msg *message.IncomingMessage) ([]*message.Message, error) {
+	matches := foundersPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
+	if len(matches) <= 1 {
+		return nil, fmt.Errorf("no channel provided")
+	}
+	targetChannel := strings.ToLower(matches[1])
+
+	founders, err := ivr.FetchFounders(targetChannel)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(founders.Founders) == 0 {
+		return []*message.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("%s has no founders", targetChannel),
+			},
+		}, nil
+	}
+
+	foundersGroups := chunkBy(founders.Founders, maxUsersPerMessage)
+
+	var messages []*message.Message
+
+	for i, foundersGroup := range foundersGroups {
+		var text string
+		if i == 0 {
+			text = fmt.Sprintf("%s's founders are: %s", targetChannel, strings.Join(namesFromFounders(foundersGroup), ", "))
+		} else {
+			text = strings.Join(namesFromFounders(foundersGroup), ", ")
+		}
+		if len(foundersGroups) > 1 && len(foundersGroups)-1 != i {
+			text += ","
+		}
+		messages = append(messages, &message.Message{Channel: msg.Message.Channel, Text: text})
+	}
+
+	return messages, nil
+}
+
 func mods(msg *message.IncomingMessage) ([]*message.Message, error) {
 	matches := modsPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
 	if len(matches) <= 1 {
@@ -156,7 +206,7 @@ func mods(msg *message.IncomingMessage) ([]*message.Message, error) {
 		}, nil
 	}
 
-	modGroups := chunkBy(modsAndVIPs.Mods, maxModsOrVIPsPerMessage)
+	modGroups := chunkBy(modsAndVIPs.Mods, maxUsersPerMessage)
 
 	var messages []*message.Message
 
@@ -269,7 +319,7 @@ func vips(msg *message.IncomingMessage) ([]*message.Message, error) {
 		}, nil
 	}
 
-	vipGroups := chunkBy(modsAndVIPs.VIPs, maxModsOrVIPsPerMessage)
+	vipGroups := chunkBy(modsAndVIPs.VIPs, maxUsersPerMessage)
 
 	var messages []*message.Message
 	for i, vipGroup := range vipGroups {
@@ -286,6 +336,14 @@ func vips(msg *message.IncomingMessage) ([]*message.Message, error) {
 	}
 
 	return messages, nil
+}
+
+func namesFromFounders(users []*ivr.Founder) []string {
+	var names []string
+	for _, user := range users {
+		names = append(names, user.DisplayName)
+	}
+	return names
 }
 
 func namesFromModsOrVIPs(users []*ivr.ModOrVIPUser) []string {

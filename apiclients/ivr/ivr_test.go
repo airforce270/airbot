@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	originalIvrBaseUrl = ivrBaseURL
+	originalIvrBaseUrl = baseURL
 
 	ivrTwitchUserNotStreamingResp = `{"banned":false,"displayName":"xQc","login":"xqc","id":"71092938","bio":"THE BEST AT ABSOLUTELY EVERYTHING. THE JUICER. LEADER OF THE JUICERS.","follows":207,"followers":11226373,"profileViewCount":524730962,"chatColor":"#0000FF","logo":"https://static-cdn.jtvnw.net/jtv_user_pictures/xqc-profile_image-9298dca608632101-600x600.jpeg","banner":"https://static-cdn.jtvnw.net/jtv_user_pictures/83e86af1-9a6c-42b1-98e2-3f6238a744b5-profile_banner-480.png","verifiedBot":false,"createdAt":"2014-09-12T23:50:05.989719Z","updatedAt":"2022-10-06T20:43:00.256907Z","emotePrefix":"xqc","roles":{"isAffiliate":false,"isPartner":true,"isStaff":null},"badges":[{"setID":"partner","title":"Verified","description":"Verified","version":"1"}],"chatSettings":{"chatDelayMs":0,"followersOnlyDurationMinutes":1440,"slowModeDurationSeconds":null,"blockLinks":false,"isSubscribersOnlyModeEnabled":false,"isEmoteOnlyModeEnabled":false,"isFastSubsModeEnabled":false,"isUniqueChatModeEnabled":false,"requireVerifiedAccount":false,"rules":["English please","Fresh memes"]},"stream":null,"lastBroadcast":{"startedAt":"2022-10-06T22:47:39.840638Z","title":"🟧JUICED EP2. !FANSLY🟧CLICK NOW🟧FT. JERMA🟧& AUSTIN🟧& LUDWIG🟧& CONNOREATSPANTS🟧& ME🟧JOIN NOW🟧FAST🟧BEFORE I LOSE IT🟧BIG🟧#SPONSORED"},"panels":[{"id":"124112525"},{"id":"98109996"},{"id":"44997828"},{"id":"32221884"},{"id":"12592823"},{"id":"6720150"},{"id":"77693957"},{"id":"12592818"},{"id":"8847001"},{"id":"22113669"},{"id":"8847029"},{"id":"22360616"},{"id":"14506832"},{"id":"22360618"}]}`
 	ivrTwitchUserStreamingResp    = `{"banned":false,"displayName":"xQt0001","login":"xqt0001","id":"591140996","bio":"GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA ","follows":144,"followers":1940,"profileViewCount":190,"chatColor":"#FDFF00","logo":"https://static-cdn.jtvnw.net/jtv_user_pictures/a5fecb44-bb38-4739-aa04-371cc1ea4152-profile_image-600x600.png","banner":"https://static-cdn.jtvnw.net/jtv_user_pictures/fb78db5c-0078-4e85-bfe1-f527f19d9a22-profile_banner-480.jpeg","verifiedBot":false,"createdAt":"2020-10-02T16:25:47.819212Z","updatedAt":"2022-10-09T03:41:23.622605Z","emotePrefix":"xqt000","roles":{"isAffiliate":true,"isPartner":false,"isStaff":null},"badges":[{"setID":"premium","title":"Prime Gaming","description":"Prime Gaming","version":"1"}],"chatSettings":{"chatDelayMs":0,"followersOnlyDurationMinutes":null,"slowModeDurationSeconds":null,"blockLinks":false,"isSubscribersOnlyModeEnabled":false,"isEmoteOnlyModeEnabled":false,"isFastSubsModeEnabled":false,"isUniqueChatModeEnabled":false,"requireVerifiedAccount":false,"rules":[]},"stream":{"title":"tiktok esport #228 i guess","id":"39929884600","createdAt":"2022-10-09T22:00:33Z","type":"live","viewersCount":77,"game":{"displayName":"Just Chatting"}},"lastBroadcast":{"startedAt":"2022-10-09T22:00:37.637909Z","title":"tiktok esport #228 i guess"},"panels":[]}`
@@ -23,6 +23,9 @@ var (
 	ivrModsAndVIPsNoneResp        = `{"mods":[],"vips":[],"ttl":1016}`
 	ivrModsAndVIPsModsOnlyResp    = `{"mods":[{"id":"429509069","login":"ip0g","displayName":"iP0G","grantedAt":"2022-10-03T19:55:00.137915435Z"},{"id":"834890604","login":"af2bot","displayName":"af2bot","grantedAt":"2022-10-09T08:13:17.829797513Z"}],"vips":[],"ttl":null}`
 	ivrModsAndVIPsModsAndVIPsResp = `{"mods":[{"id":"100135110","login":"streamelements","displayName":"StreamElements","grantedAt":"2018-07-24T08:29:21.757709759Z"},{"id":"237719657","login":"fossabot","displayName":"Fossabot","grantedAt":"2020-08-16T20:51:55.198556309Z"},{"id":"191202519","login":"spintto","displayName":"spintto","grantedAt":"2022-03-08T14:59:43.671830635Z"},{"id":"514751411","login":"hnoace","displayName":"HNoAce","grantedAt":"2022-08-09T13:35:14.99544541Z"}],"vips":[{"id":"150790620","login":"bakonsword","displayName":"bakonsword","grantedAt":"2022-02-20T19:39:12.355546493Z"},{"id":"145484970","login":"alyjiaht_t","displayName":"alyjiahT_T","grantedAt":"2022-02-25T05:42:16.048233372Z"},{"id":"205748697","login":"avbest","displayName":"AVBest","grantedAt":"2022-03-08T14:31:49.869620222Z"},{"id":"69184756","login":"zaintew_","displayName":"Zaintew_","grantedAt":"2022-09-17T21:43:57.737612548Z"},{"id":"505131195","login":"captkayy","displayName":"captkayy","grantedAt":"2022-09-25T20:15:59.332859708Z"},{"id":"425925187","login":"seagrad","displayName":"seagrad","grantedAt":"2022-10-05T05:51:51.432004125Z"},{"id":"222316577","login":"dafkeee","displayName":"Dafkeee","grantedAt":"2022-10-05T05:52:02.130647633Z"}],"ttl":494}`
+
+	ivrFoundersNoneResp   = `{"founders":[]}`
+	ivrFoundersNormalResp = `{"founders":[{"isSubscribed":false,"entitlementStart":"2022-07-31T00:41:06Z","id":"415575292","login":"fishyykingyy","displayName":"FishyyKingyy"},{"isSubscribed":false,"entitlementStart":"2022-08-13T19:46:18Z","id":"267287250","login":"eljulidi1337","displayName":"eljulidi1337"},{"isSubscribed":true,"entitlementStart":"2022-08-16T15:24:49Z","id":"89075062","login":"sammist","displayName":"SamMist"},{"isSubscribed":true,"entitlementStart":"2022-08-16T15:41:52Z","id":"190634299","login":"leochansz","displayName":"Leochansz"},{"isSubscribed":false,"entitlementStart":"2022-08-17T05:07:54Z","id":"143232353","login":"lexieuzumaki7","displayName":"lexieuzumaki7"},{"isSubscribed":false,"entitlementStart":"2022-08-17T21:44:28Z","id":"65602310","login":"contravz","displayName":"ContraVz"},{"isSubscribed":true,"entitlementStart":"2022-08-18T00:41:48Z","id":"232875294","login":"rott______","displayName":"rott______"},{"isSubscribed":false,"entitlementStart":"2022-08-18T00:48:10Z","id":"610912094","login":"dankjuicer","displayName":"DankJuicer"},{"isSubscribed":false,"entitlementStart":"2022-08-20T20:39:11Z","id":"671024739","login":"kronikz____","displayName":"kronikZ____"},{"isSubscribed":true,"entitlementStart":"2022-08-24T01:48:53Z","id":"408538669","login":"blemplob","displayName":"blemplob"}]}`
 )
 
 type fakeServer struct {
@@ -32,12 +35,12 @@ type fakeServer struct {
 }
 
 func (s *fakeServer) Init() {
-	ivrBaseURL = s.s.URL
+	baseURL = s.s.URL
 }
 
 func (s *fakeServer) Close() {
 	s.s.Close()
-	ivrBaseURL = originalIvrBaseUrl
+	baseURL = originalIvrBaseUrl
 }
 
 func (s *fakeServer) Reset() {
@@ -61,16 +64,16 @@ func TestFetchUser(t *testing.T) {
 	tests := []struct {
 		desc    string
 		useResp string
-		want    *ivrTwitchUserResponse
+		want    *twitchUserResponse
 	}{
 		{
 			desc:    "non streaming user",
 			useResp: ivrTwitchUserNotStreamingResp,
-			want: &ivrTwitchUserResponse{
+			want: &twitchUserResponse{
 				IsBanned:          false,
 				BanReason:         "",
 				DisplayName:       "xQc",
-				Login:             "xqc",
+				Username:          "xqc",
 				ID:                "71092938",
 				Bio:               "THE BEST AT ABSOLUTELY EVERYTHING. THE JUICER. LEADER OF THE JUICERS.",
 				FollowCount:       207,
@@ -137,11 +140,11 @@ func TestFetchUser(t *testing.T) {
 		{
 			desc:    "streaming user",
 			useResp: ivrTwitchUserStreamingResp,
-			want: &ivrTwitchUserResponse{
+			want: &twitchUserResponse{
 				IsBanned:          false,
 				BanReason:         "",
 				DisplayName:       "xQt0001",
-				Login:             "xqt0001",
+				Username:          "xqt0001",
 				ID:                "591140996",
 				Bio:               "GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA ",
 				FollowCount:       144,
@@ -197,11 +200,11 @@ func TestFetchUser(t *testing.T) {
 		{
 			desc:    "banned user",
 			useResp: ivrTwitchUserBannedResp,
-			want: &ivrTwitchUserResponse{
+			want: &twitchUserResponse{
 				IsBanned:          true,
 				BanReason:         "TOS_INDEFINITE",
 				DisplayName:       "SeaGrade",
-				Login:             "seagrade",
+				Username:          "seagrade",
 				ID:                "245821818",
 				Bio:               "unbanned",
 				FollowCount:       5,
@@ -275,12 +278,12 @@ func TestFetchModsAndVIPs(t *testing.T) {
 	tests := []struct {
 		desc    string
 		useResp string
-		want    *ivrModsAndVIPsResponse
+		want    *modsAndVIPsResponse
 	}{
 		{
 			desc:    "no mods or vips",
 			useResp: ivrModsAndVIPsNoneResp,
-			want: &ivrModsAndVIPsResponse{
+			want: &modsAndVIPsResponse{
 				Mods: []*ModOrVIPUser{},
 				VIPs: []*ModOrVIPUser{},
 			},
@@ -288,17 +291,17 @@ func TestFetchModsAndVIPs(t *testing.T) {
 		{
 			desc:    "mods only",
 			useResp: ivrModsAndVIPsModsOnlyResp,
-			want: &ivrModsAndVIPsResponse{
+			want: &modsAndVIPsResponse{
 				Mods: []*ModOrVIPUser{
 					{
 						ID:          "429509069",
-						Login:       "ip0g",
+						Username:    "ip0g",
 						DisplayName: "iP0G",
 						GrantedAt:   time.Date(2022, 10, 3, 19, 55, 0, 137915435, time.UTC),
 					},
 					{
 						ID:          "834890604",
-						Login:       "af2bot",
+						Username:    "af2bot",
 						DisplayName: "af2bot",
 						GrantedAt:   time.Date(2022, 10, 9, 8, 13, 17, 829797513, time.UTC),
 					},
@@ -309,29 +312,29 @@ func TestFetchModsAndVIPs(t *testing.T) {
 		{
 			desc:    "large, many mods and vips",
 			useResp: ivrModsAndVIPsModsAndVIPsResp,
-			want: &ivrModsAndVIPsResponse{
+			want: &modsAndVIPsResponse{
 				Mods: []*ModOrVIPUser{
 					{
 						ID:          "100135110",
-						Login:       "streamelements",
+						Username:    "streamelements",
 						DisplayName: "StreamElements",
 						GrantedAt:   time.Date(2018, 7, 24, 8, 29, 21, 757709759, time.UTC),
 					},
 					{
 						ID:          "237719657",
-						Login:       "fossabot",
+						Username:    "fossabot",
 						DisplayName: "Fossabot",
 						GrantedAt:   time.Date(2020, 8, 16, 20, 51, 55, 198556309, time.UTC),
 					},
 					{
 						ID:          "191202519",
-						Login:       "spintto",
+						Username:    "spintto",
 						DisplayName: "spintto",
 						GrantedAt:   time.Date(2022, 3, 8, 14, 59, 43, 671830635, time.UTC),
 					},
 					{
 						ID:          "514751411",
-						Login:       "hnoace",
+						Username:    "hnoace",
 						DisplayName: "HNoAce",
 						GrantedAt:   time.Date(2022, 8, 9, 13, 35, 14, 995445410, time.UTC),
 					},
@@ -339,43 +342,43 @@ func TestFetchModsAndVIPs(t *testing.T) {
 				VIPs: []*ModOrVIPUser{
 					{
 						ID:          "150790620",
-						Login:       "bakonsword",
+						Username:    "bakonsword",
 						DisplayName: "bakonsword",
 						GrantedAt:   time.Date(2022, 2, 20, 19, 39, 12, 355546493, time.UTC),
 					},
 					{
 						ID:          "145484970",
-						Login:       "alyjiaht_t",
+						Username:    "alyjiaht_t",
 						DisplayName: "alyjiahT_T",
 						GrantedAt:   time.Date(2022, 2, 25, 5, 42, 16, 48233372, time.UTC),
 					},
 					{
 						ID:          "205748697",
-						Login:       "avbest",
+						Username:    "avbest",
 						DisplayName: "AVBest",
 						GrantedAt:   time.Date(2022, 3, 8, 14, 31, 49, 869620222, time.UTC),
 					},
 					{
 						ID:          "69184756",
-						Login:       "zaintew_",
+						Username:    "zaintew_",
 						DisplayName: "Zaintew_",
 						GrantedAt:   time.Date(2022, 9, 17, 21, 43, 57, 737612548, time.UTC),
 					},
 					{
 						ID:          "505131195",
-						Login:       "captkayy",
+						Username:    "captkayy",
 						DisplayName: "captkayy",
 						GrantedAt:   time.Date(2022, 9, 25, 20, 15, 59, 332859708, time.UTC),
 					},
 					{
 						ID:          "425925187",
-						Login:       "seagrad",
+						Username:    "seagrad",
 						DisplayName: "seagrad",
 						GrantedAt:   time.Date(2022, 10, 5, 5, 51, 51, 432004125, time.UTC),
 					},
 					{
 						ID:          "222316577",
-						Login:       "dafkeee",
+						Username:    "dafkeee",
 						DisplayName: "Dafkeee",
 						GrantedAt:   time.Date(2022, 10, 5, 5, 52, 2, 130647633, time.UTC),
 					},
@@ -394,6 +397,113 @@ func TestFetchModsAndVIPs(t *testing.T) {
 
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Errorf("FetchModsAndVIPs() diff (-want +got):\n%s", diff)
+			}
+		})
+		server.Reset()
+	}
+}
+
+func TestFetchFounders(t *testing.T) {
+	server := newFakeServer()
+	server.Init()
+	defer server.Close()
+
+	tests := []struct {
+		desc    string
+		useResp string
+		want    *foundersResponse
+	}{
+		{
+			desc:    "no founders",
+			useResp: ivrFoundersNoneResp,
+			want: &foundersResponse{
+				Founders: []*Founder{},
+			},
+		},
+		{
+			desc:    "founders",
+			useResp: ivrFoundersNormalResp,
+			want: &foundersResponse{
+				Founders: []*Founder{
+					{
+						ID:                "415575292",
+						Username:          "fishyykingyy",
+						DisplayName:       "FishyyKingyy",
+						InitiallySubbedAt: time.Date(2022, 7, 31, 0, 41, 6, 0, time.UTC),
+					},
+					{
+						ID:                "267287250",
+						Username:          "eljulidi1337",
+						DisplayName:       "eljulidi1337",
+						InitiallySubbedAt: time.Date(2022, 8, 13, 19, 46, 18, 0, time.UTC),
+					},
+					{
+						ID:                "89075062",
+						Username:          "sammist",
+						DisplayName:       "SamMist",
+						InitiallySubbedAt: time.Date(2022, 8, 16, 15, 24, 49, 0, time.UTC),
+						IsSubscribed:      true,
+					},
+					{
+						ID:                "190634299",
+						Username:          "leochansz",
+						DisplayName:       "Leochansz",
+						InitiallySubbedAt: time.Date(2022, 8, 16, 15, 41, 52, 0, time.UTC),
+						IsSubscribed:      true,
+					},
+					{
+						ID:                "143232353",
+						Username:          "lexieuzumaki7",
+						DisplayName:       "lexieuzumaki7",
+						InitiallySubbedAt: time.Date(2022, 8, 17, 5, 7, 54, 0, time.UTC),
+					},
+					{
+						ID:                "65602310",
+						Username:          "contravz",
+						DisplayName:       "ContraVz",
+						InitiallySubbedAt: time.Date(2022, 8, 17, 21, 44, 28, 0, time.UTC),
+					},
+					{
+						ID:                "232875294",
+						Username:          "rott______",
+						DisplayName:       "rott______",
+						InitiallySubbedAt: time.Date(2022, 8, 18, 0, 41, 48, 0, time.UTC),
+						IsSubscribed:      true,
+					},
+					{
+						ID:                "610912094",
+						Username:          "dankjuicer",
+						DisplayName:       "DankJuicer",
+						InitiallySubbedAt: time.Date(2022, 8, 18, 0, 48, 10, 0, time.UTC),
+					},
+					{
+						ID:                "671024739",
+						Username:          "kronikz____",
+						DisplayName:       "kronikZ____",
+						InitiallySubbedAt: time.Date(2022, 8, 20, 20, 39, 11, 0, time.UTC),
+					},
+					{
+						ID:                "408538669",
+						Username:          "blemplob",
+						DisplayName:       "blemplob",
+						InitiallySubbedAt: time.Date(2022, 8, 24, 1, 48, 53, 0, time.UTC),
+						IsSubscribed:      true,
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		server.Resp = tc.useResp
+		t.Run(tc.desc, func(t *testing.T) {
+			got, err := FetchFounders("fakeusername")
+			if err != nil {
+				t.Fatalf("FetchFounders() unexpected error: %v", err)
+			}
+
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Errorf("FetchFounders() diff (-want +got):\n%s", diff)
 			}
 		})
 		server.Reset()

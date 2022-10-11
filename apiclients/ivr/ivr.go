@@ -9,19 +9,19 @@ import (
 	"time"
 )
 
-var ivrBaseURL = "https://api.ivr.fi"
+var baseURL = "https://api.ivr.fi"
 
-// ivrTwitchUserResponse is the type that the IVR API responds with
+// twitchUserResponse is the type that the IVR API responds with
 // for calls to /v2/twitch/user/{user}.
-type ivrTwitchUserResponse struct {
+type twitchUserResponse struct {
 	// IsBanned is whether the user is banned on Twitch or not.
 	IsBanned bool `json:"banned"`
 	// BanReason is the reason the user was banned.
 	BanReason string `json:"banReason"`
 	// DisplayName is the user's name as it's displayed.
 	DisplayName string `json:"displayName"`
-	// Login is the user's login username. Usually DisplayName lowercased.
-	Login string `json:"login"`
+	// Username is the user's login username. Usually is DisplayName lowercased.
+	Username string `json:"login"`
 	// ID is the user's Twitch id.
 	ID string `json:"id"`
 	// Bio is the user's bio.
@@ -151,8 +151,9 @@ type panelInfo struct {
 	ID string `json:"id"`
 }
 
-// ivrModsAndVIPsResponse contains information about the mods and VIPs of a channel.
-type ivrModsAndVIPsResponse struct {
+// modsAndVIPsResponse is the type that the IVR API responds with
+// for calls to /v2/twitch/modvip/{user}.
+type modsAndVIPsResponse struct {
 	// Mods is the moderators of the channel.
 	Mods []*ModOrVIPUser `json:"mods"`
 	// VIPs is the VIPs of the channel.
@@ -163,22 +164,42 @@ type ivrModsAndVIPsResponse struct {
 type ModOrVIPUser struct {
 	// ID is the user's Twitch ID.
 	ID string `json:"id"`
-	// Login is the user's twitch username.
-	Login string `json:"login"`
+	// Username is the user's twitch username.
+	Username string `json:"login"`
 	// DisplayName is the user's display name.
 	DisplayName string `json:"displayName"`
 	// GrantedAt is when the user was made a mod/VIP.
 	GrantedAt time.Time `json:"grantedAt"`
 }
 
+// foundersResponse is the type that the IVR API responds with
+// for calls to /v2/twitch/founders/{user}.
+type foundersResponse struct {
+	Founders []*Founder `json:"founders"`
+}
+
+// Founder contains information about a channel's founder.
+type Founder struct {
+	// ID is the user's Twitch ID.
+	ID string `json:"id"`
+	// Username is the user's twitch username.
+	Username string `json:"login"`
+	// DisplayName is the user's display name.
+	DisplayName string `json:"displayName"`
+	// InitiallySubbedAt is when the user initially subbed to the channel.
+	InitiallySubbedAt time.Time `json:"entitlementStart"`
+	// IsSubscribed is whether the user is currently subscribed.
+	IsSubscribed bool `json:"isSubscribed"`
+}
+
 // FetchUser fetches a user's info from the IVR API.
-func FetchUser(username string) (*ivrTwitchUserResponse, error) {
-	body, err := ivrGet(fmt.Sprintf("%s/v2/twitch/user/%s?id=false", ivrBaseURL, username))
+func FetchUser(username string) (*twitchUserResponse, error) {
+	body, err := get(fmt.Sprintf("%s/v2/twitch/user/%s?id=false", baseURL, username))
 	if err != nil {
 		return nil, err
 	}
 
-	resp := ivrTwitchUserResponse{}
+	resp := twitchUserResponse{}
 	if err = json.Unmarshal(body, &resp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
 	}
@@ -186,13 +207,13 @@ func FetchUser(username string) (*ivrTwitchUserResponse, error) {
 	return &resp, nil
 }
 
-func FetchModsAndVIPs(channel string) (*ivrModsAndVIPsResponse, error) {
-	body, err := ivrGet(fmt.Sprintf("%s/v2/twitch/modvip/%s", ivrBaseURL, channel))
+func FetchModsAndVIPs(channel string) (*modsAndVIPsResponse, error) {
+	body, err := get(fmt.Sprintf("%s/v2/twitch/modvip/%s", baseURL, channel))
 	if err != nil {
 		return nil, err
 	}
 
-	resp := ivrModsAndVIPsResponse{}
+	resp := modsAndVIPsResponse{}
 	if err = json.Unmarshal(body, &resp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
 	}
@@ -200,7 +221,21 @@ func FetchModsAndVIPs(channel string) (*ivrModsAndVIPsResponse, error) {
 	return &resp, nil
 }
 
-func ivrGet(reqURL string) (respBody []byte, err error) {
+func FetchFounders(channel string) (*foundersResponse, error) {
+	body, err := get(fmt.Sprintf("%s/v2/twitch/founders/%s", baseURL, channel))
+	if err != nil {
+		return nil, err
+	}
+
+	resp := foundersResponse{}
+	if err = json.Unmarshal(body, &resp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
+	}
+
+	return &resp, nil
+}
+
+func get(reqURL string) (respBody []byte, err error) {
 	httpResp, err := http.Get(reqURL)
 	if err != nil {
 		return nil, err
