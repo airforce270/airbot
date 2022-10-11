@@ -16,6 +16,7 @@ import (
 var Commands = [...]basecommand.Command{
 	banReasonCommand,
 	currentGameCommand,
+	nameColorCommand,
 	titleCommand,
 	verifiedBotCommand,
 }
@@ -36,6 +37,14 @@ var (
 		PrefixOnly: true,
 	}
 	currentGamePattern = regexp.MustCompile(currentGameCommandPattern.String() + `(\w+).*`)
+
+	nameColorCommandPattern = basecommand.PrefixPattern("namecolor")
+	nameColorCommand        = basecommand.Command{
+		Pattern:    nameColorCommandPattern,
+		Handle:     nameColor,
+		PrefixOnly: true,
+	}
+	nameColorPattern = regexp.MustCompile(nameColorCommandPattern.String() + `(\w+).*`)
 
 	titleCommandPattern = basecommand.PrefixPattern("title")
 	titleCommand        = basecommand.Command{
@@ -102,6 +111,26 @@ func currentGame(msg *message.IncomingMessage) ([]*message.Message, error) {
 		{
 			Channel: msg.Message.Channel,
 			Text:    fmt.Sprintf("%s is currenly playing %s", channel.BroadcasterName, channel.GameName),
+		},
+	}, nil
+}
+
+func nameColor(msg *message.IncomingMessage) ([]*message.Message, error) {
+	matches := nameColorPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
+	if len(matches) <= 1 {
+		return nil, fmt.Errorf("no channel provided")
+	}
+	targetChannel := strings.ToLower(matches[1])
+
+	user, err := ivr.FetchUser(targetChannel)
+	if err != nil {
+		return nil, err
+	}
+
+	return []*message.Message{
+		{
+			Channel: msg.Message.Channel,
+			Text:    fmt.Sprintf("%s's name color is %s", user.DisplayName, user.ChatColor),
 		},
 	}, nil
 }
