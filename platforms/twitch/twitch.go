@@ -64,7 +64,7 @@ func (t *Twitch) Send(m message.Message) error {
 	// If the bot has "normal permissions" (not verified, mod, or VIP),
 	// sending the message too quickly will get it held back.
 	if !t.isVerifiedBot && !channel.BotIsModerator && !channel.BotIsVIP {
-		time.Sleep(time.Millisecond * 400)
+		time.Sleep(time.Millisecond * 100)
 	}
 
 	t.i.Say(m.Channel, m.Text)
