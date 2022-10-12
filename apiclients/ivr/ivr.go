@@ -227,7 +227,7 @@ func FetchFounders(channel string) (*foundersResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	//
+	// The IVR API responds with a 404 when the user has no founders.
 	if httpResp.StatusCode == http.StatusNotFound {
 		return &foundersResponse{}, nil
 	}
