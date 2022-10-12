@@ -3,10 +3,10 @@
 echo 'Doing pre-install cleanup...'
 git pull
 sudo apt-get remove \
-    docker
-    docker-engine
-    docker.io
-    containerd
+    docker \
+    docker-engine \
+    docker.io \
+    containerd \
     runc
 
 echo 'Updating packages...'
