@@ -2,6 +2,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	"os/signal"
 	"sync"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/database"
-	"github.com/airforce270/airbot/logs"
 	"github.com/airforce270/airbot/platforms"
 )
 
@@ -36,7 +36,7 @@ func startListeningForSigterm() {
 		<-c
 		for _, f := range cleanupFuncs {
 			if err := f.f(); err != nil {
-				logs.Printf("cleanup function %s failed: %v", f.name, err)
+				log.Printf("cleanup function %s failed: %v", f.name, err)
 			}
 		}
 		os.Exit(1)
@@ -51,42 +51,44 @@ func wait() {
 }
 
 func main() {
-	logs.Printf("Reading config from %s...", configFileName)
+	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
+
+	log.Printf("Reading config from %s...", configFileName)
 	cfg, err := config.Read(configFileName)
 	if err != nil {
-		logs.Fatalf("failed to read config from %s: %v", configFileName, err)
+		log.Fatalf("failed to read config from %s: %v", configFileName, err)
 	}
 
-	logs.Printf("Connecting to database...")
+	log.Printf("Connecting to database...")
 	db, err := database.Connect(os.Getenv("POSTGRES_DB"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"))
 	if err != nil {
-		logs.Fatalf("failed to connect to database: %v", err)
+		log.Fatalf("failed to connect to database: %v", err)
 	}
 
-	logs.Printf("Performing database migrations...")
+	log.Printf("Performing database migrations...")
 	if database.Migrate(db); err != nil {
-		logs.Fatalf("failed to perform database migrations: %v", err)
+		log.Fatalf("failed to perform database migrations: %v", err)
 	}
 
-	logs.Printf("Preparing chat connections...")
+	log.Printf("Preparing chat connections...")
 	ps, err := platforms.Build(cfg, db)
 	if err != nil {
-		logs.Fatalf("Failed to build platforms: %v", err)
+		log.Fatalf("Failed to build platforms: %v", err)
 	}
 
 	for _, p := range ps {
-		logs.Printf("Connecting to %s...", p.Name())
+		log.Printf("Connecting to %s...", p.Name())
 		if err := p.Connect(); err != nil {
-			logs.Fatalf("Failed to connect to %s: %v", p.Name(), err)
+			log.Fatalf("Failed to connect to %s: %v", p.Name(), err)
 		}
 
-		logs.Printf("Starting to handle messages on %s...", p.Name())
+		log.Printf("Starting to handle messages on %s...", p.Name())
 		go platforms.StartHandling(p, db, cfg.LogIncoming, cfg.LogOutgoing)
 		cleanupFuncs = append(cleanupFuncs, cleanupFunc{name: p.Name(), f: p.Disconnect})
 	}
 
 	startListeningForSigterm()
 
-	logs.Printf("Airbot is now running.")
+	log.Printf("Airbot is now running.")
 	wait()
 }

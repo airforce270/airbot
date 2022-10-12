@@ -3,13 +3,13 @@ package twitch
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
 	"github.com/airforce270/airbot/apiclients/ivr"
 	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/database/model"
-	"github.com/airforce270/airbot/logs"
 	"github.com/airforce270/airbot/message"
 
 	twitchirc "github.com/gempir/go-twitch-irc/v3"
@@ -89,12 +89,12 @@ func (t *Twitch) Listen() chan message.IncomingMessage {
 }
 
 func (t *Twitch) Connect() error {
-	logs.Printf("Creating Twitch IRC client...")
+	log.Printf("Creating Twitch IRC client...")
 	i := twitchirc.NewClient(t.username, fmt.Sprintf("oauth:%s", t.accessToken))
 	t.i = i
 
-	t.i.OnUserNoticeMessage(func(msg twitchirc.UserNoticeMessage) { logs.Printf("[Twitch] USERNOTICE: %s", msg.Raw) })
-	t.i.OnNoticeMessage(func(msg twitchirc.NoticeMessage) { logs.Printf("[Twitch] NOTICE: %s", msg.Raw) })
+	t.i.OnUserNoticeMessage(func(msg twitchirc.UserNoticeMessage) { log.Printf("[Twitch] USERNOTICE: %s", msg.Raw) })
+	t.i.OnNoticeMessage(func(msg twitchirc.NoticeMessage) { log.Printf("[Twitch] NOTICE: %s", msg.Raw) })
 
 	ivrUsers, err := ivr.FetchUsers(t.username)
 	if err != nil {
@@ -108,11 +108,11 @@ func (t *Twitch) Connect() error {
 	}
 
 	if t.isVerifiedBot {
-		logs.Printf("[Twitch] Bot user %s is a verified bot, using increased rate limit", t.username)
+		log.Printf("[Twitch] Bot user %s is a verified bot, using increased rate limit", t.username)
 		t.i.SetJoinRateLimiter(twitchirc.CreateVerifiedRateLimiter())
 	}
 
-	logs.Printf("Connecting to Twitch IRC...")
+	log.Printf("Connecting to Twitch IRC...")
 	twitchIRCReady := make(chan bool)
 	t.i.OnConnect(func() { twitchIRCReady <- true })
 	go func() {
@@ -123,11 +123,11 @@ func (t *Twitch) Connect() error {
 	<-twitchIRCReady
 
 	for _, channel := range t.channels {
-		logs.Printf("Joining Twitch channel %s...", channel.Name)
+		log.Printf("Joining Twitch channel %s...", channel.Name)
 		i.Join(channel.Name)
 	}
 
-	logs.Printf("Connecting to Twitch API...")
+	log.Printf("Connecting to Twitch API...")
 	h, err := helix.NewClient(&helix.Options{
 		ClientID:        t.clientID,
 		UserAccessToken: t.accessToken,
@@ -153,10 +153,10 @@ func (t *Twitch) Connect() error {
 
 func (t *Twitch) Disconnect() error {
 	for _, channel := range t.channels {
-		logs.Printf("Leaving Twitch channel %s...", channel.Name)
+		log.Printf("Leaving Twitch channel %s...", channel.Name)
 		t.i.Depart(channel.Name)
 	}
-	logs.Printf("Disconnecting from Twitch IRC...")
+	log.Printf("Disconnecting from Twitch IRC...")
 	return t.i.Disconnect()
 }
 
@@ -187,7 +187,7 @@ func (t *Twitch) Channel(channel string) (*helix.ChannelInformation, error) {
 		return nil, fmt.Errorf("no channels found for %s", channel)
 	}
 	if len(resp.Data.Channels) > 1 {
-		logs.Printf("more than one channel found for %s, using the first", channel)
+		log.Printf("more than one channel found for %s, using the first", channel)
 	}
 	return &resp.Data.Channels[0], nil
 }
@@ -195,7 +195,7 @@ func (t *Twitch) Channel(channel string) (*helix.ChannelInformation, error) {
 func (t *Twitch) prefix(channel string) string {
 	p, ok := t.prefixes[strings.ToLower(channel)]
 	if !ok {
-		logs.Printf("No prefix found for channel %s", channel)
+		log.Printf("No prefix found for channel %s", channel)
 		return ""
 	}
 	return p
@@ -218,7 +218,7 @@ func (t *Twitch) listenForModAndVIPChanges() {
 		for _, channel := range t.channels {
 			modsAndVIPs, err := ivr.FetchModsAndVIPs(channel.Name)
 			if err != nil {
-				logs.Printf("Failed to look up mods and VIPs for %s: %v", channel.Name, err)
+				log.Printf("Failed to look up mods and VIPs for %s: %v", channel.Name, err)
 				break
 			}
 			go t.updateModStatusForChannel(channel, modsAndVIPs.Mods)
@@ -232,24 +232,24 @@ func (t *Twitch) listenForModAndVIPChanges() {
 func (t *Twitch) updateModStatusForChannel(channel *twitchChannel, mods []*ivr.ModOrVIPUser) {
 	for _, mod := range mods {
 		if mod.ID == t.id || t.username == channel.Name {
-			logs.Printf("[Twitch] Determined bot is a mod in channel %q", channel.Name)
+			log.Printf("[Twitch] Determined bot is a mod in channel %q", channel.Name)
 			channel.BotIsModerator = true
 			return
 		}
 	}
-	logs.Printf("[Twitch] Determined bot is not a mod in channel %q", channel.Name)
+	log.Printf("[Twitch] Determined bot is not a mod in channel %q", channel.Name)
 	channel.BotIsModerator = false
 }
 
 func (t *Twitch) updateVIPStatusForChannel(channel *twitchChannel, vips []*ivr.ModOrVIPUser) {
 	for _, vip := range vips {
 		if vip.ID == t.id {
-			logs.Printf("[Twitch] Determined bot is a VIP in channel %q", channel.Name)
+			log.Printf("[Twitch] Determined bot is a VIP in channel %q", channel.Name)
 			channel.BotIsVIP = true
 			return
 		}
 	}
-	logs.Printf("[Twitch] Determined bot is not a VIP in channel %q", channel.Name)
+	log.Printf("[Twitch] Determined bot is not a VIP in channel %q", channel.Name)
 	channel.BotIsVIP = false
 }
 

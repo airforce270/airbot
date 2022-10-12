@@ -2,9 +2,10 @@
 package platforms
 
 import (
+	"log"
+
 	"github.com/airforce270/airbot/commands"
 	"github.com/airforce270/airbot/config"
-	"github.com/airforce270/airbot/logs"
 	"github.com/airforce270/airbot/message"
 	"github.com/airforce270/airbot/platforms/twitch"
 
@@ -33,7 +34,7 @@ type Platform interface {
 func Build(cfg *config.Config, db *gorm.DB) (map[string]Platform, error) {
 	p := map[string]Platform{}
 	if twc := cfg.Platforms.Twitch; twc.Enabled {
-		logs.Printf("Building Twitch platform...")
+		log.Printf("Building Twitch platform...")
 		tw := twitch.New(twc.Username, twc.Channels, twc.ClientID, twc.AccessToken, db)
 		twitch.Instance = tw
 		p[tw.Name()] = tw
@@ -56,12 +57,12 @@ func StartHandling(p Platform, db *gorm.DB, logIncoming, logOutgoing bool) {
 // processMessage processes a single message and may send a message in response.
 func processMessage(handler *commands.Handler, db *gorm.DB, p Platform, msg message.IncomingMessage, logIncoming, logOutgoing bool) {
 	if logIncoming {
-		logs.Printf("[%s<- %s/%s]: %s", p.Name(), msg.Message.Channel, msg.Message.User, msg.Message.Text)
+		log.Printf("[%s<- %s/%s]: %s", p.Name(), msg.Message.Channel, msg.Message.User, msg.Message.Text)
 	}
 
 	outMsgs, err := handler.Handle(&msg)
 	if err != nil {
-		logs.Printf("Failed to handle message %v: %v", msg, err)
+		log.Printf("Failed to handle message %v: %v", msg, err)
 		return
 	}
 	if len(outMsgs) == 0 {
@@ -70,11 +71,11 @@ func processMessage(handler *commands.Handler, db *gorm.DB, p Platform, msg mess
 
 	for _, out := range outMsgs {
 		if logOutgoing {
-			logs.Printf("[%s-> %s/%s]: %s", p.Name(), out.Channel, p.Username(), out.Text)
+			log.Printf("[%s-> %s/%s]: %s", p.Name(), out.Channel, p.Username(), out.Text)
 		}
 
 		if err := p.Send(*out); err != nil {
-			logs.Printf("Failed to send message %v: %v", out, err)
+			log.Printf("Failed to send message %v: %v", out, err)
 		}
 	}
 }
