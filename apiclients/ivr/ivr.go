@@ -11,11 +11,9 @@ import (
 
 var baseURL = "https://api.ivr.fi"
 
-// twitchUsersResponse is the type that the IVR API responds with
+// TwitchUsersResponseItem /is the type that the IVR API responds with
 // for calls to /v2/twitch/users.
-type twitchUsersResponse []*twitchUsersResponseItem
-
-type twitchUsersResponseItem struct {
+type TwitchUsersResponseItem struct {
 	// IsBanned is whether the user is banned on Twitch or not.
 	IsBanned bool `json:"banned"`
 	// BanReason is the reason the user was banned.
@@ -194,19 +192,19 @@ type Founder struct {
 	IsSubscribed bool `json:"isSubscribed"`
 }
 
-// FetchUser fetches a user's info from the IVR API.
-func FetchUser(username string) (*twitchUsersResponseItem, error) {
+// FetchUsers fetches a user info from the IVR API.
+func FetchUsers(username string) ([]*TwitchUsersResponseItem, error) {
 	body, err := get(fmt.Sprintf("%s/v2/twitch/user?login=%s", baseURL, username))
 	if err != nil {
 		return nil, err
 	}
 
-	resp := twitchUsersResponse{}
+	resp := []*TwitchUsersResponseItem{}
 	if err = json.Unmarshal(body, &resp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
 	}
 
-	return resp[0], nil
+	return resp, nil
 }
 
 func FetchModsAndVIPs(channel string) (*modsAndVIPsResponse, error) {
@@ -224,9 +222,27 @@ func FetchModsAndVIPs(channel string) (*modsAndVIPsResponse, error) {
 }
 
 func FetchFounders(channel string) (*foundersResponse, error) {
-	body, err := get(fmt.Sprintf("%s/v2/twitch/founders/%s", baseURL, channel))
+	reqURL := fmt.Sprintf("%s/v2/twitch/founders/%s", baseURL, channel)
+	httpResp, err := http.Get(reqURL)
 	if err != nil {
 		return nil, err
+	}
+	//
+	if httpResp.StatusCode == http.StatusNotFound {
+		return &foundersResponse{}, nil
+	}
+	if httpResp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("bad response from IVR API (URL:%s): %v", reqURL, httpResp)
+	}
+
+	if httpResp.Body == nil {
+		return nil, fmt.Errorf("no data returned from IVR API: %v", httpResp)
+	}
+	defer httpResp.Body.Close()
+
+	body, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response from IVR API: %w", err)
 	}
 
 	resp := foundersResponse{}

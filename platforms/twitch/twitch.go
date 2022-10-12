@@ -96,12 +96,15 @@ func (t *Twitch) Connect() error {
 	t.i.OnUserNoticeMessage(func(msg twitchirc.UserNoticeMessage) { logs.Printf("[Twitch] USERNOTICE: %s", msg.Raw) })
 	t.i.OnNoticeMessage(func(msg twitchirc.NoticeMessage) { logs.Printf("[Twitch] NOTICE: %s", msg.Raw) })
 
-	ivrUser, err := ivr.FetchUser(t.username)
+	ivrUsers, err := ivr.FetchUsers(t.username)
 	if err != nil {
 		fmt.Printf("Failed to fetch info about %s from IVR, assuming not a verified bot: %v", t.username, err)
 		t.isVerifiedBot = false
+	} else if len(ivrUsers) != 1 {
+		fmt.Printf("IVR API returned %d users for %s, assuming not a verified bot: %v", len(ivrUsers), t.username, ivrUsers)
+		t.isVerifiedBot = false
 	} else {
-		t.isVerifiedBot = ivrUser.IsVerifiedBot
+		t.isVerifiedBot = ivrUsers[0].IsVerifiedBot
 	}
 
 	if t.isVerifiedBot {

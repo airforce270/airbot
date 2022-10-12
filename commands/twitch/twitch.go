@@ -93,16 +93,24 @@ var (
 )
 
 func banReason(msg *message.IncomingMessage) ([]*message.Message, error) {
-	matches := banReasonPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-	if len(matches) <= 1 {
-		return nil, fmt.Errorf("no channel provided")
-	}
-	targetChannel := strings.ToLower(matches[1])
+	targetUser := parseTarget(msg, banReasonPattern)
 
-	user, err := ivr.FetchUser(targetChannel)
+	users, err := ivr.FetchUsers(targetUser)
 	if err != nil {
 		return nil, err
 	}
+	if len(users) == 0 {
+		return []*message.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("Couldn't find user %s", targetUser),
+			},
+		}, nil
+	}
+	if len(users) > 1 {
+		return nil, fmt.Errorf("more than 1 user returned for %s: %v", targetUser, users)
+	}
+	user := users[0]
 
 	var resp string
 	if !user.IsBanned {
@@ -120,11 +128,7 @@ func banReason(msg *message.IncomingMessage) ([]*message.Message, error) {
 }
 
 func currentGame(msg *message.IncomingMessage) ([]*message.Message, error) {
-	matches := currentGamePattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-	if len(matches) <= 1 {
-		return nil, fmt.Errorf("no channel provided")
-	}
-	targetChannel := matches[1]
+	targetChannel := parseTarget(msg, currentGamePattern)
 
 	tw := twitchplatform.Instance
 	if tw == nil {
@@ -136,6 +140,15 @@ func currentGame(msg *message.IncomingMessage) ([]*message.Message, error) {
 		return nil, fmt.Errorf("failed to retrieve channel info for %s: %w", targetChannel, err)
 	}
 
+	if channel.GameName == "" {
+		return []*message.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("%s is not currenly playing anything", channel.BroadcasterName),
+			},
+		}, nil
+	}
+
 	return []*message.Message{
 		{
 			Channel: msg.Message.Channel,
@@ -145,11 +158,7 @@ func currentGame(msg *message.IncomingMessage) ([]*message.Message, error) {
 }
 
 func founders(msg *message.IncomingMessage) ([]*message.Message, error) {
-	matches := foundersPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-	if len(matches) <= 1 {
-		return nil, fmt.Errorf("no channel provided")
-	}
-	targetChannel := strings.ToLower(matches[1])
+	targetChannel := parseTarget(msg, foundersPattern)
 
 	founders, err := ivr.FetchFounders(targetChannel)
 	if err != nil {
@@ -195,11 +204,7 @@ func founders(msg *message.IncomingMessage) ([]*message.Message, error) {
 }
 
 func mods(msg *message.IncomingMessage) ([]*message.Message, error) {
-	matches := modsPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-	if len(matches) <= 1 {
-		return nil, fmt.Errorf("no channel provided")
-	}
-	targetChannel := strings.ToLower(matches[1])
+	targetChannel := parseTarget(msg, modsPattern)
 
 	modsAndVIPs, err := ivr.FetchModsAndVIPs(targetChannel)
 	if err != nil {
@@ -236,16 +241,24 @@ func mods(msg *message.IncomingMessage) ([]*message.Message, error) {
 }
 
 func nameColor(msg *message.IncomingMessage) ([]*message.Message, error) {
-	matches := nameColorPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-	if len(matches) <= 1 {
-		return nil, fmt.Errorf("no channel provided")
-	}
-	targetChannel := strings.ToLower(matches[1])
+	targetUser := parseTarget(msg, nameColorPattern)
 
-	user, err := ivr.FetchUser(targetChannel)
+	users, err := ivr.FetchUsers(targetUser)
 	if err != nil {
 		return nil, err
 	}
+	if len(users) == 0 {
+		return []*message.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("Couldn't find user %s", targetUser),
+			},
+		}, nil
+	}
+	if len(users) > 1 {
+		return nil, fmt.Errorf("more than 1 user returned for %s: %v", targetUser, users)
+	}
+	user := users[0]
 
 	return []*message.Message{
 		{
@@ -256,11 +269,7 @@ func nameColor(msg *message.IncomingMessage) ([]*message.Message, error) {
 }
 
 func title(msg *message.IncomingMessage) ([]*message.Message, error) {
-	matches := titlePattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-	if len(matches) <= 1 {
-		return nil, fmt.Errorf("no channel provided")
-	}
-	targetChannel := matches[1]
+	targetChannel := parseTarget(msg, titlePattern)
 
 	tw := twitchplatform.Instance
 	if tw == nil {
@@ -281,16 +290,24 @@ func title(msg *message.IncomingMessage) ([]*message.Message, error) {
 }
 
 func verifiedBot(msg *message.IncomingMessage) ([]*message.Message, error) {
-	matches := verifiedBotPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-	if len(matches) <= 1 {
-		return nil, fmt.Errorf("no channel provided")
-	}
-	targetChannel := strings.ToLower(matches[1])
+	targetUser := parseTarget(msg, verifiedBotPattern)
 
-	user, err := ivr.FetchUser(targetChannel)
+	users, err := ivr.FetchUsers(targetUser)
 	if err != nil {
 		return nil, err
 	}
+	if len(users) == 0 {
+		return []*message.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("Couldn't find user %s", targetUser),
+			},
+		}, nil
+	}
+	if len(users) > 1 {
+		return nil, fmt.Errorf("more than 1 user returned for %s: %v", targetUser, users)
+	}
+	user := users[0]
 
 	var resp string
 	if user.IsVerifiedBot {
@@ -308,11 +325,7 @@ func verifiedBot(msg *message.IncomingMessage) ([]*message.Message, error) {
 }
 
 func vips(msg *message.IncomingMessage) ([]*message.Message, error) {
-	matches := vipsPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-	if len(matches) <= 1 {
-		return nil, fmt.Errorf("no channel provided")
-	}
-	targetChannel := strings.ToLower(matches[1])
+	targetChannel := parseTarget(msg, vipsPattern)
 
 	modsAndVIPs, err := ivr.FetchModsAndVIPs(targetChannel)
 	if err != nil {
@@ -361,6 +374,14 @@ func namesFromModsOrVIPs(users []*ivr.ModOrVIPUser) []string {
 		names = append(names, user.DisplayName)
 	}
 	return names
+}
+
+func parseTarget(msg *message.IncomingMessage, pattern *regexp.Regexp) string {
+	matches := pattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
+	if len(matches) <= 1 {
+		return strings.ToLower(msg.Message.User)
+	}
+	return strings.ToLower(matches[1])
 }
 
 func chunkBy[T any](items []T, chunkSize int) (chunks [][]T) {
