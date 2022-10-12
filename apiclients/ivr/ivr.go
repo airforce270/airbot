@@ -11,9 +11,11 @@ import (
 
 var baseURL = "https://api.ivr.fi"
 
-// twitchUserResponse is the type that the IVR API responds with
-// for calls to /v2/twitch/user/{user}.
-type twitchUserResponse struct {
+// twitchUsersResponse is the type that the IVR API responds with
+// for calls to /v2/twitch/users.
+type twitchUsersResponse []*twitchUsersResponseItem
+
+type twitchUsersResponseItem struct {
 	// IsBanned is whether the user is banned on Twitch or not.
 	IsBanned bool `json:"banned"`
 	// BanReason is the reason the user was banned.
@@ -193,18 +195,18 @@ type Founder struct {
 }
 
 // FetchUser fetches a user's info from the IVR API.
-func FetchUser(username string) (*twitchUserResponse, error) {
-	body, err := get(fmt.Sprintf("%s/v2/twitch/user/%s?id=false", baseURL, username))
+func FetchUser(username string) (*twitchUsersResponseItem, error) {
+	body, err := get(fmt.Sprintf("%s/v2/twitch/user?login=%s", baseURL, username))
 	if err != nil {
 		return nil, err
 	}
 
-	resp := twitchUserResponse{}
+	resp := twitchUsersResponse{}
 	if err = json.Unmarshal(body, &resp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
 	}
 
-	return &resp, nil
+	return resp[0], nil
 }
 
 func FetchModsAndVIPs(channel string) (*modsAndVIPsResponse, error) {
