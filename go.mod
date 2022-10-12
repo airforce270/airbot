@@ -6,8 +6,8 @@ require (
 	github.com/gempir/go-twitch-irc/v3 v3.2.0
 	github.com/google/go-cmp v0.5.9
 	github.com/nicklaw5/helix/v2 v2.8.0
-	gorm.io/driver/postgres v1.3.10
-	gorm.io/gorm v1.23.10
+	gorm.io/driver/postgres v1.4.4
+	gorm.io/gorm v1.24.0
 )
 
 require (
