@@ -17,5 +17,14 @@ To run the bot:
 - Copy `.example.env` to `.env` in the main directory
 - Set a value for `POSTGRES_PASSWORD` in `.env`
 - Run `./start.sh`
-  - If running in production, run `./start-prod.sh` instead.
-  This will use the latest image from the repo instead of building it.
+
+### Production
+
+To run in production (on a debian machine):
+
+- Clone the repository and change into it
+- Run `cd scripts`
+- Run `./setup-vm-debian.sh` to set up the environment
+- Run `./start-in-tmux.sh` to start the bot in a detached tmux session called `airbot`
+
+If you want to view the logs or kill the bot, run `tmux attach -t airbot`

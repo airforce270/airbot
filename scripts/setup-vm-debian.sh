@@ -31,10 +31,11 @@ sudo apt-get update
 
 echo 'Installing packages...'
 sudo apt-get install \
-    docker-ce
-    docker-ce-cli
-    containerd.io
-    docker-compose-plugin
+    docker-ce \
+    docker-ce-cli \
+    containerd.io \
+    docker-compose-plugin \
+    tmux
 
 echo 'Creating config files...'
 cp .example.env .env
