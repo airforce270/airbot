@@ -12,7 +12,7 @@ import (
 // Commands contains this package's commands.
 var Commands = [...]basecommand.Command{
 	{
-		Pattern:    regexp.MustCompile(`\s*(wh?at( i|')?s the (bot('?s)?)? ?)?prefix\s*`),
+		Pattern:    regexp.MustCompile(`\s*(^|(wh?at( i|')?s (the |air|af2)(bot('?s)?)? ?))prefix\??\s*`),
 		Handle:     prefix,
 		PrefixOnly: false,
 	},

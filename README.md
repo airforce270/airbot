@@ -10,7 +10,8 @@ Support planned for many features (gamba, etc.) and platforms (Twitch, Discord, 
 
 All commands assume the `$` prefix, but note that the prefix is configurable
 per-channel (in `config.json`).
-To find out what the prefix is in a channel, use [$prefix](#prefix).
+To find out what the prefix is in a channel, ask `what's airbot's prefix?`
+in a chat.
 
 Some commands include parameters.
 
@@ -30,7 +31,7 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 - Replies with the prefix in this channel.
 - > Usage: `$prefix`
-- > Also responds to things like `what's the bot's prefix?`
+- > Responds to things like `what's the bot's prefix?` or `whats airbots prefix`
 
 #### $TriHard
 
