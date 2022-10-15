@@ -50,15 +50,15 @@ func (t *Twitch) Name() string { return "Twitch" }
 
 func (t *Twitch) Username() string { return t.username }
 
-func (t *Twitch) Send(m message.Message) error {
+func (t *Twitch) Send(msg message.Message) error {
 	var channel *twitchChannel
 	for _, c := range t.channels {
-		if strings.EqualFold(c.Name, m.Channel) {
+		if strings.EqualFold(c.Name, msg.Channel) {
 			channel = c
 		}
 	}
 	if channel == nil {
-		return fmt.Errorf("can't send message to unjoined channel %q", m.Channel)
+		return fmt.Errorf("can't send message to unjoined channel %q", msg.Channel)
 	}
 
 	// If the bot has "normal permissions" (not verified, mod, or VIP),
@@ -67,7 +67,8 @@ func (t *Twitch) Send(m message.Message) error {
 		time.Sleep(time.Millisecond * 100)
 	}
 
-	t.i.Say(m.Channel, m.Text)
+	go t.persistUserAndMessage(t.id, t.username, msg.Text, msg.Channel, msg.Time)
+	t.i.Say(msg.Channel, msg.Text)
 	return nil
 }
 
