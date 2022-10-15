@@ -10,9 +10,9 @@ import (
 	"github.com/airforce270/airbot/message"
 	"github.com/airforce270/airbot/platforms/twitch"
 	"github.com/airforce270/airbot/testing/fakeserver"
-	"github.com/jinzhu/copier"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/jinzhu/copier"
 	"github.com/nicklaw5/helix/v2"
 )
 
