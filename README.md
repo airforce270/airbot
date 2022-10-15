@@ -10,7 +10,7 @@ Support planned for many features (gamba, etc.) and platforms (Twitch, Discord, 
 
 All commands assume the `$` prefix, but note that the prefix is configurable
 per-channel (in `config.json`).
-To find out what the prefix is in a channel, use [$prefix](#$prefix).
+To find out what the prefix is in a channel, use [$prefix](#prefix).
 
 Some commands include parameters.
 
