@@ -30,6 +30,7 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 - Replies with the prefix in this channel.
 - > Usage: `$prefix`
+- > Also responds to things like `what's the bot's prefix?`
 
 #### $TriHard
 

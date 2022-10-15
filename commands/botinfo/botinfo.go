@@ -3,6 +3,7 @@ package botinfo
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/message"
@@ -11,9 +12,9 @@ import (
 // Commands contains this package's commands.
 var Commands = [...]basecommand.Command{
 	{
-		Pattern:    basecommand.PrefixPattern("prefix"),
+		Pattern:    regexp.MustCompile(`\s*(wh?at( i|')?s the (bot('?s)?)? ?)?prefix\s*`),
 		Handle:     prefix,
-		PrefixOnly: true,
+		PrefixOnly: false,
 	},
 }
 

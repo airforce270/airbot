@@ -10,10 +10,17 @@ import (
 	"github.com/airforce270/airbot/message"
 	"github.com/airforce270/airbot/platforms/twitch"
 	"github.com/airforce270/airbot/testing/fakeserver"
+	"github.com/jinzhu/copier"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/nicklaw5/helix/v2"
 )
+
+type testCase struct {
+	input   *message.IncomingMessage
+	apiResp string
+	want    []*message.Message
+}
 
 func TestCommands(t *testing.T) {
 	server := fakeserver.New()
@@ -21,15 +28,23 @@ func TestCommands(t *testing.T) {
 	defer server.Close()
 	setAPIURLs(server.URL())
 
-	tests := []struct {
-		input   *message.IncomingMessage
-		apiResp string
-		want    []*message.Message
-	}{
-		{
+	tests := flatten(
+		testCasesWithSameOutput([]string{
+			"??prefix",
+			"prefix",
+			"wats the prefix",
+			"whats the prefix",
+			"what's the prefix",
+			"whats the bots prefix",
+			"whats the bot's prefix",
+			"what's the bots prefix",
+			"what's the bot's prefix",
+			"what is the bots prefix",
+			"what is the bot's prefix",
+			"yo what is the bot's prefix bro",
+		}, testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
-					Text:    "??prefix",
 					User:    "someone",
 					Channel: "somechannel",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -42,8 +57,8 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-		{
+		}),
+		singleTestCase(testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
 					Text:    "$commands",
@@ -59,8 +74,8 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-		{
+		}),
+		singleTestCase(testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
 					Text:    "$TriHard",
@@ -76,11 +91,14 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-		{
+		}),
+		testCasesWithSameOutput([]string{
+			"$br",
+			"$banreason",
+			"$banreason banneduser",
+		}, testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
-					Text:    "$banreason",
 					User:    "someone",
 					Channel: "somechannel",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -94,26 +112,8 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-		{
-			input: &message.IncomingMessage{
-				Message: message.Message{
-					Text:    "$banreason banneduser",
-					User:    "someone",
-					Channel: "somechannel",
-					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
-				},
-				Prefix: "$",
-			},
-			apiResp: ivrtest.TwitchUsersBannedResp,
-			want: []*message.Message{
-				{
-					Text:    "SeaGrade's ban reason: TOS_INDEFINITE",
-					Channel: "somechannel",
-				},
-			},
-		},
-		{
+		}),
+		singleTestCase(testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
 					Text:    "$banreason nonbanneduser",
@@ -130,44 +130,8 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-		{
-			input: &message.IncomingMessage{
-				Message: message.Message{
-					Text:    "$br",
-					User:    "someone",
-					Channel: "somechannel",
-					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
-				},
-				Prefix: "$",
-			},
-			apiResp: ivrtest.TwitchUsersBannedResp,
-			want: []*message.Message{
-				{
-					Text:    "SeaGrade's ban reason: TOS_INDEFINITE",
-					Channel: "somechannel",
-				},
-			},
-		},
-		{
-			input: &message.IncomingMessage{
-				Message: message.Message{
-					Text:    "$br banneduser",
-					User:    "someone",
-					Channel: "somechannel",
-					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
-				},
-				Prefix: "$",
-			},
-			apiResp: ivrtest.TwitchUsersBannedResp,
-			want: []*message.Message{
-				{
-					Text:    "SeaGrade's ban reason: TOS_INDEFINITE",
-					Channel: "somechannel",
-				},
-			},
-		},
-		{
+		}),
+		singleTestCase(testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
 					Text:    "$currentgame",
@@ -184,8 +148,8 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-		{
+		}),
+		singleTestCase(testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
 					Text:    "$founders",
@@ -202,8 +166,8 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-		{
+		}),
+		singleTestCase(testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
 					Text:    "$founders hasfounders",
@@ -220,8 +184,8 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-		{
+		}),
+		singleTestCase(testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
 					Text:    "$founders nofounders",
@@ -238,8 +202,8 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-		{
+		}),
+		singleTestCase(testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
 					Text:    "$founders nofounders404",
@@ -256,8 +220,8 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-		{
+		}),
+		singleTestCase(testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
 					Text:    "$mods",
@@ -274,8 +238,8 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-		{
+		}),
+		singleTestCase(testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
 					Text:    "$mods otherchannel",
@@ -292,8 +256,8 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-		{
+		}),
+		singleTestCase(testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
 					Text:    "$mods nomods",
@@ -310,11 +274,13 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-		{
+		}),
+		testCasesWithSameOutput([]string{
+			"$title",
+			"$title otherchannel",
+		}, testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
-					Text:    "$title",
 					User:    "someone",
 					Channel: "somechannel",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -328,29 +294,15 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-		{
+		}),
+		testCasesWithSameOutput([]string{
+			"$verifiedbot",
+			"$verifiedbot otherchannel",
+			"$vb",
+			"$vb otherchannel",
+		}, testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
-					Text:    "$title otherchannel",
-					User:    "someone",
-					Channel: "somechannel",
-					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
-				},
-				Prefix: "$",
-			},
-			apiResp: twitchtest.GetChannelInformationResp,
-			want: []*message.Message{
-				{
-					Text:    "TwitchDev's title: TwitchDevMonthlyUpdate//May6,2021",
-					Channel: "somechannel",
-				},
-			},
-		},
-		{
-			input: &message.IncomingMessage{
-				Message: message.Message{
-					Text:    "$verifiedbot",
 					User:    "someone",
 					Channel: "somechannel",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -364,29 +316,13 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-		{
+		}),
+		testCasesWithSameOutput([]string{
+			"$verifiedbot notverified",
+			"$vb notverified",
+		}, testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
-					Text:    "$verifiedbot verified",
-					User:    "someone",
-					Channel: "somechannel",
-					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
-				},
-				Prefix: "$",
-			},
-			apiResp: ivrtest.TwitchUsersVerifiedBotResp,
-			want: []*message.Message{
-				{
-					Text:    "iP0G is a verified bot. ✅",
-					Channel: "somechannel",
-				},
-			},
-		},
-		{
-			input: &message.IncomingMessage{
-				Message: message.Message{
-					Text:    "$verifiedbot notverified",
 					User:    "someone",
 					Channel: "somechannel",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -400,62 +336,8 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-		{
-			input: &message.IncomingMessage{
-				Message: message.Message{
-					Text:    "$vb",
-					User:    "someone",
-					Channel: "somechannel",
-					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
-				},
-				Prefix: "$",
-			},
-			apiResp: ivrtest.TwitchUsersVerifiedBotResp,
-			want: []*message.Message{
-				{
-					Text:    "iP0G is a verified bot. ✅",
-					Channel: "somechannel",
-				},
-			},
-		},
-		{
-			input: &message.IncomingMessage{
-				Message: message.Message{
-					Text:    "$vb verified",
-					User:    "someone",
-					Channel: "somechannel",
-					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
-				},
-				Prefix: "$",
-			},
-			apiResp: ivrtest.TwitchUsersVerifiedBotResp,
-			want: []*message.Message{
-				{
-					Text:    "iP0G is a verified bot. ✅",
-					Channel: "somechannel",
-				},
-			},
-		},
-		{
-			input: &message.IncomingMessage{
-				Message: message.Message{
-					Text:    "$vb nonverified",
-					User:    "someone",
-					Channel: "somechannel",
-					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
-				},
-				Prefix: "$",
-			},
-			apiResp: ivrtest.TwitchUsersNotVerifiedBotResp,
-			want: []*message.Message{
-				{
-					Text:    "xQc is not a verified bot. ❌",
-					Channel: "somechannel",
-				},
-			},
-		},
-		{
+		}),
+		singleTestCase(testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
 					Text:    "$vips",
@@ -472,8 +354,8 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-		{
+		}),
+		singleTestCase(testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
 					Text:    "$vips otherchannel",
@@ -490,8 +372,8 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-		{
+		}),
+		singleTestCase(testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
 					Text:    "$vips novips",
@@ -508,8 +390,8 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 				},
 			},
-		},
-	}
+		}),
+	)
 
 	for _, tc := range tests {
 		if tc.apiResp != "" {
@@ -528,6 +410,38 @@ func TestCommands(t *testing.T) {
 		})
 		server.Reset()
 	}
+}
+
+func flatten[T any](itemGroups ...[]T) []T {
+	var items []T
+	for _, itemGroup := range itemGroups {
+		items = append(items, itemGroup...)
+	}
+	return items
+}
+
+func singleTestCase(tc testCase) []testCase { return []testCase{tc} }
+
+// testCasesWithSameOutput generates test cases that have different message texts
+// but are expected to have the same response.
+func testCasesWithSameOutput(msgs []string, tc testCase) []testCase {
+	var testCases []testCase
+	for _, msg := range msgs {
+		input := message.IncomingMessage{}
+		if err := copier.CopyWithOption(&input, &tc.input, copier.Option{DeepCopy: true}); err != nil {
+			panic(err)
+		}
+		input.Message.Text = msg
+
+		msgTestCase := testCase{}
+		if err := copier.CopyWithOption(&msgTestCase, &tc, copier.Option{DeepCopy: true}); err != nil {
+			panic(err)
+		}
+		msgTestCase.input = &input
+
+		testCases = append(testCases, msgTestCase)
+	}
+	return testCases
 }
 
 var (
