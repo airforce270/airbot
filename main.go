@@ -83,7 +83,7 @@ func main() {
 		}
 
 		log.Printf("Starting to handle messages on %s...", p.Name())
-		go platforms.StartHandling(p, db, cfg.LogIncoming, cfg.LogOutgoing)
+		go platforms.StartHandling(p, db, cfg.LogIncoming, cfg.LogOutgoing, cfg.EnableNonPrefixCommands)
 		cleanupFuncs = append(cleanupFuncs, cleanupFunc{name: p.Name(), f: p.Disconnect})
 	}
 

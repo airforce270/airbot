@@ -14,6 +14,8 @@ type Config struct {
 	LogOutgoing bool `json:"logOutgoingMessages"`
 	// Platforms contains platform-specific config data.
 	Platforms platformConfig `json:"platforms"`
+	// EnableNonPrefixCommands is whether non-prefix commands should be enabled.
+	EnableNonPrefixCommands bool `json:"enableNonPrefixCommands"`
 }
 
 // platformConfig is platform-specific config data.

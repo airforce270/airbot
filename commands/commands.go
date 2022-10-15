@@ -14,14 +14,23 @@ import (
 // allCommands contains all allCommands that can be run.
 var allCommands []basecommand.Command
 
+// NewHandler creates a new Handler.
+func NewHandler(enableNonPrefixCommands bool) Handler {
+	return Handler{nonPrefixCommandsEnabled: enableNonPrefixCommands}
+}
+
 // Handler handles messages.
-type Handler struct{}
+type Handler struct {
+	// nonPrefixCommandsEnabled is whether non-prefix commands should be enabled.
+	nonPrefixCommandsEnabled bool
+}
 
 // Handle handles incoming messages, possibly returning messages to be sent in response.
 func (h *Handler) Handle(msg *message.IncomingMessage) ([]*message.Message, error) {
 	var outMsgs []*message.Message
 	for _, command := range allCommands {
-		if command.PrefixOnly && !strings.HasPrefix(msg.Message.Text, msg.Prefix) {
+		messageHasPrefix := strings.HasPrefix(msg.Message.Text, msg.Prefix)
+		if !messageHasPrefix && (command.PrefixOnly || !h.nonPrefixCommandsEnabled) {
 			continue
 		}
 		if !command.Pattern.MatchString(msg.MessageTextWithoutPrefix()) {

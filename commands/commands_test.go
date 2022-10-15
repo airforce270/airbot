@@ -402,7 +402,7 @@ func TestCommands(t *testing.T) {
 			server.Resp = tc.apiResp
 		}
 		t.Run(tc.input.Message.Text, func(t *testing.T) {
-			handler := Handler{}
+			handler := Handler{nonPrefixCommandsEnabled: true}
 			got, err := handler.Handle(tc.input)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
@@ -413,6 +413,60 @@ func TestCommands(t *testing.T) {
 			}
 		})
 		server.Reset()
+	}
+}
+
+func TestCommands_EnableNonPrefixCommands(t *testing.T) {
+	tests := []struct {
+		input                   *message.IncomingMessage
+		enableNonPrefixCommands bool
+		want                    []*message.Message
+	}{
+		{
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					Text:    "whats the bots prefix",
+					User:    "someone",
+					Channel: "somechannel",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix: "??",
+			},
+			enableNonPrefixCommands: true,
+			want: []*message.Message{
+				{
+					Text:    "This channel's prefix is ??",
+					Channel: "somechannel",
+				},
+			},
+		},
+		{
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					Text:    "whats the bots prefix",
+					User:    "someone",
+					Channel: "somechannel",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix: "??",
+			},
+			enableNonPrefixCommands: false,
+			want:                    nil,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.input.Message.Text, func(t *testing.T) {
+			handler := NewHandler(tc.enableNonPrefixCommands)
+			got, err := handler.Handle(tc.input)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Errorf("Handle() diff (-want +got):\n%s", diff)
+			}
+		})
 	}
 }
 
