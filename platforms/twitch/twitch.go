@@ -314,13 +314,16 @@ func NewForTesting(url string) *Twitch {
 		panic(err)
 	}
 	return &Twitch{
-		username:    "fake-username",
-		channels:    nil,
-		prefixes:    nil,
-		clientID:    "fake-client-id",
-		accessToken: "fake-access-token",
-		db:          nil,
-		h:           helixClient,
+		username:      "fake-username",
+		id:            "",
+		isVerifiedBot: false,
+		channels:      nil,
+		prefixes:      map[string]string{},
+		clientID:      "fake-client-id",
+		accessToken:   "fake-access-token",
+		i:             nil,
+		h:             helixClient,
+		db:            nil,
 	}
 }
 
