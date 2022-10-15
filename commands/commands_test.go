@@ -62,6 +62,22 @@ func TestCommands(t *testing.T) {
 				},
 			},
 		}),
+		testCasesWithSameOutput([]string{
+			";prefix",
+			"does this bot thingy have one of them prefixes",
+			"what is a prefix",
+			"forsen prefix",
+		}, testCase{
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					User:    "someone",
+					Channel: "somechannel",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix: "??",
+			},
+			want: nil,
+		}),
 		singleTestCase(testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
