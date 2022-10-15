@@ -12,7 +12,8 @@
           "name": "",
           "prefix": "$"
         }
-      ]
+      ],
+      "admins": []
     }
   },
   "enableNonPrefixCommands": true

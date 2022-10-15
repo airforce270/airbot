@@ -19,6 +19,30 @@ If the parameter is wrapped in `<angle brackets>`, it's a **required** parameter
 
 If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
+### Admin
+
+#### $join
+
+- Tells the bot to join your chat.
+- > Usage: `$join`
+
+#### $joinother
+
+- Tells the bot to join a chat.
+- > Usage: `$joinother <channel>`
+- > Note that this is an **admin-only** command.
+
+#### $leave
+
+- Tells the bot to leave your chat.
+- > Usage: `$join`
+
+#### $leaveother
+
+- Tells the bot to leave a chat.
+- > Usage: `$leaveother <channel>`
+- > Note that this is an **admin-only** command.
+
 ### Echo
 
 #### $commands
@@ -90,8 +114,12 @@ It's hosted on a Google Cloud Platform e2-micro Compute Engine instance.
 
 ### Add/remove bot
 
-To add or remove the bot from a channel, edit the `config.json` file
-and restart the bot.
+To add the bot to your channel, type `$join` in `af2bot`'s chat.
+
+WARNING! The prefix will be `$` and there's currently no way to change that yourself.
+(coming soon!)
+
+To have the bot leave your channel, type `$leave` in your chat.
 
 ## Development
 

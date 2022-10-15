@@ -93,7 +93,7 @@ var (
 )
 
 func banReason(msg *message.IncomingMessage) ([]*message.Message, error) {
-	targetUser := parseTarget(msg, banReasonPattern)
+	targetUser := basecommand.ParseTarget(msg, banReasonPattern)
 
 	users, err := ivr.FetchUsers(targetUser)
 	if err != nil {
@@ -128,7 +128,7 @@ func banReason(msg *message.IncomingMessage) ([]*message.Message, error) {
 }
 
 func currentGame(msg *message.IncomingMessage) ([]*message.Message, error) {
-	targetChannel := parseTarget(msg, currentGamePattern)
+	targetChannel := basecommand.ParseTarget(msg, currentGamePattern)
 
 	tw := twitchplatform.Instance
 	if tw == nil {
@@ -158,7 +158,7 @@ func currentGame(msg *message.IncomingMessage) ([]*message.Message, error) {
 }
 
 func founders(msg *message.IncomingMessage) ([]*message.Message, error) {
-	targetChannel := parseTarget(msg, foundersPattern)
+	targetChannel := basecommand.ParseTarget(msg, foundersPattern)
 
 	founders, err := ivr.FetchFounders(targetChannel)
 	if err != nil {
@@ -204,7 +204,7 @@ func founders(msg *message.IncomingMessage) ([]*message.Message, error) {
 }
 
 func mods(msg *message.IncomingMessage) ([]*message.Message, error) {
-	targetChannel := parseTarget(msg, modsPattern)
+	targetChannel := basecommand.ParseTarget(msg, modsPattern)
 
 	modsAndVIPs, err := ivr.FetchModsAndVIPs(targetChannel)
 	if err != nil {
@@ -241,7 +241,7 @@ func mods(msg *message.IncomingMessage) ([]*message.Message, error) {
 }
 
 func nameColor(msg *message.IncomingMessage) ([]*message.Message, error) {
-	targetUser := parseTarget(msg, nameColorPattern)
+	targetUser := basecommand.ParseTarget(msg, nameColorPattern)
 
 	users, err := ivr.FetchUsers(targetUser)
 	if err != nil {
@@ -269,7 +269,7 @@ func nameColor(msg *message.IncomingMessage) ([]*message.Message, error) {
 }
 
 func title(msg *message.IncomingMessage) ([]*message.Message, error) {
-	targetChannel := parseTarget(msg, titlePattern)
+	targetChannel := basecommand.ParseTarget(msg, titlePattern)
 
 	tw := twitchplatform.Instance
 	if tw == nil {
@@ -290,7 +290,7 @@ func title(msg *message.IncomingMessage) ([]*message.Message, error) {
 }
 
 func verifiedBot(msg *message.IncomingMessage) ([]*message.Message, error) {
-	targetUser := parseTarget(msg, verifiedBotPattern)
+	targetUser := basecommand.ParseTarget(msg, verifiedBotPattern)
 
 	users, err := ivr.FetchUsers(targetUser)
 	if err != nil {
@@ -325,7 +325,7 @@ func verifiedBot(msg *message.IncomingMessage) ([]*message.Message, error) {
 }
 
 func vips(msg *message.IncomingMessage) ([]*message.Message, error) {
-	targetChannel := parseTarget(msg, vipsPattern)
+	targetChannel := basecommand.ParseTarget(msg, vipsPattern)
 
 	modsAndVIPs, err := ivr.FetchModsAndVIPs(targetChannel)
 	if err != nil {
@@ -374,14 +374,6 @@ func namesFromModsOrVIPs(users []*ivr.ModOrVIPUser) []string {
 		names = append(names, user.DisplayName)
 	}
 	return names
-}
-
-func parseTarget(msg *message.IncomingMessage, pattern *regexp.Regexp) string {
-	matches := pattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-	if len(matches) <= 1 {
-		return strings.ToLower(msg.Message.User)
-	}
-	return strings.ToLower(matches[1])
 }
 
 func chunkBy[T any](items []T, chunkSize int) (chunks [][]T) {

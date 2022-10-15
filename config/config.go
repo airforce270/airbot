@@ -6,6 +6,13 @@ import (
 	"os"
 )
 
+// Path contains the path to the config file to be read (when referenced by the binary).
+const Path = "config.json"
+
+// Instance is the singleton Config instance.
+// It should be set by main.
+var Instance *Config
+
 // Config is the top-level config object.
 type Config struct {
 	// LogIncoming is whether the bot should log incoming messages.
@@ -13,19 +20,19 @@ type Config struct {
 	// LogOutgoing is whether the bot should log outgoing messages.
 	LogOutgoing bool `json:"logOutgoingMessages"`
 	// Platforms contains platform-specific config data.
-	Platforms platformConfig `json:"platforms"`
+	Platforms PlatformConfig `json:"platforms"`
 	// EnableNonPrefixCommands is whether non-prefix commands should be enabled.
 	EnableNonPrefixCommands bool `json:"enableNonPrefixCommands"`
 }
 
-// platformConfig is platform-specific config data.
-type platformConfig struct {
+// PlatformConfig is platform-specific config data.
+type PlatformConfig struct {
 	// Twitch contains Twitch-specific config data.
-	Twitch twitchConfig `json:"twitch"`
+	Twitch TwitchConfig `json:"twitch"`
 }
 
-// twitchConfig is Twitch-specific config data.
-type twitchConfig struct {
+// TwitchConfig is Twitch-specific config data.
+type TwitchConfig struct {
 	// Enabled is whether Twitch should be connected to and messages handled.
 	Enabled bool `json:"enabled"`
 	// Username is the Twitch username of the account to use for the bot.
@@ -37,8 +44,11 @@ type twitchConfig struct {
 	AccessToken string `json:"accessToken"`
 	// Channels is the Twitch channels the bot should join and listen to messages in.
 	Channels []TwitchChannelConfig `json:"channels"`
+	// Admins contains the Twitch usernames of the bot admins.
+	Admins []string `json:"admins"`
 }
 
+// TwitchChannelConfig is the config for joining a Twitch channel.
 type TwitchChannelConfig struct {
 	// Name is the name of the channel to join.
 	Name string `json:"name"`
@@ -48,12 +58,34 @@ type TwitchChannelConfig struct {
 
 // Read reads the config data from the given path.
 func Read(path string) (*Config, error) {
-	raw, err := os.ReadFile(path)
+	raw, err := OSReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 	return parse(raw)
 }
+
+// Write writes new config data to the given path.
+// It expects that the path already exists.
+func Write(path string, config *Config) error {
+	data, err := json.MarshalIndent(config, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	fi, err := OSStat(path)
+	if err != nil {
+		return err
+	}
+
+	return OSWriteFile(path, data, fi.Mode())
+}
+
+var (
+	OSReadFile  = os.ReadFile
+	OSStat      = os.Stat
+	OSWriteFile = os.WriteFile
+)
 
 // parse parses raw bytes into a config.
 func parse(data []byte) (*Config, error) {

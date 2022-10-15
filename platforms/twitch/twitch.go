@@ -2,6 +2,7 @@
 package twitch
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -161,6 +162,40 @@ func (t *Twitch) Disconnect() error {
 	return t.i.Disconnect()
 }
 
+// Join joins a channel.
+func (t *Twitch) Join(channel *helix.ChannelInformation, channelConfig config.TwitchChannelConfig) error {
+	if t.i != nil {
+		t.i.Join(channel.BroadcasterName)
+	} else {
+		log.Printf("Didn't actually join channel - IRC client is nil. This is expected in test, but if you see this in production, something's broken!")
+	}
+
+	newChannel := buildChannels([]config.TwitchChannelConfig{channelConfig})[0]
+	t.channels = append(t.channels, newChannel)
+	t.prefixes[strings.ToLower(channel.BroadcasterName)] = channelConfig.Prefix
+	return nil
+}
+
+// Leave leaves a channel.
+func (t *Twitch) Leave(channel string) error {
+	if t.i != nil {
+		t.i.Depart(channel)
+	} else {
+		log.Printf("Didn't actually depart channel - IRC client is nil. This is expected in test, but if you see this in production, something's broken!")
+	}
+
+	var newChannels []*twitchChannel
+	for _, ch := range t.channels {
+		if strings.EqualFold(ch.Name, channel) {
+			continue
+		}
+		newChannels = append(newChannels, ch)
+	}
+	t.channels = newChannels
+
+	return nil
+}
+
 func (t *Twitch) User(channel string) (*helix.User, error) {
 	users, err := t.h.GetUsers(&helix.UsersParams{Logins: []string{channel}})
 	if err != nil {
@@ -175,6 +210,8 @@ func (t *Twitch) User(channel string) (*helix.User, error) {
 	return &users.Data.Users[0], nil
 }
 
+var ErrChannelNotFound = errors.New("channel not found")
+
 func (t *Twitch) Channel(channel string) (*helix.ChannelInformation, error) {
 	user, err := t.User(channel)
 	if err != nil {
@@ -185,7 +222,7 @@ func (t *Twitch) Channel(channel string) (*helix.ChannelInformation, error) {
 		return nil, err
 	}
 	if len(resp.Data.Channels) == 0 {
-		return nil, fmt.Errorf("no channels found for %s", channel)
+		return nil, fmt.Errorf("channel %s not found: %w", channel, ErrChannelNotFound)
 	}
 	if len(resp.Data.Channels) > 1 {
 		log.Printf("more than one channel found for %s, using the first", channel)

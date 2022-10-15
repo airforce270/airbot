@@ -1,12 +1,15 @@
 package commands
 
 import (
+	"io/fs"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/airforce270/airbot/apiclients/ivr"
 	"github.com/airforce270/airbot/apiclients/ivrtest"
 	"github.com/airforce270/airbot/apiclients/twitchtest"
+	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/message"
 	"github.com/airforce270/airbot/platforms/twitch"
 	"github.com/airforce270/airbot/testing/fakeserver"
@@ -16,9 +19,57 @@ import (
 	"github.com/nicklaw5/helix/v2"
 )
 
+var (
+	configWithNoChannels = &config.Config{
+		LogIncoming: true,
+		LogOutgoing: true,
+		Platforms: config.PlatformConfig{
+			Twitch: config.TwitchConfig{
+				Enabled:     true,
+				Username:    "bot",
+				ClientID:    "fake-client-id",
+				AccessToken: "fake-access-token",
+				Channels:    nil,
+				Admins:      []string{"admin-user"},
+			},
+		},
+		EnableNonPrefixCommands: true,
+	}
+	configWithOneChannel = &config.Config{
+		LogIncoming: true,
+		LogOutgoing: true,
+		Platforms: config.PlatformConfig{
+			Twitch: config.TwitchConfig{
+				Enabled:     true,
+				Username:    "bot",
+				ClientID:    "fake-client-id",
+				AccessToken: "fake-access-token",
+				Channels: []config.TwitchChannelConfig{
+					{
+						Name:   "channel1",
+						Prefix: "$",
+					},
+				},
+				Admins: []string{"admin-user"},
+			},
+		},
+		EnableNonPrefixCommands: true,
+	}
+)
+
+type fakeFileInfo struct{}
+
+func (f fakeFileInfo) Mode() fs.FileMode  { return 777 }
+func (f fakeFileInfo) IsDir() bool        { return false }
+func (f fakeFileInfo) ModTime() time.Time { return time.Time{} }
+func (f fakeFileInfo) Name() string       { return "FakeFile" }
+func (f fakeFileInfo) Size() int64        { return 123 }
+func (f fakeFileInfo) Sys() any           { return nil }
+
 type testCase struct {
 	input   *message.IncomingMessage
 	apiResp string
+	cfg     *config.Config
 	want    []*message.Message
 }
 
@@ -28,7 +79,192 @@ func TestCommands(t *testing.T) {
 	defer server.Close()
 	setAPIURLs(server.URL())
 
+	config.OSReadFile = func(name string) ([]byte, error) {
+		return []byte("blahblah"), nil
+	}
+	config.OSStat = func(name string) (os.FileInfo, error) {
+		return fakeFileInfo{}, nil
+	}
+	config.OSWriteFile = func(name string, data []byte, perm os.FileMode) error {
+		return nil
+	}
+
 	tests := flatten(
+		// admin.go commands
+		singleTestCase(testCase{
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					Text:    "$join",
+					User:    "someone",
+					Channel: "somechannel",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix: "$",
+			},
+			apiResp: twitchtest.GetChannelInformationResp,
+			cfg:     configWithNoChannels,
+			want: []*message.Message{
+				{
+					Text:    "Successfully joined channel TwitchDev with prefix $",
+					Channel: "somechannel",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					Text:    "$join",
+					User:    "channel1",
+					Channel: "somechannel",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix: "$",
+			},
+			cfg: configWithOneChannel,
+			want: []*message.Message{
+				{
+					Text:    "Channel channel1 is already joined",
+					Channel: "somechannel",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					Text:    "$joinother channel1",
+					User:    "non-admin-user",
+					Channel: "somechannel",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix: "$",
+			},
+			cfg:  configWithNoChannels,
+			want: nil,
+		}),
+		singleTestCase(testCase{
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					Text:    "$joinother channel1",
+					User:    "admin-user",
+					Channel: "somechannel",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix: "$",
+			},
+			apiResp: twitchtest.GetChannelInformationResp,
+			cfg:     configWithNoChannels,
+			want: []*message.Message{
+				{
+					Text:    "Successfully joined channel TwitchDev with prefix $",
+					Channel: "somechannel",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					Text:    "$joinother channel1",
+					User:    "admin-user",
+					Channel: "somechannel",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix: "$",
+			},
+			cfg: configWithOneChannel,
+			want: []*message.Message{
+				{
+					Text:    "Channel channel1 is already joined",
+					Channel: "somechannel",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					Text:    "$leave",
+					User:    "channel1",
+					Channel: "somechannel",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix: "$",
+			},
+			cfg: configWithOneChannel,
+			want: []*message.Message{
+				{
+					Text:    "Successfully left channel channel1",
+					Channel: "somechannel",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					Text:    "$leave",
+					User:    "channel1",
+					Channel: "somechannel",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix: "$",
+			},
+			cfg: configWithNoChannels,
+			want: []*message.Message{
+				{
+					Text:    "Bot is not in channel channel1",
+					Channel: "somechannel",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					Text:    "$leaveother channel1",
+					User:    "non-admin-user",
+					Channel: "somechannel",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix: "$",
+			},
+			cfg:  configWithOneChannel,
+			want: nil,
+		}),
+		singleTestCase(testCase{
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					Text:    "$leaveother channel1",
+					User:    "admin-user",
+					Channel: "somechannel",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix: "$",
+			},
+			cfg: configWithOneChannel,
+			want: []*message.Message{
+				{
+					Text:    "Bot is not in channel channel1",
+					Channel: "somechannel",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					Text:    "$leaveother channel1",
+					User:    "admin-user",
+					Channel: "somechannel",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix: "$",
+			},
+			cfg: configWithNoChannels,
+			want: []*message.Message{
+				{
+					Text:    "Bot is not in channel channel1",
+					Channel: "somechannel",
+				},
+			},
+		}),
+
+		// botinfo.go commands
 		testCasesWithSameOutput([]string{
 			"??prefix",
 			"prefix",
@@ -67,6 +303,7 @@ func TestCommands(t *testing.T) {
 			"does this bot thingy have one of them prefixes",
 			"what is a prefix",
 			"forsen prefix",
+			"Successfully joined channel iP0G with prefix $",
 		}, testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
@@ -74,10 +311,12 @@ func TestCommands(t *testing.T) {
 					Channel: "somechannel",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
 				},
-				Prefix: "??",
+				Prefix: "$",
 			},
 			want: nil,
 		}),
+
+		// echo.go commands
 		singleTestCase(testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
@@ -112,6 +351,8 @@ func TestCommands(t *testing.T) {
 				},
 			},
 		}),
+
+		// twitch.go commands
 		testCasesWithSameOutput([]string{
 			"$br",
 			"$banreason",
@@ -417,8 +658,14 @@ func TestCommands(t *testing.T) {
 		if tc.apiResp != "" {
 			server.Resp = tc.apiResp
 		}
+		if tc.cfg != nil {
+			config.Instance = tc.cfg
+		}
 		t.Run(tc.input.Message.Text, func(t *testing.T) {
-			handler := Handler{nonPrefixCommandsEnabled: true}
+			handler := Handler{
+				nonPrefixCommandsEnabled: true,
+				admins:                   []string{"admin-user"},
+			}
 			got, err := handler.Handle(tc.input)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
@@ -429,7 +676,12 @@ func TestCommands(t *testing.T) {
 			}
 		})
 		server.Reset()
+		config.Instance = configWithOneChannel
 	}
+
+	config.OSReadFile = os.ReadFile
+	config.OSStat = os.Stat
+	config.OSWriteFile = os.WriteFile
 }
 
 func TestCommands_EnableNonPrefixCommands(t *testing.T) {
@@ -473,7 +725,7 @@ func TestCommands_EnableNonPrefixCommands(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.input.Message.Text, func(t *testing.T) {
-			handler := NewHandler(tc.enableNonPrefixCommands)
+			handler := Handler{nonPrefixCommandsEnabled: tc.enableNonPrefixCommands}
 			got, err := handler.Handle(tc.input)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)

@@ -13,9 +13,6 @@ import (
 	"github.com/airforce270/airbot/platforms"
 )
 
-// configFileName contains the name of the config file to be read.
-const configFileName = "config.json"
-
 // cleanupFunc is a function that should be called before program exit.
 type cleanupFunc struct {
 	// name is the function's human-readable name.
@@ -53,11 +50,12 @@ func wait() {
 func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 
-	log.Printf("Reading config from %s...", configFileName)
-	cfg, err := config.Read(configFileName)
+	log.Printf("Reading config from %s...", config.Path)
+	cfg, err := config.Read(config.Path)
 	if err != nil {
-		log.Fatalf("failed to read config from %s: %v", configFileName, err)
+		log.Fatalf("failed to read config from %s: %v", config.Path, err)
 	}
+	config.Instance = cfg
 
 	log.Printf("Connecting to database...")
 	db, err := database.Connect(os.Getenv("POSTGRES_DB"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"))
@@ -83,7 +81,7 @@ func main() {
 		}
 
 		log.Printf("Starting to handle messages on %s...", p.Name())
-		go platforms.StartHandling(p, db, cfg.LogIncoming, cfg.LogOutgoing, cfg.EnableNonPrefixCommands)
+		go platforms.StartHandling(p, db, cfg.LogIncoming, cfg.LogOutgoing, cfg.EnableNonPrefixCommands, cfg.Platforms.Twitch.Admins)
 		cleanupFuncs = append(cleanupFuncs, cleanupFunc{name: p.Name(), f: p.Disconnect})
 	}
 
