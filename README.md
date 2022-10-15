@@ -8,7 +8,9 @@ Support planned for many features (gamba, etc.) and platforms (Twitch, Discord, 
 
 ## Commands
 
-All commands assume the `$` prefix, but note that the prefix is configurable in `config.json`.
+All commands assume the `$` prefix, but note that the prefix is configurable
+per-channel (in `config.json`).
+To find out what the prefix is in a channel, use [$prefix](#$prefix).
 
 Some commands include parameters.
 
@@ -23,6 +25,11 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - Replies with a link to this page.
 - > Usage: `$commands`
 - > Alternate command: `$help`
+
+#### $prefix
+
+- Replies with the prefix in this channel.
+- > Usage: `$prefix`
 
 #### $TriHard
 

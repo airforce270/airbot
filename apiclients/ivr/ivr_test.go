@@ -1,66 +1,24 @@
 package ivr
 
 import (
-	"fmt"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/airforce270/airbot/apiclients/ivrtest"
+	"github.com/airforce270/airbot/testing/fakeserver"
 
 	"github.com/google/go-cmp/cmp"
 )
 
 var (
-	originalIvrBaseUrl = baseURL
-
-	ivrTwitchUsersNotStreamingResp = `[{"banned":false,"displayName":"xQc","login":"xqc","id":"71092938","bio":"THE BEST AT ABSOLUTELY EVERYTHING. THE JUICER. LEADER OF THE JUICERS.","follows":207,"followers":11226373,"profileViewCount":524730962,"chatColor":"#0000FF","logo":"https://static-cdn.jtvnw.net/jtv_user_pictures/xqc-profile_image-9298dca608632101-600x600.jpeg","banner":"https://static-cdn.jtvnw.net/jtv_user_pictures/83e86af1-9a6c-42b1-98e2-3f6238a744b5-profile_banner-480.png","verifiedBot":false,"createdAt":"2014-09-12T23:50:05.989719Z","updatedAt":"2022-10-06T20:43:00.256907Z","emotePrefix":"xqc","roles":{"isAffiliate":false,"isPartner":true,"isStaff":null},"badges":[{"setID":"partner","title":"Verified","description":"Verified","version":"1"}],"chatSettings":{"chatDelayMs":0,"followersOnlyDurationMinutes":1440,"slowModeDurationSeconds":null,"blockLinks":false,"isSubscribersOnlyModeEnabled":false,"isEmoteOnlyModeEnabled":false,"isFastSubsModeEnabled":false,"isUniqueChatModeEnabled":false,"requireVerifiedAccount":false,"rules":["English please","Fresh memes"]},"stream":null,"lastBroadcast":{"startedAt":"2022-10-06T22:47:39.840638Z","title":"🟧JUICED EP2. !FANSLY🟧CLICK NOW🟧FT. JERMA🟧& AUSTIN🟧& LUDWIG🟧& CONNOREATSPANTS🟧& ME🟧JOIN NOW🟧FAST🟧BEFORE I LOSE IT🟧BIG🟧#SPONSORED"},"panels":[{"id":"124112525"},{"id":"98109996"},{"id":"44997828"},{"id":"32221884"},{"id":"12592823"},{"id":"6720150"},{"id":"77693957"},{"id":"12592818"},{"id":"8847001"},{"id":"22113669"},{"id":"8847029"},{"id":"22360616"},{"id":"14506832"},{"id":"22360618"}]}]`
-	ivrTwitchUsersStreamingResp    = `[{"banned":false,"displayName":"xQt0001","login":"xqt0001","id":"591140996","bio":"GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA ","follows":144,"followers":1940,"profileViewCount":190,"chatColor":"#FDFF00","logo":"https://static-cdn.jtvnw.net/jtv_user_pictures/a5fecb44-bb38-4739-aa04-371cc1ea4152-profile_image-600x600.png","banner":"https://static-cdn.jtvnw.net/jtv_user_pictures/fb78db5c-0078-4e85-bfe1-f527f19d9a22-profile_banner-480.jpeg","verifiedBot":false,"createdAt":"2020-10-02T16:25:47.819212Z","updatedAt":"2022-10-09T03:41:23.622605Z","emotePrefix":"xqt000","roles":{"isAffiliate":true,"isPartner":false,"isStaff":null},"badges":[{"setID":"premium","title":"Prime Gaming","description":"Prime Gaming","version":"1"}],"chatSettings":{"chatDelayMs":0,"followersOnlyDurationMinutes":null,"slowModeDurationSeconds":null,"blockLinks":false,"isSubscribersOnlyModeEnabled":false,"isEmoteOnlyModeEnabled":false,"isFastSubsModeEnabled":false,"isUniqueChatModeEnabled":false,"requireVerifiedAccount":false,"rules":[]},"stream":{"title":"tiktok esport #228 i guess","id":"39929884600","createdAt":"2022-10-09T22:00:33Z","type":"live","viewersCount":77,"game":{"displayName":"Just Chatting"}},"lastBroadcast":{"startedAt":"2022-10-09T22:00:37.637909Z","title":"tiktok esport #228 i guess"},"panels":[]}]`
-	ivrTwitchUsersBannedResp       = `[{"banned":true,"banReason":"TOS_INDEFINITE","displayName":"SeaGrade","login":"seagrade","id":"245821818","bio":"unbanned","follows":5,"followers":0,"profileViewCount":150,"chatColor":"#00EBFF","logo":"https://static-cdn.jtvnw.net/jtv_user_pictures/2cbd05a5-5502-4e42-924b-f889dc2221f7-profile_image-600x600.png","banner":"https://static-cdn.jtvnw.net/jtv_user_pictures/f6d8baf2-f2bf-4098-a4b7-f9945bd42ff7-profile_banner-480.jpeg","verifiedBot":false,"createdAt":"2018-08-05T23:43:51.848531Z","updatedAt":"2022-10-04T22:24:03.192561Z","emotePrefix":"","roles":{"isAffiliate":false,"isPartner":false,"isStaff":null},"badges":[{"setID":"glhf-pledge","title":"GLHF Pledge","description":"Signed the GLHF pledge in support for inclusive gaming communities","version":"1"}],"chatSettings":{"chatDelayMs":0,"followersOnlyDurationMinutes":null,"slowModeDurationSeconds":null,"blockLinks":true,"isSubscribersOnlyModeEnabled":false,"isEmoteOnlyModeEnabled":false,"isFastSubsModeEnabled":false,"isUniqueChatModeEnabled":false,"requireVerifiedAccount":true,"rules":[]},"stream":null,"lastBroadcast":{"startedAt":"2018-09-02T23:43:41.435181Z","title":"OBS TEST"},"panels":[{"id":"88030436"}]}]`
-
-	ivrTwitchUsersNotVerifiedBotResp = `[{"banned":false,"displayName":"xQc","login":"xqc","id":"71092938","bio":"THE BEST AT ABSOLUTELY EVERYTHING. THE JUICER. LEADER OF THE JUICERS.","follows":207,"followers":11226373,"profileViewCount":524730962,"chatColor":"#0000FF","logo":"https://static-cdn.jtvnw.net/jtv_user_pictures/xqc-profile_image-9298dca608632101-600x600.jpeg","banner":"https://static-cdn.jtvnw.net/jtv_user_pictures/83e86af1-9a6c-42b1-98e2-3f6238a744b5-profile_banner-480.png","verifiedBot":false,"createdAt":"2014-09-12T23:50:05.989719Z","updatedAt":"2022-10-06T20:43:00.256907Z","emotePrefix":"xqc","roles":{"isAffiliate":false,"isPartner":true,"isStaff":null},"badges":[{"setID":"partner","title":"Verified","description":"Verified","version":"1"}],"chatSettings":{"chatDelayMs":0,"followersOnlyDurationMinutes":1440,"slowModeDurationSeconds":null,"blockLinks":false,"isSubscribersOnlyModeEnabled":false,"isEmoteOnlyModeEnabled":false,"isFastSubsModeEnabled":false,"isUniqueChatModeEnabled":false,"requireVerifiedAccount":false,"rules":["English please","Fresh memes"]},"stream":null,"lastBroadcast":{"startedAt":"2022-10-06T22:47:39.840638Z","title":"🟧JUICED EP2. !FANSLY🟧CLICK NOW🟧FT. JERMA🟧& AUSTIN🟧& LUDWIG🟧& CONNOREATSPANTS🟧& ME🟧JOIN NOW🟧FAST🟧BEFORE I LOSE IT🟧BIG🟧#SPONSORED"},"panels":[{"id":"124112525"},{"id":"98109996"},{"id":"44997828"},{"id":"32221884"},{"id":"12592823"},{"id":"6720150"},{"id":"77693957"},{"id":"12592818"},{"id":"8847001"},{"id":"22113669"},{"id":"8847029"},{"id":"22360616"},{"id":"14506832"},{"id":"22360618"}]}]`
-	ivrTwitchUsersVerifiedBotResp    = `[{"banned":false,"displayName":"iP0G","login":"ip0g","id":"429509069","bio":"very p0g","follows":136,"followers":63,"profileViewCount":658,"chatColor":"#00FFFF","logo":"https://static-cdn.jtvnw.net/jtv_user_pictures/dd669686-7694-418f-bd83-5ad418b5bb3b-profile_image-600x600.png","banner":null,"verifiedBot":true,"createdAt":"2019-04-12T05:34:52.280629Z","updatedAt":"2022-09-16T00:10:21.56657Z","emotePrefix":"","roles":{"isAffiliate":false,"isPartner":false,"isStaff":null},"badges":[{"setID":"game-developer","title":"Game Developer","description":"Game Developer for:","version":"1"}],"chatSettings":{"chatDelayMs":0,"followersOnlyDurationMinutes":0,"slowModeDurationSeconds":null,"blockLinks":false,"isSubscribersOnlyModeEnabled":false,"isEmoteOnlyModeEnabled":false,"isFastSubsModeEnabled":false,"isUniqueChatModeEnabled":false,"requireVerifiedAccount":false,"rules":[]},"stream":null,"lastBroadcast":{"startedAt":"2022-03-04T05:45:02.37469Z","title":null},"panels":[{"id":"123839619"}]}]`
-
-	ivrModsAndVIPsNoneResp        = `{"mods":[],"vips":[],"ttl":1016}`
-	ivrModsAndVIPsModsOnlyResp    = `{"mods":[{"id":"429509069","login":"ip0g","displayName":"iP0G","grantedAt":"2022-10-03T19:55:00.137915435Z"},{"id":"834890604","login":"af2bot","displayName":"af2bot","grantedAt":"2022-10-09T08:13:17.829797513Z"}],"vips":[],"ttl":null}`
-	ivrModsAndVIPsModsAndVIPsResp = `{"mods":[{"id":"100135110","login":"streamelements","displayName":"StreamElements","grantedAt":"2018-07-24T08:29:21.757709759Z"},{"id":"237719657","login":"fossabot","displayName":"Fossabot","grantedAt":"2020-08-16T20:51:55.198556309Z"},{"id":"191202519","login":"spintto","displayName":"spintto","grantedAt":"2022-03-08T14:59:43.671830635Z"},{"id":"514751411","login":"hnoace","displayName":"HNoAce","grantedAt":"2022-08-09T13:35:14.99544541Z"}],"vips":[{"id":"150790620","login":"bakonsword","displayName":"bakonsword","grantedAt":"2022-02-20T19:39:12.355546493Z"},{"id":"145484970","login":"alyjiaht_t","displayName":"alyjiahT_T","grantedAt":"2022-02-25T05:42:16.048233372Z"},{"id":"205748697","login":"avbest","displayName":"AVBest","grantedAt":"2022-03-08T14:31:49.869620222Z"},{"id":"69184756","login":"zaintew_","displayName":"Zaintew_","grantedAt":"2022-09-17T21:43:57.737612548Z"},{"id":"505131195","login":"captkayy","displayName":"captkayy","grantedAt":"2022-09-25T20:15:59.332859708Z"},{"id":"425925187","login":"seagrad","displayName":"seagrad","grantedAt":"2022-10-05T05:51:51.432004125Z"},{"id":"222316577","login":"dafkeee","displayName":"Dafkeee","grantedAt":"2022-10-05T05:52:02.130647633Z"}],"ttl":494}`
-
-	ivrFoundersNone404Resp = `{"statusCode":404,"requestID":"6e26880e-7b25-448d-bef5-f35c1f41afab","error":{"message":"Specified user has no founders."}}`
-	ivrFoundersNoneResp    = `{"founders":[]}`
-	ivrFoundersNormalResp  = `{"founders":[{"isSubscribed":false,"entitlementStart":"2022-07-31T00:41:06Z","id":"415575292","login":"fishyykingyy","displayName":"FishyyKingyy"},{"isSubscribed":false,"entitlementStart":"2022-08-13T19:46:18Z","id":"267287250","login":"eljulidi1337","displayName":"eljulidi1337"},{"isSubscribed":true,"entitlementStart":"2022-08-16T15:24:49Z","id":"89075062","login":"sammist","displayName":"SamMist"},{"isSubscribed":true,"entitlementStart":"2022-08-16T15:41:52Z","id":"190634299","login":"leochansz","displayName":"Leochansz"},{"isSubscribed":false,"entitlementStart":"2022-08-17T05:07:54Z","id":"143232353","login":"lexieuzumaki7","displayName":"lexieuzumaki7"},{"isSubscribed":false,"entitlementStart":"2022-08-17T21:44:28Z","id":"65602310","login":"contravz","displayName":"ContraVz"},{"isSubscribed":true,"entitlementStart":"2022-08-18T00:41:48Z","id":"232875294","login":"rott______","displayName":"rott______"},{"isSubscribed":false,"entitlementStart":"2022-08-18T00:48:10Z","id":"610912094","login":"dankjuicer","displayName":"DankJuicer"},{"isSubscribed":false,"entitlementStart":"2022-08-20T20:39:11Z","id":"671024739","login":"kronikz____","displayName":"kronikZ____"},{"isSubscribed":true,"entitlementStart":"2022-08-24T01:48:53Z","id":"408538669","login":"blemplob","displayName":"blemplob"}]}`
+	originalIvrBaseUrl = BaseURL
 )
 
-type fakeServer struct {
-	s *httptest.Server
-
-	Resp string
-}
-
-func (s *fakeServer) Init() {
-	baseURL = s.s.URL
-}
-
-func (s *fakeServer) Close() {
-	s.s.Close()
-	baseURL = originalIvrBaseUrl
-}
-
-func (s *fakeServer) Reset() {
-	s.Resp = ""
-}
-
-func newFakeServer() *fakeServer {
-	s := fakeServer{Resp: ""}
-	httpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, s.Resp)
-	}))
-	s.s = httpServer
-	return &s
-}
-
 func TestFetchUser(t *testing.T) {
-	server := newFakeServer()
-	server.Init()
+	server := fakeserver.New()
+	server.AddOnClose(func() { originalIvrBaseUrl = BaseURL })
 	defer server.Close()
+	BaseURL = server.URL()
 
 	tests := []struct {
 		desc    string
@@ -69,7 +27,7 @@ func TestFetchUser(t *testing.T) {
 	}{
 		{
 			desc:    "non streaming user",
-			useResp: ivrTwitchUsersNotStreamingResp,
+			useResp: ivrtest.TwitchUsersNotStreamingResp,
 			want: []*TwitchUsersResponseItem{
 				{
 					IsBanned:          false,
@@ -142,7 +100,7 @@ func TestFetchUser(t *testing.T) {
 		},
 		{
 			desc:    "streaming user",
-			useResp: ivrTwitchUsersStreamingResp,
+			useResp: ivrtest.TwitchUsersStreamingResp,
 			want: []*TwitchUsersResponseItem{
 				{
 					IsBanned:          false,
@@ -204,7 +162,7 @@ func TestFetchUser(t *testing.T) {
 		},
 		{
 			desc:    "banned user",
-			useResp: ivrTwitchUsersBannedResp,
+			useResp: ivrtest.TwitchUsersBannedResp,
 			want: []*TwitchUsersResponseItem{
 				{
 					IsBanned:          true,
@@ -278,9 +236,10 @@ func TestFetchUser(t *testing.T) {
 }
 
 func TestFetchModsAndVIPs(t *testing.T) {
-	server := newFakeServer()
-	server.Init()
+	server := fakeserver.New()
+	server.AddOnClose(func() { originalIvrBaseUrl = BaseURL })
 	defer server.Close()
+	BaseURL = server.URL()
 
 	tests := []struct {
 		desc    string
@@ -289,7 +248,7 @@ func TestFetchModsAndVIPs(t *testing.T) {
 	}{
 		{
 			desc:    "no mods or vips",
-			useResp: ivrModsAndVIPsNoneResp,
+			useResp: ivrtest.ModsAndVIPsNoneResp,
 			want: &modsAndVIPsResponse{
 				Mods: []*ModOrVIPUser{},
 				VIPs: []*ModOrVIPUser{},
@@ -297,7 +256,7 @@ func TestFetchModsAndVIPs(t *testing.T) {
 		},
 		{
 			desc:    "mods only",
-			useResp: ivrModsAndVIPsModsOnlyResp,
+			useResp: ivrtest.ModsAndVIPsModsOnlyResp,
 			want: &modsAndVIPsResponse{
 				Mods: []*ModOrVIPUser{
 					{
@@ -318,7 +277,7 @@ func TestFetchModsAndVIPs(t *testing.T) {
 		},
 		{
 			desc:    "large, many mods and vips",
-			useResp: ivrModsAndVIPsModsAndVIPsResp,
+			useResp: ivrtest.ModsAndVIPsModsAndVIPsResp,
 			want: &modsAndVIPsResponse{
 				Mods: []*ModOrVIPUser{
 					{
@@ -411,9 +370,10 @@ func TestFetchModsAndVIPs(t *testing.T) {
 }
 
 func TestFetchFounders(t *testing.T) {
-	server := newFakeServer()
-	server.Init()
+	server := fakeserver.New()
+	server.AddOnClose(func() { originalIvrBaseUrl = BaseURL })
 	defer server.Close()
+	BaseURL = server.URL()
 
 	tests := []struct {
 		desc    string
@@ -422,21 +382,21 @@ func TestFetchFounders(t *testing.T) {
 	}{
 		{
 			desc:    "no founders 404",
-			useResp: ivrFoundersNone404Resp,
+			useResp: ivrtest.FoundersNone404Resp,
 			want: &foundersResponse{
 				Founders: nil,
 			},
 		},
 		{
 			desc:    "no founders",
-			useResp: ivrFoundersNoneResp,
+			useResp: ivrtest.FoundersNoneResp,
 			want: &foundersResponse{
 				Founders: []*Founder{},
 			},
 		},
 		{
 			desc:    "founders",
-			useResp: ivrFoundersNormalResp,
+			useResp: ivrtest.FoundersNormalResp,
 			want: &foundersResponse{
 				Founders: []*Founder{
 					{
@@ -525,9 +485,10 @@ func TestFetchFounders(t *testing.T) {
 }
 
 func TestIsVerifiedBot(t *testing.T) {
-	server := newFakeServer()
-	server.Init()
+	server := fakeserver.New()
+	server.AddOnClose(func() { originalIvrBaseUrl = BaseURL })
 	defer server.Close()
+	BaseURL = server.URL()
 
 	tests := []struct {
 		desc    string
@@ -536,12 +497,12 @@ func TestIsVerifiedBot(t *testing.T) {
 	}{
 		{
 			desc:    "not verified bot",
-			useResp: ivrTwitchUsersNotVerifiedBotResp,
+			useResp: ivrtest.TwitchUsersNotVerifiedBotResp,
 			want:    false,
 		},
 		{
 			desc:    "verified bot",
-			useResp: ivrTwitchUsersVerifiedBotResp,
+			useResp: ivrtest.TwitchUsersVerifiedBotResp,
 			want:    true,
 		},
 	}

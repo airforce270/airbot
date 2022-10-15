@@ -9,7 +9,8 @@ import (
 	"time"
 )
 
-var baseURL = "https://api.ivr.fi"
+// Base URL for API requests. Should only be changed for testing.
+var BaseURL = "https://api.ivr.fi"
 
 // TwitchUsersResponseItem /is the type that the IVR API responds with
 // for calls to /v2/twitch/users.
@@ -194,7 +195,7 @@ type Founder struct {
 
 // FetchUsers fetches a user info from the IVR API.
 func FetchUsers(username string) ([]*TwitchUsersResponseItem, error) {
-	body, err := get(fmt.Sprintf("%s/v2/twitch/user?login=%s", baseURL, username))
+	body, err := get(fmt.Sprintf("%s/v2/twitch/user?login=%s", BaseURL, username))
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +209,7 @@ func FetchUsers(username string) ([]*TwitchUsersResponseItem, error) {
 }
 
 func FetchModsAndVIPs(channel string) (*modsAndVIPsResponse, error) {
-	body, err := get(fmt.Sprintf("%s/v2/twitch/modvip/%s", baseURL, channel))
+	body, err := get(fmt.Sprintf("%s/v2/twitch/modvip/%s", BaseURL, channel))
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +223,7 @@ func FetchModsAndVIPs(channel string) (*modsAndVIPsResponse, error) {
 }
 
 func FetchFounders(channel string) (*foundersResponse, error) {
-	reqURL := fmt.Sprintf("%s/v2/twitch/founders/%s", baseURL, channel)
+	reqURL := fmt.Sprintf("%s/v2/twitch/founders/%s", BaseURL, channel)
 	httpResp, err := http.Get(reqURL)
 	if err != nil {
 		return nil, err

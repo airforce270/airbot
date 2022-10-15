@@ -265,6 +265,27 @@ func New(username string, channels []config.TwitchChannelConfig, clientID, acces
 	}
 }
 
+// New creates a new Twitch connection for testing.
+func NewForTesting(url string) *Twitch {
+	helixClient, err := helix.NewClient(&helix.Options{
+		ClientID:        "fake-client-id",
+		UserAccessToken: "fake-access-token",
+		APIBaseURL:      url,
+	})
+	if err != nil {
+		panic(err)
+	}
+	return &Twitch{
+		username:    "fake-username",
+		channels:    nil,
+		prefixes:    nil,
+		clientID:    "fake-client-id",
+		accessToken: "fake-access-token",
+		db:          nil,
+		h:           helixClient,
+	}
+}
+
 type twitchChannel struct {
 	Name           string
 	Prefix         string

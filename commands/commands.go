@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/airforce270/airbot/commands/basecommand"
+	"github.com/airforce270/airbot/commands/botinfo"
 	"github.com/airforce270/airbot/commands/echo"
 	"github.com/airforce270/airbot/commands/twitch"
 	"github.com/airforce270/airbot/message"
@@ -38,6 +39,7 @@ func (h *Handler) Handle(msg *message.IncomingMessage) ([]*message.Message, erro
 }
 
 func init() {
+	allCommands = append(allCommands, botinfo.Commands[:]...)
 	allCommands = append(allCommands, echo.Commands[:]...)
 	allCommands = append(allCommands, twitch.Commands[:]...)
 }
