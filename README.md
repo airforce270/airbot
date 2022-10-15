@@ -6,7 +6,87 @@ Currently under development.
 
 Support planned for many features (gamba, etc.) and platforms (Twitch, Discord, etc.).
 
-## Running
+## Commands
+
+All commands assume the `$` prefix, but note that the prefix is configurable in `config.json`.
+
+Some commands include parameters.
+
+If the parameter is wrapped in `<angle brackets>`, it's a **required** parameter.
+
+If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
+
+### Echo
+
+#### $commands
+
+- Replies with a link to this page.
+- > Usage: `$commands`
+- > Alternate command: `$help`
+
+#### $TriHard
+
+- Replies with ![TriHard](https://static-cdn.jtvnw.net/emoticons/v1/120232/1.0) 7.
+- > Usage: `$TriHard`
+
+### Twitch
+
+#### $banreason
+
+- Replies with the reason someone was banned on Twitch.
+- > Usage: `$banreason [user]` (default: you)
+- > Alternate command: `$br`
+
+#### $currentgame
+
+- Replies with the game that's currently being streamed on a channel.
+- > Usage: `$currentgame [user]` (default: you)
+
+#### $founders
+
+- Replies with a channel's founders.
+- > Usage: `$founders [user]` (default: you)
+
+#### $mods
+
+- Replies with a channel's mods.
+- > Usage: `$mods [user]` (default: you)
+
+#### $namecolor
+
+- Replies with a user's name color.
+- > Usage: `$namecolor [user]` (default: you)
+
+#### $title
+
+- Replies with a channel's title.
+- > Usage: `$title [user]` (default: you)
+
+#### $verifiedbot
+
+- Replies whether a user is a verified bot.
+- > Usage: `$verifiedbot [user]` (default: you)
+- > Alternate command: `$vb`
+
+#### $vips
+
+- Replies with a channel's VIPs.
+- > Usage: `$vips [user]` (default: you)
+
+## Live instance
+
+The bot is currently running on the Twitch account `af2bot`.
+
+It's hosted on a Google Cloud Platform e2-micro Compute Engine instance.
+
+### Add/remove bot
+
+To add or remove the bot from a channel, edit the `config.json` file
+and restart the bot.
+
+## Development
+
+### Running
 
 To run the bot:
 
@@ -18,7 +98,7 @@ To run the bot:
 1. Set a value for `POSTGRES_PASSWORD` in `.env`
 1. Run `./start.sh`
 
-### Production
+### Running in production
 
 To run in production (on a debian machine):
 

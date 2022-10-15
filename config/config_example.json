@@ -10,7 +10,7 @@
       "channels": [
         {
           "name": "",
-          "prefix": "!"
+          "prefix": "$"
         }
       ]
     }
