@@ -32,8 +32,6 @@ type Twitch struct {
 	isVerifiedBot bool
 	// channels is the Twitch channels to join.
 	channels []*twitchChannel
-	// prefixes is a map of channel names to prefixes.
-	prefixes map[string]string
 	// clientID is the OAuth Client ID to use when connecting.
 	clientID string
 	// accessToken is the OAuth token to use when connecting.
@@ -172,7 +170,6 @@ func (t *Twitch) Join(channel *helix.ChannelInformation, channelConfig config.Tw
 
 	newChannel := buildChannels([]config.TwitchChannelConfig{channelConfig})[0]
 	t.channels = append(t.channels, newChannel)
-	t.prefixes[strings.ToLower(channel.BroadcasterName)] = channelConfig.Prefix
 	return nil
 }
 
@@ -231,12 +228,14 @@ func (t *Twitch) Channel(channel string) (*helix.ChannelInformation, error) {
 }
 
 func (t *Twitch) prefix(channel string) string {
-	p, ok := t.prefixes[strings.ToLower(channel)]
-	if !ok {
-		log.Printf("No prefix found for channel %s", channel)
-		return ""
+	for _, c := range t.channels {
+		if !strings.EqualFold(c.Name, channel) {
+			continue
+		}
+		return c.Prefix
 	}
-	return p
+	log.Printf("No prefix found for channel %s", channel)
+	return ""
 }
 
 func (t *Twitch) persistUserAndMessage(twitchID, twitchName, message, channel string, sentTime time.Time) {
@@ -296,7 +295,6 @@ func New(username string, channels []config.TwitchChannelConfig, clientID, acces
 	return &Twitch{
 		username:    username,
 		channels:    buildChannels(channels),
-		prefixes:    *buildPrefixes(channels),
 		clientID:    clientID,
 		accessToken: accessToken,
 		db:          db,
@@ -318,7 +316,6 @@ func NewForTesting(url string) *Twitch {
 		id:            "",
 		isVerifiedBot: false,
 		channels:      nil,
-		prefixes:      map[string]string{},
 		clientID:      "fake-client-id",
 		accessToken:   "fake-access-token",
 		i:             nil,
@@ -345,12 +342,4 @@ func buildChannels(channels []config.TwitchChannelConfig) []*twitchChannel {
 		})
 	}
 	return builtChannels
-}
-
-func buildPrefixes(channels []config.TwitchChannelConfig) *map[string]string {
-	prefixes := map[string]string{}
-	for _, channel := range channels {
-		prefixes[strings.ToLower(channel.Name)] = channel.Prefix
-	}
-	return &prefixes
 }
