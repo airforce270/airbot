@@ -9,13 +9,17 @@ import (
 // Commands contains this package's commands.
 var Commands = [...]basecommand.Command{
 	{
-		Pattern:    basecommand.PrefixPattern("(?:commands|help)"),
-		Handle:     commands,
+		Name:       "commands",
+		Help:       "Replies with a link to the commands.",
+		Pattern:    basecommand.PrefixPattern("commands"),
+		Handler:    commands,
 		PrefixOnly: true,
 	},
 	{
+		Name:       "TriHard",
+		Help:       "Replies with TriHard 7.",
 		Pattern:    basecommand.PrefixPattern("TriHard"),
-		Handle:     triHard,
+		Handler:    triHard,
 		PrefixOnly: true,
 	},
 }

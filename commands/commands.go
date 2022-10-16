@@ -2,6 +2,8 @@
 package commands
 
 import (
+	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/airforce270/airbot/commands/admin"
@@ -16,6 +18,14 @@ import (
 
 // allCommands contains all allCommands that can be run.
 var allCommands []basecommand.Command
+
+func init() {
+	allCommands = append(allCommands, admin.Commands[:]...)
+	allCommands = append(allCommands, botinfo.Commands[:]...)
+	allCommands = append(allCommands, echo.Commands[:]...)
+	allCommands = append(allCommands, twitch.Commands[:]...)
+	allCommands = append(allCommands, helpCommand)
+}
 
 // NewHandler creates a new Handler.
 func NewHandler(enableNonPrefixCommands bool, admins []string) Handler {
@@ -48,7 +58,7 @@ func (h *Handler) Handle(msg *message.IncomingMessage) ([]*message.Message, erro
 			continue
 		}
 
-		respMsgs, err := command.Handle(msg)
+		respMsgs, err := command.Handler(msg)
 		if err != nil {
 			return nil, err
 		}
@@ -58,9 +68,44 @@ func (h *Handler) Handle(msg *message.IncomingMessage) ([]*message.Message, erro
 	return outMsgs, nil
 }
 
-func init() {
-	allCommands = append(allCommands, admin.Commands[:]...)
-	allCommands = append(allCommands, botinfo.Commands[:]...)
-	allCommands = append(allCommands, echo.Commands[:]...)
-	allCommands = append(allCommands, twitch.Commands[:]...)
+var (
+	helpCommandPattern = basecommand.PrefixPattern("help")
+	helpCommand        = basecommand.Command{
+		Pattern:    helpCommandPattern,
+		Handler:    help,
+		PrefixOnly: true,
+	}
+	helpPattern = regexp.MustCompile(helpCommandPattern.String() + `(\w+).*`)
+)
+
+func help(msg *message.IncomingMessage) ([]*message.Message, error) {
+	targetCommand := basecommand.ParseTarget(msg, helpPattern)
+
+	// No command provided
+	if targetCommand == msg.Message.User {
+		return []*message.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("For help with a command, use %shelp <command>. To see available commands, use %scommands", msg.Prefix, msg.Prefix),
+			},
+		}, nil
+	}
+
+	for _, cmd := range allCommands {
+		if !strings.EqualFold(cmd.Name, targetCommand) {
+			continue
+		}
+		help := cmd.Help
+		if help == "" {
+			help = "<no help information found>"
+		}
+		return []*message.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("[ %s%s ] %s", msg.Prefix, cmd.Name, help),
+			},
+		}, nil
+	}
+
+	return nil, nil
 }

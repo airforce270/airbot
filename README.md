@@ -43,19 +43,25 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - > Usage: `$leaveother <channel>`
 - > Note that this is an **admin-only** command.
 
-### Echo
+### Bot info
 
-#### $commands
+#### $help
 
-- Replies with a link to this page.
-- > Usage: `$commands`
-- > Alternate command: `$help`
+- Provides info about commands.
+- > Usage: `$help <command>`
 
 #### $prefix
 
 - Replies with the prefix in this channel.
 - > Usage: `$prefix`
 - > Responds to things like `what's the bot's prefix?` or `whats airbots prefix`
+
+### Echo
+
+#### $commands
+
+- Replies with a link to this page.
+- > Usage: `$commands`
 
 #### $TriHard
 

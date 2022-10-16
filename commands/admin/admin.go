@@ -27,8 +27,10 @@ var Commands = [...]basecommand.Command{
 var (
 	joinCommandPattern = basecommand.PrefixPattern("join$")
 	joinCommand        = basecommand.Command{
+		Name:    "join",
+		Help:    "Tells the bot to join your chat.",
 		Pattern: joinCommandPattern,
-		Handle: func(msg *message.IncomingMessage) ([]*message.Message, error) {
+		Handler: func(msg *message.IncomingMessage) ([]*message.Message, error) {
 			return joinChannel(msg, msg.Message.User)
 		},
 		PrefixOnly: true,
@@ -36,8 +38,10 @@ var (
 
 	joinOtherCommandPattern = basecommand.PrefixPattern("joinother")
 	joinOtherCommand        = basecommand.Command{
+		Name:    "joinother",
+		Help:    "Tells the bot to join a chat.",
 		Pattern: joinOtherCommandPattern,
-		Handle: func(msg *message.IncomingMessage) ([]*message.Message, error) {
+		Handler: func(msg *message.IncomingMessage) ([]*message.Message, error) {
 			return joinChannel(msg, basecommand.ParseTarget(msg, joinOtherPattern))
 		},
 		PrefixOnly: true,
@@ -47,8 +51,10 @@ var (
 
 	leaveCommandPattern = basecommand.PrefixPattern("leave$")
 	leaveCommand        = basecommand.Command{
+		Name:    "leave",
+		Help:    "Tells the bot to leave your chat.",
 		Pattern: leaveCommandPattern,
-		Handle: func(msg *message.IncomingMessage) ([]*message.Message, error) {
+		Handler: func(msg *message.IncomingMessage) ([]*message.Message, error) {
 			return leaveChannel(msg, msg.Message.User)
 		},
 		PrefixOnly: true,
@@ -56,8 +62,10 @@ var (
 
 	leaveOtherCommandPattern = basecommand.PrefixPattern("leaveother")
 	leaveOtherCommand        = basecommand.Command{
+		Name:    "leaveother",
+		Help:    "Tells the bot to leave a chat.",
 		Pattern: leaveOtherCommandPattern,
-		Handle: func(msg *message.IncomingMessage) ([]*message.Message, error) {
+		Handler: func(msg *message.IncomingMessage) ([]*message.Message, error) {
 			return leaveChannel(msg, basecommand.ParseTarget(msg, leaveOtherPattern))
 		},
 		PrefixOnly: true,

@@ -29,64 +29,80 @@ const maxUsersPerMessage = 15
 var (
 	banReasonCommandPattern = basecommand.PrefixPattern("(?:banreason|br)")
 	banReasonCommand        = basecommand.Command{
+		Name:       "banreason",
+		Help:       "Replies with the reason someone was banned on Twitch.",
 		Pattern:    banReasonCommandPattern,
-		Handle:     banReason,
+		Handler:    banReason,
 		PrefixOnly: true,
 	}
 	banReasonPattern = regexp.MustCompile(banReasonCommandPattern.String() + `(\w+).*`)
 
 	currentGameCommandPattern = basecommand.PrefixPattern("currentgame")
 	currentGameCommand        = basecommand.Command{
+		Name:       "currentgame",
+		Help:       "Replies with the game that's currently being streamed on a channel.",
 		Pattern:    currentGameCommandPattern,
-		Handle:     currentGame,
+		Handler:    currentGame,
 		PrefixOnly: true,
 	}
 	currentGamePattern = regexp.MustCompile(currentGameCommandPattern.String() + `(\w+).*`)
 
 	foundersCommandPattern = basecommand.PrefixPattern("founders")
 	foundersCommand        = basecommand.Command{
+		Name:       "founders",
+		Help:       "Replies with a channel's founders.",
 		Pattern:    foundersCommandPattern,
-		Handle:     founders,
+		Handler:    founders,
 		PrefixOnly: true,
 	}
 	foundersPattern = regexp.MustCompile(foundersCommandPattern.String() + `(\w+).*`)
 
 	modsCommandPattern = basecommand.PrefixPattern("mods")
 	modsCommand        = basecommand.Command{
+		Name:       "mods",
+		Help:       "Replies with a channel's mods.",
 		Pattern:    modsCommandPattern,
-		Handle:     mods,
+		Handler:    mods,
 		PrefixOnly: true,
 	}
 	modsPattern = regexp.MustCompile(modsCommandPattern.String() + `(\w+).*`)
 
 	nameColorCommandPattern = basecommand.PrefixPattern("namecolor")
 	nameColorCommand        = basecommand.Command{
+		Name:       "namecolor",
+		Help:       "Replies with a user's name color.",
 		Pattern:    nameColorCommandPattern,
-		Handle:     nameColor,
+		Handler:    nameColor,
 		PrefixOnly: true,
 	}
 	nameColorPattern = regexp.MustCompile(nameColorCommandPattern.String() + `(\w+).*`)
 
 	titleCommandPattern = basecommand.PrefixPattern("title")
 	titleCommand        = basecommand.Command{
+		Name:       "title",
+		Help:       "Replies with a channel's title.",
 		Pattern:    titleCommandPattern,
-		Handle:     title,
+		Handler:    title,
 		PrefixOnly: true,
 	}
 	titlePattern = regexp.MustCompile(titleCommandPattern.String() + `(\w+).*`)
 
 	verifiedBotCommandPattern = basecommand.PrefixPattern("(?:verifiedbot|vb)")
 	verifiedBotCommand        = basecommand.Command{
+		Name:       "verifiedbot",
+		Help:       "Replies whether a user is a verified bot.",
 		Pattern:    verifiedBotCommandPattern,
-		Handle:     verifiedBot,
+		Handler:    verifiedBot,
 		PrefixOnly: true,
 	}
 	verifiedBotPattern = regexp.MustCompile(verifiedBotCommandPattern.String() + `(\w+).*`)
 
 	vipsCommandPattern = basecommand.PrefixPattern("vips")
 	vipsCommand        = basecommand.Command{
+		Name:       "vips",
+		Help:       "Replies with a channel's VIPs.",
 		Pattern:    vipsCommandPattern,
-		Handle:     vips,
+		Handler:    vips,
 		PrefixOnly: true,
 	}
 	vipsPattern = regexp.MustCompile(vipsCommandPattern.String() + `(\w+).*`)

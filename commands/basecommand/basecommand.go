@@ -11,10 +11,14 @@ import (
 
 // Command represents a command the bot handles.
 type Command struct {
+	// Name is the name of the command.
+	Name string
+	// Help is the help information for this command.
+	Help string
 	// Pattern is the regexp pattern that should match for this command.
 	Pattern *regexp.Regexp
-	// Handle is the function to be run if this command matches.
-	Handle func(msg *message.IncomingMessage) ([]*message.Message, error)
+	// Handler is the function to be run if this command matches.
+	Handler func(msg *message.IncomingMessage) ([]*message.Message, error)
 	// PrefixOnly is whether the command should only be triggered if used with the prefix.
 	// i.e. `$title xqc` but not `title xqc`
 	PrefixOnly bool

@@ -12,8 +12,10 @@ import (
 // Commands contains this package's commands.
 var Commands = [...]basecommand.Command{
 	{
+		Name:       "prefix",
+		Help:       "Replies with the prefix in this channel.",
 		Pattern:    regexp.MustCompile(`\s*(^|(wh?at( i|')?s (the |air|af2)(bot('?s)?)? ?))prefix\??\s*`),
-		Handle:     prefix,
+		Handler:    prefix,
 		PrefixOnly: false,
 	},
 }
