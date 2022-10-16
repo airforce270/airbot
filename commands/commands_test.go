@@ -265,6 +265,40 @@ func TestCommands(t *testing.T) {
 		}),
 
 		// botinfo.go commands
+		singleTestCase(testCase{
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					Text:    "$help",
+					User:    "someone",
+					Channel: "somechannel",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix: "$",
+			},
+			want: []*message.Message{
+				{
+					Text:    "For help with a command, use $help <command>. To see available commands, use $commands",
+					Channel: "somechannel",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					Text:    "$help join",
+					User:    "someone",
+					Channel: "somechannel",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix: "$",
+			},
+			want: []*message.Message{
+				{
+					Text:    "[ $join ] Tells the bot to join your chat.",
+					Channel: "somechannel",
+				},
+			},
+		}),
 		testCasesWithSameOutput([]string{
 			"??prefix",
 			"prefix",
