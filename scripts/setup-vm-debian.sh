@@ -34,8 +34,7 @@ sudo apt-get install -y \
     docker-ce \
     docker-ce-cli \
     containerd.io \
-    docker-compose-plugin \
-    tmux
+    docker-compose-plugin
 
 echo '[Airbot Setup] Setting up Docker group...'
 sudo groupadd docker

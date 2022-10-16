@@ -151,6 +151,16 @@ To run in production (on a debian machine):
 1. Fill in the empty fields in `config.json`, notably API keys and usernames
 1. Set a value for `POSTGRES_PASSWORD` in `.env`
 1. Reboot the machine
-1. Run `./start-in-tmux.sh` to start the bot in a detached tmux session called `airbot`
+1. Run `./start-prod.sh` to start the bot
 
-If you want to view the logs or kill the bot, run `tmux attach -t airbot`
+#### Maintenance
+
+To connect to the bot's container while it's running, run `docker attach airbot-server-1`.
+
+To connect to the database's container while it's running, run `docker attach airbot-database-1`.
+
+To disconnect from a container, press `CTRL-p CTRL-q`.
+
+To stop the bot, run `./stop-prod.sh`.
+
+To update the bot, run `./update.sh`.
