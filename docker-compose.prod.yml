@@ -5,5 +5,7 @@ services:
     depends_on:
       database:
         condition: service_healthy
+    stdin_open: true
+    tty: true
     volumes:
       - ./config.json:/go/src/github.com/airforce270/airbot/config.json
