@@ -509,6 +509,42 @@ func TestCommands(t *testing.T) {
 		singleTestCase(testCase{
 			input: &message.IncomingMessage{
 				Message: message.Message{
+					Text:    "$logs xqc forsen",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			want: []*message.Message{
+				{
+					Text:    "forsen's logs in xqc's chat: https://logs.ivr.fi/?channel=xqc&username=forsen",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					Text:    "$logs",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			want: []*message.Message{
+				{
+					Text:    "Usage: $logs <channel> <user>",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &message.IncomingMessage{
+				Message: message.Message{
 					Text:    "$mods",
 					User:    "user1",
 					Channel: "user2",

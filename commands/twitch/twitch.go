@@ -18,6 +18,7 @@ var Commands = [...]basecommand.Command{
 	banReasonCommand,
 	currentGameCommand,
 	foundersCommand,
+	logsCommand,
 	modsCommand,
 	nameColorCommand,
 	titleCommand,
@@ -60,6 +61,17 @@ var (
 		Permission: permission.Normal,
 	}
 	foundersPattern = regexp.MustCompile(foundersCommandPattern.String() + `(\w+).*`)
+
+	logsCommandPattern = basecommand.PrefixPattern("logs")
+	logsCommand        = basecommand.Command{
+		Name:       "logs",
+		Help:       "Replies with a link to a Twitch user's logs in a channel.",
+		Pattern:    logsCommandPattern,
+		Handler:    logs,
+		PrefixOnly: true,
+		Permission: permission.Normal,
+	}
+	logsPattern = regexp.MustCompile(logsCommandPattern.String() + `(\w+)\s+(\w+).*`)
 
 	modsCommandPattern = basecommand.PrefixPattern("mods")
 	modsCommand        = basecommand.Command{
@@ -226,6 +238,27 @@ func founders(msg *message.IncomingMessage) ([]*message.Message, error) {
 	}
 
 	return messages, nil
+}
+
+func logs(msg *message.IncomingMessage) ([]*message.Message, error) {
+	matches := logsPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
+	if len(matches) != 3 {
+		return []*message.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("Usage: %slogs <channel> <user>", msg.Prefix),
+			},
+		}, nil
+	}
+	targetChannel := strings.ToLower(matches[1])
+	targetUser := strings.ToLower(matches[2])
+
+	return []*message.Message{
+		{
+			Channel: msg.Message.Channel,
+			Text:    fmt.Sprintf("%s's logs in %s's chat: https://logs.ivr.fi/?channel=%s&username=%s", targetUser, targetChannel, targetChannel, targetUser),
+		},
+	}, nil
 }
 
 func mods(msg *message.IncomingMessage) ([]*message.Message, error) {

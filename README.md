@@ -34,8 +34,8 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 #### $leave
 
-- Tells the bot to leave your chat.
-- > Usage: `$join`
+- Tells the bot to leave the chat.
+- > Usage: `$leave`
 
 #### $leaveother
 
@@ -85,6 +85,11 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 - Replies with a channel's founders.
 - > Usage: `$founders [user]` (default: you)
+
+#### $logs
+
+- Replies with a link to a Twitch user's logs in a channel.
+- > Usage: `$mods <channel> <user>`
 
 #### $mods
 
