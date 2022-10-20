@@ -4,6 +4,8 @@ package message
 import (
 	"strings"
 	"time"
+
+	"github.com/airforce270/airbot/permission"
 )
 
 // Message represents a chat message.
@@ -19,11 +21,17 @@ type Message struct {
 	Time time.Time
 }
 
+// IncomingMessage represents an incoming chat message.
 type IncomingMessage struct {
+	// Message is the message.
 	Message Message
-	Prefix  string
+	// Prefix is the prefix for the channel the message was sent in.
+	Prefix string
+	// PermissionLevel is the permission level of the user that sent the message.
+	PermissionLevel permission.Level
 }
 
+// MessageTextWithoutPrefix returns the message's text without the prefix.
 func (m *IncomingMessage) MessageTextWithoutPrefix() string {
 	return strings.Replace(m.Message.Text, m.Prefix, "", 1)
 }

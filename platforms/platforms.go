@@ -35,7 +35,7 @@ func Build(cfg *config.Config, db *gorm.DB) (map[string]Platform, error) {
 	p := map[string]Platform{}
 	if twc := cfg.Platforms.Twitch; twc.Enabled {
 		log.Printf("Building Twitch platform...")
-		tw := twitch.New(twc.Username, twc.Channels, twc.ClientID, twc.AccessToken, db)
+		tw := twitch.New(twc.Username, twc.Owners, twc.ClientID, twc.AccessToken, db)
 		twitch.Instance = tw
 		p[tw.Name()] = tw
 	}
@@ -44,8 +44,8 @@ func Build(cfg *config.Config, db *gorm.DB) (map[string]Platform, error) {
 
 // StartHandling starts handling commands coming from the given platform.
 // This function blocks and should be run within a goroutine.
-func StartHandling(p Platform, db *gorm.DB, logIncoming, logOutgoing, enableNonPrefixCommands bool, admins []string) {
-	handler := commands.NewHandler(enableNonPrefixCommands, admins)
+func StartHandling(p Platform, db *gorm.DB, logIncoming, logOutgoing, enableNonPrefixCommands bool) {
+	handler := commands.NewHandler(enableNonPrefixCommands)
 	c := p.Listen()
 
 	for {

@@ -9,8 +9,23 @@ import (
 
 // AllModels contains one of each defined data model, for auto-migrations.
 var AllModels = []any{
+	JoinedChannel{},
 	Message{},
 	User{},
+}
+
+// JoinedChannel represents a channel the bot should join.
+type JoinedChannel struct {
+	gorm.Model
+
+	// Platform contains the which platform this channel is on.
+	Platform string
+	// Channel is which channel should be joined.
+	Channel string
+	// Prefix is the prefix to be used in the channel.
+	Prefix string
+	// JoinedAt is when the channel was joined.
+	JoinedAt time.Time
 }
 
 // Message represents a chat message.

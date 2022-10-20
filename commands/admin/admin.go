@@ -7,13 +7,14 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/airforce270/airbot/commands/basecommand"
-	"github.com/airforce270/airbot/config"
+	"github.com/airforce270/airbot/database"
+	"github.com/airforce270/airbot/database/model"
 	"github.com/airforce270/airbot/message"
+	"github.com/airforce270/airbot/permission"
 	twitchplatform "github.com/airforce270/airbot/platforms/twitch"
-
-	"golang.org/x/exp/slices"
 )
 
 // Commands contains this package's commands.
@@ -34,6 +35,7 @@ var (
 			return joinChannel(msg, msg.Message.User)
 		},
 		PrefixOnly: true,
+		Permission: permission.Normal,
 	}
 
 	joinOtherCommandPattern = basecommand.PrefixPattern("joinother")
@@ -45,7 +47,7 @@ var (
 			return joinChannel(msg, basecommand.ParseTarget(msg, joinOtherPattern))
 		},
 		PrefixOnly: true,
-		AdminOnly:  true,
+		Permission: permission.Owner,
 	}
 	joinOtherPattern = regexp.MustCompile(joinOtherCommandPattern.String() + `(\w+).*`)
 
@@ -55,9 +57,10 @@ var (
 		Help:    "Tells the bot to leave your chat.",
 		Pattern: leaveCommandPattern,
 		Handler: func(msg *message.IncomingMessage) ([]*message.Message, error) {
-			return leaveChannel(msg, msg.Message.User)
+			return leaveChannel(msg, msg.Message.Channel)
 		},
 		PrefixOnly: true,
+		Permission: permission.Admin,
 	}
 
 	leaveOtherCommandPattern = basecommand.PrefixPattern("leaveother")
@@ -69,7 +72,7 @@ var (
 			return leaveChannel(msg, basecommand.ParseTarget(msg, leaveOtherPattern))
 		},
 		PrefixOnly: true,
-		AdminOnly:  true,
+		Permission: permission.Owner,
 	}
 	leaveOtherPattern = regexp.MustCompile(leaveOtherCommandPattern.String() + `(\w+).*`)
 )
@@ -79,20 +82,18 @@ const defaultPrefix = "$"
 func joinChannel(msg *message.IncomingMessage, targetChannel string) ([]*message.Message, error) {
 	prefix := defaultPrefix
 
-	cfg := config.Instance
-	if cfg == nil {
-		return nil, fmt.Errorf("config not initialized (was it set in main after reading?)")
-	}
+	db := database.Instance
 
-	for _, alreadyJoinedChannel := range cfg.Platforms.Twitch.Channels {
-		if strings.EqualFold(alreadyJoinedChannel.Name, targetChannel) {
-			return []*message.Message{
-				{
-					Channel: msg.Message.Channel,
-					Text:    fmt.Sprintf("Channel %s is already joined", targetChannel),
-				},
-			}, nil
-		}
+	var channels []model.JoinedChannel
+	db.Where(model.JoinedChannel{Platform: "Twitch", Channel: strings.ToLower(targetChannel)}).Find(&channels)
+
+	if len(channels) > 0 {
+		return []*message.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("Channel %s is already joined", targetChannel),
+			},
+		}, nil
 	}
 
 	tw := twitchplatform.Instance
@@ -109,42 +110,46 @@ func joinChannel(msg *message.IncomingMessage, targetChannel string) ([]*message
 				},
 			}, nil
 		}
-		return nil, fmt.Errorf("failed to write new config: %w", err)
+		return nil, fmt.Errorf("failed to look up channel: %w", err)
 	}
 
-	channelConfig := config.TwitchChannelConfig{
-		Name:   channel.BroadcasterName,
-		Prefix: prefix,
+	channelRecord := model.JoinedChannel{
+		Platform: "Twitch",
+		Channel:  channel.BroadcasterName,
+		Prefix:   prefix,
+		JoinedAt: time.Now(),
 	}
-	cfg.Platforms.Twitch.Channels = append(cfg.Platforms.Twitch.Channels, channelConfig)
-	if err := config.Write(config.Path, cfg); err != nil {
-		return nil, fmt.Errorf("failed to write new config: %w", err)
-	}
-
-	if err := tw.Join(channel, channelConfig); err != nil {
+	result := db.Create(&channelRecord)
+	if result.Error != nil {
 		return nil, fmt.Errorf("failed to join channel %s: %w", channel.BroadcasterName, err)
 	}
 
-	return []*message.Message{
+	if err := tw.Join(channel, prefix); err != nil {
+		return nil, fmt.Errorf("failed to join channel %s: %w", channel.BroadcasterName, err)
+	}
+
+	msgs := []*message.Message{
 		{
 			Channel: msg.Message.Channel,
 			Text:    fmt.Sprintf("Successfully joined channel %s with prefix %s", channel.BroadcasterName, prefix),
 		},
-	}, nil
+	}
+	if !strings.EqualFold(msg.Message.Channel, channel.BroadcasterName) {
+		msgs = append(msgs, &message.Message{
+			Channel: channel.BroadcasterName,
+			Text:    fmt.Sprintf("Successfully joined channel! (prefix: %s ) For all commands, type %scommands.", prefix, prefix),
+		})
+	}
+	return msgs, nil
 }
 
 func leaveChannel(msg *message.IncomingMessage, targetChannel string) ([]*message.Message, error) {
-	cfg := config.Instance
-	if cfg == nil {
-		return nil, fmt.Errorf("config not initialized (was it set in main after reading?)")
-	}
+	db := database.Instance
 
-	var alreadyJoinedChannels []string
-	for _, alreadyJoinedChannel := range cfg.Platforms.Twitch.Channels {
-		alreadyJoinedChannels = append(alreadyJoinedChannels, strings.ToLower(alreadyJoinedChannel.Name))
-	}
+	var channels []model.JoinedChannel
+	db.Where(model.JoinedChannel{Platform: "Twitch", Channel: strings.ToLower(targetChannel)}).Find(&channels)
 
-	if !slices.Contains(alreadyJoinedChannels, strings.ToLower(targetChannel)) {
+	if len(channels) == 0 {
 		return []*message.Message{
 			{
 				Channel: msg.Message.Channel,
@@ -153,33 +158,31 @@ func leaveChannel(msg *message.IncomingMessage, targetChannel string) ([]*messag
 		}, nil
 	}
 
-	var newChannelConfigs []config.TwitchChannelConfig
-	for _, channelConfig := range cfg.Platforms.Twitch.Channels {
-		if strings.EqualFold(channelConfig.Name, targetChannel) {
-			continue
-		}
-		newChannelConfigs = append(newChannelConfigs, channelConfig)
-	}
-	cfg.Platforms.Twitch.Channels = newChannelConfigs
-	if err := config.Write(config.Path, cfg); err != nil {
-		return nil, fmt.Errorf("failed to write new config: %w", err)
-	}
+	db.Delete(&channels)
 
 	tw := twitchplatform.Instance
 	if tw == nil {
 		return nil, fmt.Errorf("twitch platform connection not initialized")
 	}
 
-	defer func() {
+	go func() {
+		time.Sleep(time.Millisecond * 500)
 		if err := tw.Leave(targetChannel); err != nil {
 			log.Printf("failed to leave channel %s: %v", targetChannel, err)
 		}
 	}()
 
-	return []*message.Message{
-		{
+	var msgs []*message.Message
+	if strings.EqualFold(msg.Message.Channel, targetChannel) {
+		msgs = append(msgs, &message.Message{
+			Channel: msg.Message.Channel,
+			Text:    "Successfully left channel.",
+		})
+	} else {
+		msgs = append(msgs, &message.Message{
 			Channel: msg.Message.Channel,
 			Text:    fmt.Sprintf("Successfully left channel %s", targetChannel),
-		},
-	}, nil
+		})
+	}
+	return msgs, nil
 }

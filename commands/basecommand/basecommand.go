@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/airforce270/airbot/message"
+	"github.com/airforce270/airbot/permission"
 )
 
 // Command represents a command the bot handles.
@@ -22,8 +23,8 @@ type Command struct {
 	// PrefixOnly is whether the command should only be triggered if used with the prefix.
 	// i.e. `$title xqc` but not `title xqc`
 	PrefixOnly bool
-	// AdminOnly is whether the command can only be run by admins.
-	AdminOnly bool
+	// Permission is the permission level required to run the command.
+	Permission permission.Level
 }
 
 // PrefixPattern compiles a regex pattern matching the prefix of a string, ignoring whitespace.

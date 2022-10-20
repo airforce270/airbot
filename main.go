@@ -62,6 +62,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
+	database.Instance = db
 
 	log.Printf("Performing database migrations...")
 	if database.Migrate(db); err != nil {
@@ -81,7 +82,7 @@ func main() {
 		}
 
 		log.Printf("Starting to handle messages on %s...", p.Name())
-		go platforms.StartHandling(p, db, cfg.LogIncoming, cfg.LogOutgoing, cfg.EnableNonPrefixCommands, cfg.Platforms.Twitch.Admins)
+		go platforms.StartHandling(p, db, cfg.LogIncoming, cfg.LogOutgoing, cfg.EnableNonPrefixCommands)
 		cleanupFuncs = append(cleanupFuncs, cleanupFunc{name: p.Name(), f: p.Disconnect})
 	}
 

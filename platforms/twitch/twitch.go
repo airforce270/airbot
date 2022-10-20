@@ -9,12 +9,13 @@ import (
 	"time"
 
 	"github.com/airforce270/airbot/apiclients/ivr"
-	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/database/model"
 	"github.com/airforce270/airbot/message"
+	"github.com/airforce270/airbot/permission"
 
 	twitchirc "github.com/gempir/go-twitch-irc/v3"
 	"github.com/nicklaw5/helix/v2"
+	"golang.org/x/exp/slices"
 	"gorm.io/gorm"
 )
 
@@ -32,8 +33,8 @@ type Twitch struct {
 	isVerifiedBot bool
 	// channels is the Twitch channels to join.
 	channels []*twitchChannel
-	// prefixes is a map of channel names to prefixes.
-	prefixes map[string]string
+	// owners contains the usernames of the bot's owners. Usually only one.
+	owners []string
 	// clientID is the OAuth Client ID to use when connecting.
 	clientID string
 	// accessToken is the OAuth token to use when connecting.
@@ -84,7 +85,8 @@ func (t *Twitch) Listen() chan message.IncomingMessage {
 				User:    msg.User.Name,
 				Time:    msg.Time,
 			},
-			Prefix: t.prefix(msg.Channel),
+			Prefix:          t.prefix(msg.Channel),
+			PermissionLevel: t.level(&msg),
 		}
 	})
 	return c
@@ -163,16 +165,14 @@ func (t *Twitch) Disconnect() error {
 }
 
 // Join joins a channel.
-func (t *Twitch) Join(channel *helix.ChannelInformation, channelConfig config.TwitchChannelConfig) error {
+func (t *Twitch) Join(channel *helix.ChannelInformation, prefix string) error {
 	if t.i != nil {
 		t.i.Join(channel.BroadcasterName)
 	} else {
-		log.Printf("Didn't actually join channel - IRC client is nil. This is expected in test, but if you see this in production, something's broken!")
+		log.Printf("Didn't actually join channel %s - IRC client is nil. This is expected in test, but if you see this in production, something's broken!", channel.BroadcasterName)
 	}
 
-	newChannel := buildChannels([]config.TwitchChannelConfig{channelConfig})[0]
-	t.channels = append(t.channels, newChannel)
-	t.prefixes[strings.ToLower(channel.BroadcasterName)] = channelConfig.Prefix
+	t.channels = append(t.channels, &twitchChannel{Name: channel.BroadcasterName, Prefix: prefix})
 	return nil
 }
 
@@ -181,7 +181,7 @@ func (t *Twitch) Leave(channel string) error {
 	if t.i != nil {
 		t.i.Depart(channel)
 	} else {
-		log.Printf("Didn't actually depart channel - IRC client is nil. This is expected in test, but if you see this in production, something's broken!")
+		log.Printf("Didn't actually depart channel %s - IRC client is nil. This is expected in test, but if you see this in production, something's broken!", channel)
 	}
 
 	var newChannels []*twitchChannel
@@ -231,12 +231,33 @@ func (t *Twitch) Channel(channel string) (*helix.ChannelInformation, error) {
 }
 
 func (t *Twitch) prefix(channel string) string {
-	p, ok := t.prefixes[strings.ToLower(channel)]
-	if !ok {
-		log.Printf("No prefix found for channel %s", channel)
-		return ""
+	for _, c := range t.channels {
+		if !strings.EqualFold(c.Name, channel) {
+			continue
+		}
+		return c.Prefix
 	}
-	return p
+	log.Printf("No prefix found for channel %s", channel)
+	return ""
+}
+
+// level returns the permission level of the user that sent a message.
+func (t *Twitch) level(msg *twitchirc.PrivateMessage) permission.Level {
+	if slices.Contains(t.owners, strings.ToLower(msg.User.Name)) {
+		return permission.Owner
+	}
+
+	for _, channel := range t.channels {
+		if !strings.EqualFold(channel.Name, msg.Channel) {
+			continue
+		}
+		for badgeType, level := range badgeLevels {
+			if userHasBadge(msg.User, badgeType) {
+				return level
+			}
+		}
+	}
+	return permission.Normal
 }
 
 func (t *Twitch) persistUserAndMessage(twitchID, twitchName, message, channel string, sentTime time.Time) {
@@ -270,33 +291,52 @@ func (t *Twitch) listenForModAndVIPChanges() {
 func (t *Twitch) updateModStatusForChannel(channel *twitchChannel, mods []*ivr.ModOrVIPUser) {
 	for _, mod := range mods {
 		if mod.ID == t.id || t.username == channel.Name {
-			log.Printf("[Twitch] Determined bot is a mod in channel %q", channel.Name)
 			channel.BotIsModerator = true
 			return
 		}
 	}
-	log.Printf("[Twitch] Determined bot is not a mod in channel %q", channel.Name)
 	channel.BotIsModerator = false
 }
 
 func (t *Twitch) updateVIPStatusForChannel(channel *twitchChannel, vips []*ivr.ModOrVIPUser) {
 	for _, vip := range vips {
 		if vip.ID == t.id {
-			log.Printf("[Twitch] Determined bot is a VIP in channel %q", channel.Name)
 			channel.BotIsVIP = true
 			return
 		}
 	}
-	log.Printf("[Twitch] Determined bot is not a VIP in channel %q", channel.Name)
 	channel.BotIsVIP = false
 }
 
+const defaultBotPrefix = "$"
+
 // New creates a new Twitch connection.
-func New(username string, channels []config.TwitchChannelConfig, clientID, accessToken string, db *gorm.DB) *Twitch {
+func New(username string, owners []string, clientID, accessToken string, db *gorm.DB) *Twitch {
+	var botChannel model.JoinedChannel
+	botChannelResp := db.FirstOrCreate(&botChannel, model.JoinedChannel{
+		Platform: "Twitch",
+		Channel:  strings.ToLower(username),
+		Prefix:   defaultBotPrefix,
+	})
+	if botChannelResp.RowsAffected != 0 {
+		db.Model(&botChannel).Updates(model.JoinedChannel{JoinedAt: time.Now()})
+	}
+
+	var dbChannels []model.JoinedChannel
+	db.Where(model.JoinedChannel{Platform: "Twitch"}).Find(&dbChannels)
+
+	var channels []*twitchChannel
+	for _, dbChannel := range dbChannels {
+		channels = append(channels, &twitchChannel{
+			Name:   dbChannel.Channel,
+			Prefix: dbChannel.Prefix,
+		})
+	}
+
 	return &Twitch{
 		username:    username,
-		channels:    buildChannels(channels),
-		prefixes:    *buildPrefixes(channels),
+		channels:    channels,
+		owners:      lowercaseAll(owners),
 		clientID:    clientID,
 		accessToken: accessToken,
 		db:          db,
@@ -317,8 +357,7 @@ func NewForTesting(url string) *Twitch {
 		username:      "fake-username",
 		id:            "",
 		isVerifiedBot: false,
-		channels:      nil,
-		prefixes:      map[string]string{},
+		owners:        nil,
 		clientID:      "fake-client-id",
 		accessToken:   "fake-access-token",
 		i:             nil,
@@ -334,23 +373,10 @@ type twitchChannel struct {
 	BotIsVIP       bool
 }
 
-func buildChannels(channels []config.TwitchChannelConfig) []*twitchChannel {
-	var builtChannels []*twitchChannel
-	for _, channel := range channels {
-		builtChannels = append(builtChannels, &twitchChannel{
-			Name:           channel.Name,
-			Prefix:         channel.Prefix,
-			BotIsModerator: false,
-			BotIsVIP:       false,
-		})
+func lowercaseAll(strs []string) []string {
+	lower := make([]string, len(strs))
+	for i, str := range strs {
+		lower[i] = strings.ToLower(str)
 	}
-	return builtChannels
-}
-
-func buildPrefixes(channels []config.TwitchChannelConfig) *map[string]string {
-	prefixes := map[string]string{}
-	for _, channel := range channels {
-		prefixes[strings.ToLower(channel.Name)] = channel.Prefix
-	}
-	return &prefixes
+	return lower
 }
