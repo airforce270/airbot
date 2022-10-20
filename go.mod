@@ -9,6 +9,7 @@ require (
 	github.com/nicklaw5/helix/v2 v2.8.0
 	golang.org/x/exp v0.0.0-20221012211006-4de253d81b95
 	gorm.io/driver/postgres v1.4.4
+	gorm.io/driver/sqlite v1.4.3
 	gorm.io/gorm v1.24.0
 )
 
@@ -24,6 +25,7 @@ require (
 	github.com/jackc/pgx/v4 v4.17.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/mattn/go-sqlite3 v1.14.15 // indirect
 	golang.org/x/crypto v0.0.0-20221005025214-4161e89ecf1b // indirect
 	golang.org/x/text v0.3.7 // indirect
 )

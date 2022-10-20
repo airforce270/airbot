@@ -7,6 +7,7 @@ import (
 
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/message"
+	"github.com/airforce270/airbot/permission"
 )
 
 // Commands contains this package's commands.
@@ -17,6 +18,7 @@ var Commands = [...]basecommand.Command{
 		Pattern:    regexp.MustCompile(`\s*(^|(wh?at( i|')?s (the |air|af2)(bot('?s)?)? ?))prefix\??\s*`),
 		Handler:    prefix,
 		PrefixOnly: false,
+		Permission: permission.Normal,
 	},
 }
 

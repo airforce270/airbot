@@ -9,6 +9,7 @@ import (
 	"github.com/airforce270/airbot/apiclients/ivr"
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/message"
+	"github.com/airforce270/airbot/permission"
 	twitchplatform "github.com/airforce270/airbot/platforms/twitch"
 )
 
@@ -34,6 +35,7 @@ var (
 		Pattern:    banReasonCommandPattern,
 		Handler:    banReason,
 		PrefixOnly: true,
+		Permission: permission.Normal,
 	}
 	banReasonPattern = regexp.MustCompile(banReasonCommandPattern.String() + `(\w+).*`)
 
@@ -44,6 +46,7 @@ var (
 		Pattern:    currentGameCommandPattern,
 		Handler:    currentGame,
 		PrefixOnly: true,
+		Permission: permission.Normal,
 	}
 	currentGamePattern = regexp.MustCompile(currentGameCommandPattern.String() + `(\w+).*`)
 
@@ -54,6 +57,7 @@ var (
 		Pattern:    foundersCommandPattern,
 		Handler:    founders,
 		PrefixOnly: true,
+		Permission: permission.Normal,
 	}
 	foundersPattern = regexp.MustCompile(foundersCommandPattern.String() + `(\w+).*`)
 
@@ -64,6 +68,7 @@ var (
 		Pattern:    modsCommandPattern,
 		Handler:    mods,
 		PrefixOnly: true,
+		Permission: permission.Normal,
 	}
 	modsPattern = regexp.MustCompile(modsCommandPattern.String() + `(\w+).*`)
 
@@ -74,6 +79,7 @@ var (
 		Pattern:    nameColorCommandPattern,
 		Handler:    nameColor,
 		PrefixOnly: true,
+		Permission: permission.Normal,
 	}
 	nameColorPattern = regexp.MustCompile(nameColorCommandPattern.String() + `(\w+).*`)
 
@@ -84,6 +90,7 @@ var (
 		Pattern:    titleCommandPattern,
 		Handler:    title,
 		PrefixOnly: true,
+		Permission: permission.Normal,
 	}
 	titlePattern = regexp.MustCompile(titleCommandPattern.String() + `(\w+).*`)
 
@@ -94,6 +101,7 @@ var (
 		Pattern:    verifiedBotCommandPattern,
 		Handler:    verifiedBot,
 		PrefixOnly: true,
+		Permission: permission.Normal,
 	}
 	verifiedBotPattern = regexp.MustCompile(verifiedBotCommandPattern.String() + `(\w+).*`)
 
@@ -104,6 +112,7 @@ var (
 		Pattern:    vipsCommandPattern,
 		Handler:    vips,
 		PrefixOnly: true,
+		Permission: permission.Normal,
 	}
 	vipsPattern = regexp.MustCompile(vipsCommandPattern.String() + `(\w+).*`)
 )

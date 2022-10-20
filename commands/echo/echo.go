@@ -4,6 +4,7 @@ package echo
 import (
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/message"
+	"github.com/airforce270/airbot/permission"
 )
 
 // Commands contains this package's commands.
@@ -14,6 +15,7 @@ var Commands = [...]basecommand.Command{
 		Pattern:    basecommand.PrefixPattern("commands"),
 		Handler:    commands,
 		PrefixOnly: true,
+		Permission: permission.Normal,
 	},
 	{
 		Name:       "TriHard",
@@ -21,6 +23,7 @@ var Commands = [...]basecommand.Command{
 		Pattern:    basecommand.PrefixPattern("TriHard"),
 		Handler:    triHard,
 		PrefixOnly: true,
+		Permission: permission.Normal,
 	},
 }
 

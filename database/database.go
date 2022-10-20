@@ -11,6 +11,10 @@ import (
 	"gorm.io/gorm"
 )
 
+// Instance is the connection to the database.
+// It should be set by main.
+var Instance *gorm.DB
+
 // Connect creates a connection to the database.
 func Connect(dbname, user, password string) (*gorm.DB, error) {
 	settings := map[string]string{

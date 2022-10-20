@@ -3,6 +3,7 @@ package commands
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
@@ -12,8 +13,7 @@ import (
 	"github.com/airforce270/airbot/commands/echo"
 	"github.com/airforce270/airbot/commands/twitch"
 	"github.com/airforce270/airbot/message"
-
-	"golang.org/x/exp/slices"
+	"github.com/airforce270/airbot/permission"
 )
 
 // allCommands contains all allCommands that can be run.
@@ -28,10 +28,9 @@ func init() {
 }
 
 // NewHandler creates a new Handler.
-func NewHandler(enableNonPrefixCommands bool, admins []string) Handler {
+func NewHandler(enableNonPrefixCommands bool) Handler {
 	return Handler{
 		nonPrefixCommandsEnabled: enableNonPrefixCommands,
-		admins:                   admins,
 	}
 }
 
@@ -39,8 +38,6 @@ func NewHandler(enableNonPrefixCommands bool, admins []string) Handler {
 type Handler struct {
 	// nonPrefixCommandsEnabled is whether non-prefix commands should be enabled.
 	nonPrefixCommandsEnabled bool
-	// admins is the list of admins.
-	admins []string
 }
 
 // Handle handles incoming messages, possibly returning messages to be sent in response.
@@ -51,10 +48,11 @@ func (h *Handler) Handle(msg *message.IncomingMessage) ([]*message.Message, erro
 		if !messageHasPrefix && (command.PrefixOnly || !h.nonPrefixCommandsEnabled) {
 			continue
 		}
-		if command.AdminOnly && !slices.Contains(h.admins, msg.Message.User) {
+		if !command.Pattern.MatchString(msg.MessageTextWithoutPrefix()) {
 			continue
 		}
-		if !command.Pattern.MatchString(msg.MessageTextWithoutPrefix()) {
+		if !permission.Authorized(msg.PermissionLevel, command.Permission) {
+			log.Printf("Permission denied: command %s, user %s, channel %s; has permission %s, required: %s", command.Name, msg.Message.User, msg.Message.Channel, msg.PermissionLevel.Name(), command.Permission.Name())
 			continue
 		}
 

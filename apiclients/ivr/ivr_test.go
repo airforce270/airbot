@@ -228,7 +228,7 @@ func TestFetchUser(t *testing.T) {
 			}
 
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Errorf("FetchUser() diff (,want +got):\n%s", diff)
+				t.Errorf("FetchUser() diff (-want +got):\n%s", diff)
 			}
 		})
 		server.Reset()
