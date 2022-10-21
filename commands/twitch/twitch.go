@@ -66,10 +66,11 @@ var (
 	logsCommand        = basecommand.Command{
 		Name:       "logs",
 		Help:       "Replies with a link to a Twitch user's logs in a channel.",
+		Usage:      "$logs <channel> <user>",
+		Permission: permission.Normal,
+		PrefixOnly: true,
 		Pattern:    logsCommandPattern,
 		Handler:    logs,
-		PrefixOnly: true,
-		Permission: permission.Normal,
 	}
 	logsPattern = regexp.MustCompile(logsCommandPattern.String() + `(\w+)\s+(\w+).*`)
 
@@ -77,10 +78,11 @@ var (
 	modsCommand        = basecommand.Command{
 		Name:       "mods",
 		Help:       "Replies with a channel's mods.",
+		Usage:      "$mods [user]",
+		Permission: permission.Normal,
+		PrefixOnly: true,
 		Pattern:    modsCommandPattern,
 		Handler:    mods,
-		PrefixOnly: true,
-		Permission: permission.Normal,
 	}
 	modsPattern = regexp.MustCompile(modsCommandPattern.String() + `(\w+).*`)
 
@@ -88,10 +90,11 @@ var (
 	nameColorCommand        = basecommand.Command{
 		Name:       "namecolor",
 		Help:       "Replies with a user's name color.",
+		Usage:      "$namecolor [user]",
+		Permission: permission.Normal,
+		PrefixOnly: true,
 		Pattern:    nameColorCommandPattern,
 		Handler:    nameColor,
-		PrefixOnly: true,
-		Permission: permission.Normal,
 	}
 	nameColorPattern = regexp.MustCompile(nameColorCommandPattern.String() + `(\w+).*`)
 
@@ -99,21 +102,24 @@ var (
 	titleCommand        = basecommand.Command{
 		Name:       "title",
 		Help:       "Replies with a channel's title.",
+		Usage:      "$title [user]",
+		Permission: permission.Normal,
+		PrefixOnly: true,
 		Pattern:    titleCommandPattern,
 		Handler:    title,
-		PrefixOnly: true,
-		Permission: permission.Normal,
 	}
 	titlePattern = regexp.MustCompile(titleCommandPattern.String() + `(\w+).*`)
 
 	verifiedBotCommandPattern = basecommand.PrefixPattern("(?:verifiedbot|vb)")
 	verifiedBotCommand        = basecommand.Command{
-		Name:       "verifiedbot",
-		Help:       "Replies whether a user is a verified bot.",
-		Pattern:    verifiedBotCommandPattern,
-		Handler:    verifiedBot,
-		PrefixOnly: true,
-		Permission: permission.Normal,
+		Name:           "verifiedbot",
+		AlternateNames: []string{"vb", "something"},
+		Help:           "Replies whether a user is a verified bot.",
+		Usage:          "$verifiedbot [user]",
+		Permission:     permission.Normal,
+		PrefixOnly:     true,
+		Pattern:        verifiedBotCommandPattern,
+		Handler:        verifiedBot,
 	}
 	verifiedBotPattern = regexp.MustCompile(verifiedBotCommandPattern.String() + `(\w+).*`)
 
@@ -121,10 +127,11 @@ var (
 	vipsCommand        = basecommand.Command{
 		Name:       "vips",
 		Help:       "Replies with a channel's VIPs.",
+		Usage:      "$vips [user]",
+		Permission: permission.Normal,
+		PrefixOnly: true,
 		Pattern:    vipsCommandPattern,
 		Handler:    vips,
-		PrefixOnly: true,
-		Permission: permission.Normal,
 	}
 	vipsPattern = regexp.MustCompile(vipsCommandPattern.String() + `(\w+).*`)
 )

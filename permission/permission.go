@@ -18,6 +18,11 @@ func (l Level) Name() string {
 	return name
 }
 
+// IsElevated indicates whether this Level is an elevated one.
+func (l Level) IsElevated() bool {
+	return l > Normal
+}
+
 const (
 	// Owner is the owner/host of the bot.
 	Owner Level = math.MaxUint8

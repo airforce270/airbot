@@ -28,51 +28,55 @@ var Commands = [...]basecommand.Command{
 var (
 	joinCommandPattern = basecommand.PrefixPattern("join$")
 	joinCommand        = basecommand.Command{
-		Name:    "join",
-		Help:    "Tells the bot to join your chat.",
-		Pattern: joinCommandPattern,
+		Name:       "join",
+		Help:       "Tells the bot to join your chat.",
+		Usage:      "$join",
+		Permission: permission.Normal,
+		PrefixOnly: true,
+		Pattern:    joinCommandPattern,
 		Handler: func(msg *message.IncomingMessage) ([]*message.Message, error) {
 			return joinChannel(msg, msg.Message.User)
 		},
-		PrefixOnly: true,
-		Permission: permission.Normal,
 	}
 
 	joinOtherCommandPattern = basecommand.PrefixPattern("joinother")
 	joinOtherCommand        = basecommand.Command{
-		Name:    "joinother",
-		Help:    "Tells the bot to join a chat.",
-		Pattern: joinOtherCommandPattern,
+		Name:       "joinother",
+		Help:       "Tells the bot to join a chat.",
+		Usage:      "$joinother <channel>",
+		Permission: permission.Owner,
+		PrefixOnly: true,
+		Pattern:    joinOtherCommandPattern,
 		Handler: func(msg *message.IncomingMessage) ([]*message.Message, error) {
 			return joinChannel(msg, basecommand.ParseTarget(msg, joinOtherPattern))
 		},
-		PrefixOnly: true,
-		Permission: permission.Owner,
 	}
 	joinOtherPattern = regexp.MustCompile(joinOtherCommandPattern.String() + `(\w+).*`)
 
 	leaveCommandPattern = basecommand.PrefixPattern("leave$")
 	leaveCommand        = basecommand.Command{
-		Name:    "leave",
-		Help:    "Tells the bot to leave your chat.",
-		Pattern: leaveCommandPattern,
+		Name:       "leave",
+		Help:       "Tells the bot to leave your chat.",
+		Usage:      "$leave",
+		Permission: permission.Admin,
+		PrefixOnly: true,
+		Pattern:    leaveCommandPattern,
 		Handler: func(msg *message.IncomingMessage) ([]*message.Message, error) {
 			return leaveChannel(msg, msg.Message.Channel)
 		},
-		PrefixOnly: true,
-		Permission: permission.Admin,
 	}
 
 	leaveOtherCommandPattern = basecommand.PrefixPattern("leaveother")
 	leaveOtherCommand        = basecommand.Command{
-		Name:    "leaveother",
-		Help:    "Tells the bot to leave a chat.",
-		Pattern: leaveOtherCommandPattern,
+		Name:       "leaveother",
+		Help:       "Tells the bot to leave a chat.",
+		Usage:      "$leaveother <channel>",
+		Permission: permission.Owner,
+		PrefixOnly: true,
+		Pattern:    leaveOtherCommandPattern,
 		Handler: func(msg *message.IncomingMessage) ([]*message.Message, error) {
 			return leaveChannel(msg, basecommand.ParseTarget(msg, leaveOtherPattern))
 		},
-		PrefixOnly: true,
-		Permission: permission.Owner,
 	}
 	leaveOtherPattern = regexp.MustCompile(leaveOtherCommandPattern.String() + `(\w+).*`)
 )

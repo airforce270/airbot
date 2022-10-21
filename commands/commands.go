@@ -16,15 +16,21 @@ import (
 	"github.com/airforce270/airbot/permission"
 )
 
-// allCommands contains all allCommands that can be run.
+// CommandGroups contains all groups of commands.
+var CommandGroups = map[string][]basecommand.Command{
+	"Admin":    admin.Commands[:],
+	"Bot info": append([]basecommand.Command{helpCommand}, botinfo.Commands[:]...),
+	"Echo":     echo.Commands[:],
+	"Twitch":   twitch.Commands[:],
+}
+
+// allCommands contains all all commands that can be run.
 var allCommands []basecommand.Command
 
 func init() {
-	allCommands = append(allCommands, admin.Commands[:]...)
-	allCommands = append(allCommands, botinfo.Commands[:]...)
-	allCommands = append(allCommands, echo.Commands[:]...)
-	allCommands = append(allCommands, twitch.Commands[:]...)
-	allCommands = append(allCommands, helpCommand)
+	for _, group := range CommandGroups {
+		allCommands = append(allCommands, group...)
+	}
 }
 
 // NewHandler creates a new Handler.
@@ -69,6 +75,9 @@ func (h *Handler) Handle(msg *message.IncomingMessage) ([]*message.Message, erro
 var (
 	helpCommandPattern = basecommand.PrefixPattern("help")
 	helpCommand        = basecommand.Command{
+		Name:       "help",
+		Help:       "Displays help for a command.",
+		Usage:      "$help <command>",
 		Pattern:    helpCommandPattern,
 		Handler:    help,
 		PrefixOnly: true,

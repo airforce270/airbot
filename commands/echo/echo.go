@@ -12,18 +12,20 @@ var Commands = [...]basecommand.Command{
 	{
 		Name:       "commands",
 		Help:       "Replies with a link to the commands.",
+		Usage:      "$commands",
+		Permission: permission.Normal,
+		PrefixOnly: true,
 		Pattern:    basecommand.PrefixPattern("commands"),
 		Handler:    commands,
-		PrefixOnly: true,
-		Permission: permission.Normal,
 	},
 	{
 		Name:       "TriHard",
 		Help:       "Replies with TriHard 7.",
+		Usage:      "$TriHard",
+		Permission: permission.Normal,
+		PrefixOnly: true,
 		Pattern:    basecommand.PrefixPattern("TriHard"),
 		Handler:    triHard,
-		PrefixOnly: true,
-		Permission: permission.Normal,
 	},
 }
 
@@ -31,7 +33,7 @@ func commands(msg *message.IncomingMessage) ([]*message.Message, error) {
 	return []*message.Message{
 		{
 			Channel: msg.Message.Channel,
-			Text:    "Commands available here: https://github.com/airforce270/airbot#commands",
+			Text:    "Commands available here: https://github.com/airforce270/airbot/blob/main/docs/commands.md",
 		},
 	}, nil
 }
