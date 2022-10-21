@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/gempir/go-twitch-irc/v3 v3.2.0
 	github.com/google/go-cmp v0.5.9
+	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jinzhu/copier v0.3.5
 	github.com/nicklaw5/helix/v2 v2.8.0
 	golang.org/x/exp v0.0.0-20221012211006-4de253d81b95
@@ -15,6 +16,7 @@ require (
 
 require (
 	github.com/golang-jwt/jwt/v4 v4.0.0 // indirect
+	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.13.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect

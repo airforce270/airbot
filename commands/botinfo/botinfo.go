@@ -15,10 +15,11 @@ var Commands = [...]basecommand.Command{
 	{
 		Name:       "prefix",
 		Help:       "Replies with the prefix in this channel.",
+		Usage:      "$prefix",
+		Permission: permission.Normal,
+		PrefixOnly: false,
 		Pattern:    regexp.MustCompile(`\s*(^|(wh?at( i|')?s (the |air|af2)(bot('?s)?)? ?))prefix\??\s*`),
 		Handler:    prefix,
-		PrefixOnly: false,
-		Permission: permission.Normal,
 	},
 }
 

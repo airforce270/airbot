@@ -89,7 +89,7 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 #### $logs
 
 - Replies with a link to a Twitch user's logs in a channel.
-- > Usage: `$mods <channel> <user>`
+- > Usage: `$logs <channel> <user>`
 
 #### $mods
 

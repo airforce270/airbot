@@ -14,17 +14,22 @@ import (
 type Command struct {
 	// Name is the name of the command.
 	Name string
+	// AlternateNames are the alternate names for this command, if any.
+	AlternateNames []string
 	// Help is the help information for this command.
 	Help string
+	// Usage is the usage information for this command.
+	// Should be in the format `$command <required-param> [optional-param]`
+	Usage string
+	// Permission is the permission level required to run the command.
+	Permission permission.Level
+	// PrefixOnly is whether the command should only be triggered if used with the prefix.
+	// i.e. `$title xqc` but not `title xqc`
+	PrefixOnly bool
 	// Pattern is the regexp pattern that should match for this command.
 	Pattern *regexp.Regexp
 	// Handler is the function to be run if this command matches.
 	Handler func(msg *message.IncomingMessage) ([]*message.Message, error)
-	// PrefixOnly is whether the command should only be triggered if used with the prefix.
-	// i.e. `$title xqc` but not `title xqc`
-	PrefixOnly bool
-	// Permission is the permission level required to run the command.
-	Permission permission.Level
 }
 
 // PrefixPattern compiles a regex pattern matching the prefix of a string, ignoring whitespace.
