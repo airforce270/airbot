@@ -20,9 +20,6 @@ It's hosted on a Google Cloud Platform e2-micro Compute Engine instance.
 
 To add the bot to your channel, type `$join` in `af2bot`'s chat.
 
-WARNING! The prefix will be `$` and there's currently no way to change that yourself.
-(coming soon!)
-
 To have the bot leave your channel, type `$leave` in your chat.
 
 ## Development
