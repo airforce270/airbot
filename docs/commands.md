@@ -38,6 +38,12 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - > Usage: `$leaveother <channel>`
 - > Minimum permission level: `Owner`
 
+### $setprefix
+
+- Sets the bot's prefix in the channel.
+- > Usage: `$setprefix`
+- > Minimum permission level: `Owner`
+
 ## Bot info
 
 ### $help

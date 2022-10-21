@@ -23,6 +23,7 @@ var Commands = [...]basecommand.Command{
 	joinOtherCommand,
 	leaveCommand,
 	leaveOtherCommand,
+	setPrefixCommand,
 }
 
 var (
@@ -79,6 +80,18 @@ var (
 		},
 	}
 	leaveOtherPattern = regexp.MustCompile(leaveOtherCommandPattern.String() + `(\w+).*`)
+
+	setPrefixCommandPattern = basecommand.PrefixPattern("setprefix")
+	setPrefixCommand        = basecommand.Command{
+		Name:       "setprefix",
+		Help:       "Sets the bot's prefix in the channel.",
+		Usage:      "$setprefix",
+		Permission: permission.Owner,
+		PrefixOnly: true,
+		Pattern:    setPrefixCommandPattern,
+		Handler:    setPrefix,
+	}
+	setPrefixPattern = regexp.MustCompile(setPrefixCommandPattern.String() + `(\S+).*`)
 )
 
 const defaultPrefix = "$"
@@ -189,4 +202,52 @@ func leaveChannel(msg *message.IncomingMessage, targetChannel string) ([]*messag
 		})
 	}
 	return msgs, nil
+}
+
+func setPrefix(msg *message.IncomingMessage) ([]*message.Message, error) {
+	matches := setPrefixPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
+	if len(matches) < 2 {
+		return []*message.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "No new prefix provided",
+			},
+		}, nil
+	}
+	newPrefix := matches[1]
+
+	db := database.Instance
+
+	tw := twitchplatform.Instance
+	if tw == nil {
+		return nil, fmt.Errorf("twitch platform connection not initialized")
+	}
+
+	var channels []model.JoinedChannel
+	db.Where(model.JoinedChannel{Platform: "Twitch", Channel: strings.ToLower(msg.Message.Channel)}).Find(&channels)
+
+	for _, channel := range channels {
+		channel.Prefix = newPrefix
+
+		result := db.Save(&channel)
+
+		if result.RowsAffected == 0 {
+			log.Printf("Failed to update prefix: %v", result.Error)
+			return []*message.Message{
+				{
+					Channel: msg.Message.Channel,
+					Text:    "Failed to update prefix",
+				},
+			}, nil
+		}
+	}
+
+	tw.UpdateCachedJoinedChannels()
+
+	return []*message.Message{
+		{
+			Channel: msg.Message.Channel,
+			Text:    fmt.Sprintf("Prefix set to %s", newPrefix),
+		},
+	}, nil
 }

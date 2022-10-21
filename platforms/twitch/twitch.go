@@ -93,6 +93,9 @@ func (t *Twitch) Listen() chan message.IncomingMessage {
 }
 
 func (t *Twitch) Connect() error {
+	log.Printf("Initializing channel data...")
+	t.initializeJoinedChannels()
+
 	log.Printf("Creating Twitch IRC client...")
 	i := twitchirc.NewClient(t.username, fmt.Sprintf("oauth:%s", t.accessToken))
 	t.i = i
@@ -230,6 +233,23 @@ func (t *Twitch) Channel(channel string) (*helix.ChannelInformation, error) {
 	return &resp.Data.Channels[0], nil
 }
 
+// UpdateCachedJoinedChannels updates the in-memory joined channel data
+// using the latest joined channel data from the database.
+func (t *Twitch) UpdateCachedJoinedChannels() {
+	var dbChannels []model.JoinedChannel
+	t.db.Where(model.JoinedChannel{Platform: "Twitch"}).Find(&dbChannels)
+
+	var channels []*twitchChannel
+	for _, dbChannel := range dbChannels {
+		channels = append(channels, &twitchChannel{
+			Name:   dbChannel.Channel,
+			Prefix: dbChannel.Prefix,
+		})
+	}
+
+	t.channels = channels
+}
+
 func (t *Twitch) prefix(channel string) string {
 	for _, c := range t.channels {
 		if !strings.EqualFold(c.Name, channel) {
@@ -258,6 +278,23 @@ func (t *Twitch) level(msg *twitchirc.PrivateMessage) permission.Level {
 		}
 	}
 	return permission.Normal
+}
+
+func (t *Twitch) initializeJoinedChannels() {
+	var botChannel model.JoinedChannel
+	botChannelResp := t.db.FirstOrCreate(&botChannel, model.JoinedChannel{
+		Platform: "Twitch",
+		Channel:  strings.ToLower(t.username),
+	})
+
+	if botChannelResp.RowsAffected != 0 {
+		t.db.Model(&botChannel).Updates(model.JoinedChannel{
+			Prefix:   defaultBotPrefix,
+			JoinedAt: time.Now(),
+		})
+	}
+
+	t.UpdateCachedJoinedChannels()
 }
 
 func (t *Twitch) persistUserAndMessage(twitchID, twitchName, message, channel string, sentTime time.Time) {
@@ -312,30 +349,8 @@ const defaultBotPrefix = "$"
 
 // New creates a new Twitch connection.
 func New(username string, owners []string, clientID, accessToken string, db *gorm.DB) *Twitch {
-	var botChannel model.JoinedChannel
-	botChannelResp := db.FirstOrCreate(&botChannel, model.JoinedChannel{
-		Platform: "Twitch",
-		Channel:  strings.ToLower(username),
-		Prefix:   defaultBotPrefix,
-	})
-	if botChannelResp.RowsAffected != 0 {
-		db.Model(&botChannel).Updates(model.JoinedChannel{JoinedAt: time.Now()})
-	}
-
-	var dbChannels []model.JoinedChannel
-	db.Where(model.JoinedChannel{Platform: "Twitch"}).Find(&dbChannels)
-
-	var channels []*twitchChannel
-	for _, dbChannel := range dbChannels {
-		channels = append(channels, &twitchChannel{
-			Name:   dbChannel.Channel,
-			Prefix: dbChannel.Prefix,
-		})
-	}
-
 	return &Twitch{
 		username:    username,
-		channels:    channels,
 		owners:      lowercaseAll(owners),
 		clientID:    clientID,
 		accessToken: accessToken,
