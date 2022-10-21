@@ -224,6 +224,37 @@ func TestCommands(t *testing.T) {
 			},
 			want: nil,
 		}),
+		singleTestCase(testCase{
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					Text:    "$setprefix &",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Owner,
+			},
+			want: []*message.Message{
+				{
+					Text:    "Prefix set to &",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &message.IncomingMessage{
+				Message: message.Message{
+					Text:    "$setprefix &",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			want: nil,
+		}),
 
 		// botinfo.go commands
 		singleTestCase(testCase{
@@ -710,8 +741,9 @@ func TestCommands(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(fmt.Sprintf("[%s] %s", tc.input.PermissionLevel.Name(), tc.input.Message.Text), func(t *testing.T) {
 			server.Resp = tc.apiResp
-			setFakes(server.URL())
-			database.Instance = newFakeDB()
+			db := newFakeDB()
+			database.Instance = db
+			setFakes(server.URL(), db)
 			for i, f := range tc.runBefore {
 				if err := f(); err != nil {
 					t.Fatalf("runBefore[%d] func failed: %v", i, err)
@@ -828,23 +860,23 @@ var (
 	savedIVRURL = ivr.BaseURL
 )
 
-func setFakes(url string) {
+func setFakes(url string, db *gorm.DB) {
 	ivr.BaseURL = url
-	twitch.Instance = twitch.NewForTesting(url)
+	twitch.Instance = twitch.NewForTesting(url, db)
 }
 
 func resetFakes() {
 	ivr.BaseURL = savedIVRURL
-	twitch.Instance = twitch.NewForTesting(helix.DefaultAPIBaseURL)
+	twitch.Instance = twitch.NewForTesting(helix.DefaultAPIBaseURL, nil)
 }
 
 func newFakeDB() *gorm.DB {
 	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"))
-	for _, m := range model.AllModels {
-		db.Migrator().DropTable(&m)
-	}
 	if err != nil {
 		panic(err)
+	}
+	for _, m := range model.AllModels {
+		db.Migrator().DropTable(&m)
 	}
 	database.Migrate(db)
 	return db

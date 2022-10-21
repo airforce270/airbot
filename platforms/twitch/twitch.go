@@ -359,7 +359,7 @@ func New(username string, owners []string, clientID, accessToken string, db *gor
 }
 
 // New creates a new Twitch connection for testing.
-func NewForTesting(url string) *Twitch {
+func NewForTesting(url string, db *gorm.DB) *Twitch {
 	helixClient, err := helix.NewClient(&helix.Options{
 		ClientID:        "fake-client-id",
 		UserAccessToken: "fake-access-token",
@@ -377,7 +377,7 @@ func NewForTesting(url string) *Twitch {
 		accessToken:   "fake-access-token",
 		i:             nil,
 		h:             helixClient,
-		db:            nil,
+		db:            db,
 	}
 }
 
