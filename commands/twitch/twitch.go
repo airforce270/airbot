@@ -113,7 +113,7 @@ var (
 	verifiedBotCommandPattern = basecommand.PrefixPattern("(?:verifiedbot|vb)")
 	verifiedBotCommand        = basecommand.Command{
 		Name:           "verifiedbot",
-		AlternateNames: []string{"vb", "something"},
+		AlternateNames: []string{"vb"},
 		Help:           "Replies whether a user is a verified bot.",
 		Usage:          "$verifiedbot [user]",
 		Permission:     permission.Normal,
