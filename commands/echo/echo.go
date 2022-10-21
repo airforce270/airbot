@@ -33,7 +33,7 @@ func commands(msg *message.IncomingMessage) ([]*message.Message, error) {
 	return []*message.Message{
 		{
 			Channel: msg.Message.Channel,
-			Text:    "Commands available here: https://github.com/airforce270/airbot#commands",
+			Text:    "Commands available here: https://github.com/airforce270/airbot/blob/main/docs/commands.md",
 		},
 	}, nil
 }

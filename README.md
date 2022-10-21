@@ -8,114 +8,7 @@ Support planned for many features (gamba, etc.) and platforms (Twitch, Discord, 
 
 ## Commands
 
-All commands assume the `$` prefix, but note that the prefix is configurable
-per-channel (in `config.json`).
-To find out what the prefix is in a channel, ask `what's airbot's prefix?`
-in a chat.
-
-Some commands include parameters.
-
-If the parameter is wrapped in `<angle brackets>`, it's a **required** parameter.
-
-If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
-
-### Admin
-
-#### $join
-
-- Tells the bot to join your chat.
-- > Usage: `$join`
-
-#### $joinother
-
-- Tells the bot to join a chat.
-- > Usage: `$joinother <channel>`
-- > Note that this is an **admin-only** command.
-
-#### $leave
-
-- Tells the bot to leave the chat.
-- > Usage: `$leave`
-
-#### $leaveother
-
-- Tells the bot to leave a chat.
-- > Usage: `$leaveother <channel>`
-- > Note that this is an **admin-only** command.
-
-### Bot info
-
-#### $help
-
-- Provides info about commands.
-- > Usage: `$help <command>`
-
-#### $prefix
-
-- Replies with the prefix in this channel.
-- > Usage: `$prefix`
-- > Responds to things like `what's the bot's prefix?` or `whats airbots prefix`
-
-### Echo
-
-#### $commands
-
-- Replies with a link to this page.
-- > Usage: `$commands`
-
-#### $TriHard
-
-- Replies with ![TriHard](https://static-cdn.jtvnw.net/emoticons/v1/120232/1.0) 7.
-- > Usage: `$TriHard`
-
-### Twitch
-
-#### $banreason
-
-- Replies with the reason someone was banned on Twitch.
-- > Usage: `$banreason [user]` (default: you)
-- > Alternate command: `$br`
-
-#### $currentgame
-
-- Replies with the game that's currently being streamed on a channel.
-- > Usage: `$currentgame [user]` (default: you)
-
-#### $founders
-
-- Replies with a channel's founders.
-- > Usage: `$founders [user]` (default: you)
-
-#### $logs
-
-- Replies with a link to a Twitch user's logs in a channel.
-- > Usage: `$logs <channel> <user>`
-
-#### $mods
-
-- Replies with a channel's mods.
-- > Usage: `$mods [user]` (default: you)
-
-#### $namecolor
-
-- Replies with a user's name color.
-- > Usage: `$namecolor [user]` (default: you)
-
-#### $title
-
-- Replies with a channel's title.
-- > Usage: `$title [user]` (default: you)
-
-#### $verifiedbot
-
-- Replies whether a user is a verified bot.
-- > Usage: `$verifiedbot [user]` (default: you)
-- > Alternate command: `$vb`
-
-#### $vips
-
-- Replies with a channel's VIPs.
-- > Usage: `$vips [user]` (default: you)
+Commands are available on the [commands page](docs/commands.md).
 
 ## Live instance
 
@@ -134,9 +27,9 @@ To have the bot leave your channel, type `$leave` in your chat.
 
 ## Development
 
-### Running
+### Running locally
 
-To run the bot:
+To run the bot locally:
 
 1. [Install Docker](https://docs.docker.com/get-docker/)
 1. Clone the repository and change into it
@@ -146,7 +39,14 @@ To run the bot:
 1. Set a value for `POSTGRES_PASSWORD` in `.env`
 1. Run `./start.sh`
 
-### Running in production
+#### Documentation
+
+Some documentation is generated.
+
+After making changes, run `./gen-docs.sh` from the main directory to regenerate
+the docs.
+
+## Running in production
 
 To run in production (on a debian machine):
 
@@ -158,14 +58,14 @@ To run in production (on a debian machine):
 1. Reboot the machine
 1. Run `./start-prod.sh` to start the bot
 
-#### Maintenance
+### Maintenance
+
+To update the bot, run `./update.sh`.
+
+To stop the bot, run `./stop-prod.sh`.
 
 To connect to the bot's container while it's running, run `docker attach airbot-server-1`.
 
 To connect to the database's container while it's running, run `docker attach airbot-database-1`.
 
 To disconnect from a container, press `CTRL-p CTRL-q`.
-
-To stop the bot, run `./stop-prod.sh`.
-
-To update the bot, run `./update.sh`.

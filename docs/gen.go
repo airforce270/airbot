@@ -25,11 +25,14 @@ const (
 var (
 	//go:embed "commands.md.gtpl"
 	commandsTmplData string
-	commandsTmpl     = template.Must(template.New(commandsFilePath).Funcs(funcs).Parse(commandsTmplData))
 	commandsFilePath = path.Join(directory, "commands.md")
 
-	files = map[string]any{
-		commandsFilePath: commands.CommandGroups,
+	files = []fileToGenerate{
+		{
+			Template: template.Must(template.New(commandsFilePath).Funcs(funcs).Parse(commandsTmplData)),
+			Path:     commandsFilePath,
+			Data:     commands.CommandGroups,
+		},
 	}
 
 	funcs = map[string]any{
@@ -43,22 +46,27 @@ var (
 	}
 )
 
-func gen(fileName string, data any) error {
+type fileToGenerate struct {
+	Template *template.Template
+	Path     string
+	Data     any
+}
+
+func gen(tmpl *template.Template, fileName string, data any) error {
 	var buf bytes.Buffer
-	if err := commandsTmpl.Execute(&buf, data); err != nil {
+	if err := tmpl.Execute(&buf, data); err != nil {
 		return err
 	}
-
 	return os.WriteFile(fileName, []byte(generatedFileMessage+buf.String()), 0666)
 }
 
 func main() {
 	var errs *multierror.Error
 
-	for file, data := range files {
-		err := gen(file, data)
+	for _, file := range files {
+		err := gen(file.Template, file.Path, file.Data)
 		if err != nil {
-			log.Printf("Failed to generate %s: %v", file, err)
+			log.Printf("Failed to generate %s: %v", file.Path, err)
 		}
 		errs = multierror.Append(errs, err)
 	}

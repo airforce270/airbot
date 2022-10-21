@@ -345,7 +345,7 @@ func TestCommands(t *testing.T) {
 			},
 			want: []*message.Message{
 				{
-					Text:    "Commands available here: https://github.com/airforce270/airbot#commands",
+					Text:    "Commands available here: https://github.com/airforce270/airbot/blob/main/docs/commands.md",
 					Channel: "user2",
 				},
 			},
