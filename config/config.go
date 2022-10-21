@@ -9,10 +9,6 @@ import (
 // Path contains the path to the config file to be read (when referenced by the binary).
 const Path = "config.json"
 
-// Instance is the singleton Config instance.
-// It should be set by main.
-var Instance *Config
-
 // Config is the top-level config object.
 type Config struct {
 	// LogIncoming is whether the bot should log incoming messages.
@@ -55,26 +51,8 @@ func Read(path string) (*Config, error) {
 	return parse(raw)
 }
 
-// Write writes new config data to the given path.
-// It expects that the path already exists.
-func Write(path string, config *Config) error {
-	data, err := json.MarshalIndent(config, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	fi, err := OSStat(path)
-	if err != nil {
-		return err
-	}
-
-	return OSWriteFile(path, data, fi.Mode())
-}
-
 var (
-	OSReadFile  = os.ReadFile
-	OSStat      = os.Stat
-	OSWriteFile = os.WriteFile
+	OSReadFile = os.ReadFile
 )
 
 // parse parses raw bytes into a config.

@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"io/fs"
 	"os"
 	"testing"
 	"time"
@@ -25,15 +24,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type fakeFileInfo struct{}
-
-func (f fakeFileInfo) Mode() fs.FileMode  { return 777 }
-func (f fakeFileInfo) IsDir() bool        { return false }
-func (f fakeFileInfo) ModTime() time.Time { return time.Time{} }
-func (f fakeFileInfo) Name() string       { return "FakeFile" }
-func (f fakeFileInfo) Size() int64        { return 123 }
-func (f fakeFileInfo) Sys() any           { return nil }
-
 type testCase struct {
 	input     *message.IncomingMessage
 	apiResp   string
@@ -47,12 +37,6 @@ func TestCommands(t *testing.T) {
 
 	config.OSReadFile = func(name string) ([]byte, error) {
 		return []byte("blahblah"), nil
-	}
-	config.OSStat = func(name string) (os.FileInfo, error) {
-		return fakeFileInfo{}, nil
-	}
-	config.OSWriteFile = func(name string, data []byte, perm os.FileMode) error {
-		return nil
 	}
 
 	tests := flatten(
@@ -750,8 +734,6 @@ func TestCommands(t *testing.T) {
 	}
 
 	config.OSReadFile = os.ReadFile
-	config.OSStat = os.Stat
-	config.OSWriteFile = os.WriteFile
 }
 
 func TestCommands_EnableNonPrefixCommands(t *testing.T) {

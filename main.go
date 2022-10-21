@@ -55,7 +55,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to read config from %s: %v", config.Path, err)
 	}
-	config.Instance = cfg
 
 	log.Printf("Connecting to database...")
 	db, err := database.Connect(os.Getenv("POSTGRES_DB"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"))
