@@ -86,7 +86,7 @@ var (
 		Name:       "setprefix",
 		Help:       "Sets the bot's prefix in the channel.",
 		Usage:      "$setprefix",
-		Permission: permission.Owner,
+		Permission: permission.Admin,
 		PrefixOnly: true,
 		Pattern:    setPrefixCommandPattern,
 		Handler:    setPrefix,

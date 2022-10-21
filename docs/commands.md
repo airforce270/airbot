@@ -42,7 +42,7 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 - Sets the bot's prefix in the channel.
 - > Usage: `$setprefix`
-- > Minimum permission level: `Owner`
+- > Minimum permission level: `Admin`
 
 ## Bot info
 
@@ -106,7 +106,7 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 - Replies whether a user is a verified bot.
 - > Usage: `$verifiedbot [user]`
-- > Alternate commands: `$vb`, `$something`
+- > Alternate commands: `$vb`
 
 ### $vips
 
