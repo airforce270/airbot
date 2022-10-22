@@ -90,6 +90,11 @@ func source(msg *base.IncomingMessage) ([]*base.Message, error) {
 }
 
 func stats(msg *base.IncomingMessage) ([]*base.Message, error) {
+	db := database.Instance
+	if db == nil {
+		return nil, fmt.Errorf("database instance not initialized")
+	}
+
 	g := new(errgroup.Group)
 
 	var cpuPercent float64
@@ -144,11 +149,6 @@ func stats(msg *base.IncomingMessage) ([]*base.Message, error) {
 		botUptime = time.Since(time.UnixMilli(botProcessCreateTime))
 		return nil
 	})
-
-	db := database.Instance
-	if db == nil {
-		return nil, fmt.Errorf("database instance not initialized")
-	}
 
 	var recentlyProcessedMessages int64
 	g.Go(func() error {
