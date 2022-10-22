@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/airforce270/airbot/apiclients/ivr"
+	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/database/model"
-	"github.com/airforce270/airbot/message"
 	"github.com/airforce270/airbot/permission"
 
 	twitchirc "github.com/gempir/go-twitch-irc/v3"
@@ -52,7 +52,7 @@ func (t *Twitch) Name() string { return "Twitch" }
 
 func (t *Twitch) Username() string { return t.username }
 
-func (t *Twitch) Send(msg message.Message) error {
+func (t *Twitch) Send(msg base.Message) error {
 	var channel *twitchChannel
 	for _, c := range t.channels {
 		if strings.EqualFold(c.Name, msg.Channel) {
@@ -74,12 +74,12 @@ func (t *Twitch) Send(msg message.Message) error {
 	return nil
 }
 
-func (t *Twitch) Listen() chan message.IncomingMessage {
-	c := make(chan message.IncomingMessage)
+func (t *Twitch) Listen() chan base.IncomingMessage {
+	c := make(chan base.IncomingMessage)
 	t.i.OnPrivateMessage(func(msg twitchirc.PrivateMessage) {
 		go t.persistUserAndMessage(msg.User.ID, msg.User.DisplayName, msg.Message, msg.Channel, msg.Time)
-		c <- message.IncomingMessage{
-			Message: message.Message{
+		c <- base.IncomingMessage{
+			Message: base.Message{
 				Text:    msg.Message,
 				Channel: msg.Channel,
 				User:    msg.User.Name,
@@ -87,6 +87,7 @@ func (t *Twitch) Listen() chan message.IncomingMessage {
 			},
 			Prefix:          t.prefix(msg.Channel),
 			PermissionLevel: t.level(&msg),
+			Platform:        t,
 		}
 	})
 	return c

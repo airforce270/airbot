@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/airforce270/airbot/apiclients/ivr"
+	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/commands/basecommand"
-	"github.com/airforce270/airbot/message"
 	"github.com/airforce270/airbot/permission"
 	twitchplatform "github.com/airforce270/airbot/platforms/twitch"
 )
@@ -136,7 +136,7 @@ var (
 	vipsPattern = regexp.MustCompile(vipsCommandPattern.String() + `(\w+).*`)
 )
 
-func banReason(msg *message.IncomingMessage) ([]*message.Message, error) {
+func banReason(msg *base.IncomingMessage) ([]*base.Message, error) {
 	targetUser := basecommand.ParseTarget(msg, banReasonPattern)
 
 	users, err := ivr.FetchUsers(targetUser)
@@ -144,7 +144,7 @@ func banReason(msg *message.IncomingMessage) ([]*message.Message, error) {
 		return nil, err
 	}
 	if len(users) == 0 {
-		return []*message.Message{
+		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
 				Text:    fmt.Sprintf("Couldn't find user %s", targetUser),
@@ -163,7 +163,7 @@ func banReason(msg *message.IncomingMessage) ([]*message.Message, error) {
 		resp = fmt.Sprintf("%s's ban reason: %s", user.DisplayName, user.BanReason)
 	}
 
-	return []*message.Message{
+	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
 			Text:    resp,
@@ -171,7 +171,7 @@ func banReason(msg *message.IncomingMessage) ([]*message.Message, error) {
 	}, nil
 }
 
-func currentGame(msg *message.IncomingMessage) ([]*message.Message, error) {
+func currentGame(msg *base.IncomingMessage) ([]*base.Message, error) {
 	targetChannel := basecommand.ParseTarget(msg, currentGamePattern)
 
 	tw := twitchplatform.Instance
@@ -185,7 +185,7 @@ func currentGame(msg *message.IncomingMessage) ([]*message.Message, error) {
 	}
 
 	if channel.GameName == "" {
-		return []*message.Message{
+		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
 				Text:    fmt.Sprintf("%s is not currenly playing anything", channel.BroadcasterName),
@@ -193,7 +193,7 @@ func currentGame(msg *message.IncomingMessage) ([]*message.Message, error) {
 		}, nil
 	}
 
-	return []*message.Message{
+	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
 			Text:    fmt.Sprintf("%s is currenly playing %s", channel.BroadcasterName, channel.GameName),
@@ -201,13 +201,13 @@ func currentGame(msg *message.IncomingMessage) ([]*message.Message, error) {
 	}, nil
 }
 
-func founders(msg *message.IncomingMessage) ([]*message.Message, error) {
+func founders(msg *base.IncomingMessage) ([]*base.Message, error) {
 	targetChannel := basecommand.ParseTarget(msg, foundersPattern)
 
 	founders, err := ivr.FetchFounders(targetChannel)
 	if err != nil {
 		if strings.Contains(err.Error(), "Specified user has no founders.") {
-			return []*message.Message{
+			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
 					Text:    fmt.Sprintf("%s has no founders", targetChannel),
@@ -219,7 +219,7 @@ func founders(msg *message.IncomingMessage) ([]*message.Message, error) {
 	}
 
 	if len(founders.Founders) == 0 {
-		return []*message.Message{
+		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
 				Text:    fmt.Sprintf("%s has no founders", targetChannel),
@@ -229,7 +229,7 @@ func founders(msg *message.IncomingMessage) ([]*message.Message, error) {
 
 	foundersGroups := chunkBy(founders.Founders, maxUsersPerMessage)
 
-	var messages []*message.Message
+	var messages []*base.Message
 
 	for i, foundersGroup := range foundersGroups {
 		var text string
@@ -241,16 +241,16 @@ func founders(msg *message.IncomingMessage) ([]*message.Message, error) {
 		if len(foundersGroups) > 1 && len(foundersGroups)-1 != i {
 			text += ","
 		}
-		messages = append(messages, &message.Message{Channel: msg.Message.Channel, Text: text})
+		messages = append(messages, &base.Message{Channel: msg.Message.Channel, Text: text})
 	}
 
 	return messages, nil
 }
 
-func logs(msg *message.IncomingMessage) ([]*message.Message, error) {
+func logs(msg *base.IncomingMessage) ([]*base.Message, error) {
 	matches := logsPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
 	if len(matches) != 3 {
-		return []*message.Message{
+		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
 				Text:    fmt.Sprintf("Usage: %slogs <channel> <user>", msg.Prefix),
@@ -260,7 +260,7 @@ func logs(msg *message.IncomingMessage) ([]*message.Message, error) {
 	targetChannel := strings.ToLower(matches[1])
 	targetUser := strings.ToLower(matches[2])
 
-	return []*message.Message{
+	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
 			Text:    fmt.Sprintf("%s's logs in %s's chat: https://logs.ivr.fi/?channel=%s&username=%s", targetUser, targetChannel, targetChannel, targetUser),
@@ -268,7 +268,7 @@ func logs(msg *message.IncomingMessage) ([]*message.Message, error) {
 	}, nil
 }
 
-func mods(msg *message.IncomingMessage) ([]*message.Message, error) {
+func mods(msg *base.IncomingMessage) ([]*base.Message, error) {
 	targetChannel := basecommand.ParseTarget(msg, modsPattern)
 
 	modsAndVIPs, err := ivr.FetchModsAndVIPs(targetChannel)
@@ -277,7 +277,7 @@ func mods(msg *message.IncomingMessage) ([]*message.Message, error) {
 	}
 
 	if len(modsAndVIPs.Mods) == 0 {
-		return []*message.Message{
+		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
 				Text:    fmt.Sprintf("%s has no mods", targetChannel),
@@ -287,7 +287,7 @@ func mods(msg *message.IncomingMessage) ([]*message.Message, error) {
 
 	modGroups := chunkBy(modsAndVIPs.Mods, maxUsersPerMessage)
 
-	var messages []*message.Message
+	var messages []*base.Message
 
 	for i, modGroup := range modGroups {
 		var text string
@@ -299,13 +299,13 @@ func mods(msg *message.IncomingMessage) ([]*message.Message, error) {
 		if len(modGroups) > 1 && len(modGroups)-1 != i {
 			text += ","
 		}
-		messages = append(messages, &message.Message{Channel: msg.Message.Channel, Text: text})
+		messages = append(messages, &base.Message{Channel: msg.Message.Channel, Text: text})
 	}
 
 	return messages, nil
 }
 
-func nameColor(msg *message.IncomingMessage) ([]*message.Message, error) {
+func nameColor(msg *base.IncomingMessage) ([]*base.Message, error) {
 	targetUser := basecommand.ParseTarget(msg, nameColorPattern)
 
 	users, err := ivr.FetchUsers(targetUser)
@@ -313,7 +313,7 @@ func nameColor(msg *message.IncomingMessage) ([]*message.Message, error) {
 		return nil, err
 	}
 	if len(users) == 0 {
-		return []*message.Message{
+		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
 				Text:    fmt.Sprintf("Couldn't find user %s", targetUser),
@@ -325,7 +325,7 @@ func nameColor(msg *message.IncomingMessage) ([]*message.Message, error) {
 	}
 	user := users[0]
 
-	return []*message.Message{
+	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
 			Text:    fmt.Sprintf("%s's name color is %s", user.DisplayName, user.ChatColor),
@@ -333,7 +333,7 @@ func nameColor(msg *message.IncomingMessage) ([]*message.Message, error) {
 	}, nil
 }
 
-func title(msg *message.IncomingMessage) ([]*message.Message, error) {
+func title(msg *base.IncomingMessage) ([]*base.Message, error) {
 	targetChannel := basecommand.ParseTarget(msg, titlePattern)
 
 	tw := twitchplatform.Instance
@@ -346,7 +346,7 @@ func title(msg *message.IncomingMessage) ([]*message.Message, error) {
 		return nil, fmt.Errorf("failed to retrieve channel info for %s: %w", targetChannel, err)
 	}
 
-	return []*message.Message{
+	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
 			Text:    fmt.Sprintf("%s's title: %s", channel.BroadcasterName, channel.Title),
@@ -354,7 +354,7 @@ func title(msg *message.IncomingMessage) ([]*message.Message, error) {
 	}, nil
 }
 
-func verifiedBot(msg *message.IncomingMessage) ([]*message.Message, error) {
+func verifiedBot(msg *base.IncomingMessage) ([]*base.Message, error) {
 	targetUser := basecommand.ParseTarget(msg, verifiedBotPattern)
 
 	users, err := ivr.FetchUsers(targetUser)
@@ -362,7 +362,7 @@ func verifiedBot(msg *message.IncomingMessage) ([]*message.Message, error) {
 		return nil, err
 	}
 	if len(users) == 0 {
-		return []*message.Message{
+		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
 				Text:    fmt.Sprintf("Couldn't find user %s", targetUser),
@@ -381,7 +381,7 @@ func verifiedBot(msg *message.IncomingMessage) ([]*message.Message, error) {
 		resp = fmt.Sprintf("%s is not a verified bot. ❌", user.DisplayName)
 	}
 
-	return []*message.Message{
+	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
 			Text:    resp,
@@ -389,7 +389,7 @@ func verifiedBot(msg *message.IncomingMessage) ([]*message.Message, error) {
 	}, nil
 }
 
-func vips(msg *message.IncomingMessage) ([]*message.Message, error) {
+func vips(msg *base.IncomingMessage) ([]*base.Message, error) {
 	targetChannel := basecommand.ParseTarget(msg, vipsPattern)
 
 	modsAndVIPs, err := ivr.FetchModsAndVIPs(targetChannel)
@@ -398,7 +398,7 @@ func vips(msg *message.IncomingMessage) ([]*message.Message, error) {
 	}
 
 	if len(modsAndVIPs.VIPs) == 0 {
-		return []*message.Message{
+		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
 				Text:    fmt.Sprintf("%s has no VIPs", targetChannel),
@@ -408,7 +408,7 @@ func vips(msg *message.IncomingMessage) ([]*message.Message, error) {
 
 	vipGroups := chunkBy(modsAndVIPs.VIPs, maxUsersPerMessage)
 
-	var messages []*message.Message
+	var messages []*base.Message
 	for i, vipGroup := range vipGroups {
 		var text string
 		if i == 0 {
@@ -419,7 +419,7 @@ func vips(msg *message.IncomingMessage) ([]*message.Message, error) {
 		if len(vipGroups) > 1 && len(vipGroups)-1 != i {
 			text += ","
 		}
-		messages = append(messages, &message.Message{Channel: msg.Message.Channel, Text: text})
+		messages = append(messages, &base.Message{Channel: msg.Message.Channel, Text: text})
 	}
 
 	return messages, nil

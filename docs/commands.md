@@ -51,10 +51,26 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - Displays help for a command.
 - > Usage: `$help <command>`
 
+### $botinfo
+
+- Replies with info about the bot.
+- > Usage: `$botinfo`
+- > Alternate commands: `$bot`, `$info`
+
 ### $prefix
 
 - Replies with the prefix in this channel.
 - > Usage: `$prefix`
+
+### $source
+
+- Replies a link to the bot's source code.
+- > Usage: `$source`
+
+### $stats
+
+- Replies with stats about the bot.
+- > Usage: `$stats`
 
 ## Echo
 

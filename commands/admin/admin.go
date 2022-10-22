@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/model"
-	"github.com/airforce270/airbot/message"
 	"github.com/airforce270/airbot/permission"
 	twitchplatform "github.com/airforce270/airbot/platforms/twitch"
 )
@@ -35,7 +35,7 @@ var (
 		Permission: permission.Normal,
 		PrefixOnly: true,
 		Pattern:    joinCommandPattern,
-		Handler: func(msg *message.IncomingMessage) ([]*message.Message, error) {
+		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
 			return joinChannel(msg, msg.Message.User)
 		},
 	}
@@ -48,7 +48,7 @@ var (
 		Permission: permission.Owner,
 		PrefixOnly: true,
 		Pattern:    joinOtherCommandPattern,
-		Handler: func(msg *message.IncomingMessage) ([]*message.Message, error) {
+		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
 			return joinChannel(msg, basecommand.ParseTarget(msg, joinOtherPattern))
 		},
 	}
@@ -62,7 +62,7 @@ var (
 		Permission: permission.Admin,
 		PrefixOnly: true,
 		Pattern:    leaveCommandPattern,
-		Handler: func(msg *message.IncomingMessage) ([]*message.Message, error) {
+		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
 			return leaveChannel(msg, msg.Message.Channel)
 		},
 	}
@@ -75,7 +75,7 @@ var (
 		Permission: permission.Owner,
 		PrefixOnly: true,
 		Pattern:    leaveOtherCommandPattern,
-		Handler: func(msg *message.IncomingMessage) ([]*message.Message, error) {
+		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
 			return leaveChannel(msg, basecommand.ParseTarget(msg, leaveOtherPattern))
 		},
 	}
@@ -96,7 +96,7 @@ var (
 
 const defaultPrefix = "$"
 
-func joinChannel(msg *message.IncomingMessage, targetChannel string) ([]*message.Message, error) {
+func joinChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Message, error) {
 	prefix := defaultPrefix
 
 	db := database.Instance
@@ -105,7 +105,7 @@ func joinChannel(msg *message.IncomingMessage, targetChannel string) ([]*message
 	db.Where(model.JoinedChannel{Platform: "Twitch", Channel: strings.ToLower(targetChannel)}).Find(&channels)
 
 	if len(channels) > 0 {
-		return []*message.Message{
+		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
 				Text:    fmt.Sprintf("Channel %s is already joined", targetChannel),
@@ -120,7 +120,7 @@ func joinChannel(msg *message.IncomingMessage, targetChannel string) ([]*message
 	channel, err := tw.Channel(targetChannel)
 	if err != nil {
 		if errors.Is(err, twitchplatform.ErrChannelNotFound) {
-			return []*message.Message{
+			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
 					Text:    fmt.Sprintf("Channel %s not found", targetChannel),
@@ -145,14 +145,14 @@ func joinChannel(msg *message.IncomingMessage, targetChannel string) ([]*message
 		return nil, fmt.Errorf("failed to join channel %s: %w", channel.BroadcasterName, err)
 	}
 
-	msgs := []*message.Message{
+	msgs := []*base.Message{
 		{
 			Channel: msg.Message.Channel,
 			Text:    fmt.Sprintf("Successfully joined channel %s with prefix %s", channel.BroadcasterName, prefix),
 		},
 	}
 	if !strings.EqualFold(msg.Message.Channel, channel.BroadcasterName) {
-		msgs = append(msgs, &message.Message{
+		msgs = append(msgs, &base.Message{
 			Channel: channel.BroadcasterName,
 			Text:    fmt.Sprintf("Successfully joined channel! (prefix: %s ) For all commands, type %scommands.", prefix, prefix),
 		})
@@ -160,14 +160,14 @@ func joinChannel(msg *message.IncomingMessage, targetChannel string) ([]*message
 	return msgs, nil
 }
 
-func leaveChannel(msg *message.IncomingMessage, targetChannel string) ([]*message.Message, error) {
+func leaveChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Message, error) {
 	db := database.Instance
 
 	var channels []model.JoinedChannel
 	db.Where(model.JoinedChannel{Platform: "Twitch", Channel: strings.ToLower(targetChannel)}).Find(&channels)
 
 	if len(channels) == 0 {
-		return []*message.Message{
+		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
 				Text:    fmt.Sprintf("Bot is not in channel %s", targetChannel),
@@ -189,14 +189,14 @@ func leaveChannel(msg *message.IncomingMessage, targetChannel string) ([]*messag
 		}
 	}()
 
-	var msgs []*message.Message
+	var msgs []*base.Message
 	if strings.EqualFold(msg.Message.Channel, targetChannel) {
-		msgs = append(msgs, &message.Message{
+		msgs = append(msgs, &base.Message{
 			Channel: msg.Message.Channel,
 			Text:    "Successfully left channel.",
 		})
 	} else {
-		msgs = append(msgs, &message.Message{
+		msgs = append(msgs, &base.Message{
 			Channel: msg.Message.Channel,
 			Text:    fmt.Sprintf("Successfully left channel %s", targetChannel),
 		})
@@ -204,10 +204,10 @@ func leaveChannel(msg *message.IncomingMessage, targetChannel string) ([]*messag
 	return msgs, nil
 }
 
-func setPrefix(msg *message.IncomingMessage) ([]*message.Message, error) {
+func setPrefix(msg *base.IncomingMessage) ([]*base.Message, error) {
 	matches := setPrefixPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
 	if len(matches) < 2 {
-		return []*message.Message{
+		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
 				Text:    "No new prefix provided",
@@ -233,7 +233,7 @@ func setPrefix(msg *message.IncomingMessage) ([]*message.Message, error) {
 
 		if result.RowsAffected == 0 {
 			log.Printf("Failed to update prefix: %v", result.Error)
-			return []*message.Message{
+			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
 					Text:    "Failed to update prefix",
@@ -244,7 +244,7 @@ func setPrefix(msg *message.IncomingMessage) ([]*message.Message, error) {
 
 	tw.UpdateCachedJoinedChannels()
 
-	return []*message.Message{
+	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
 			Text:    fmt.Sprintf("Prefix set to %s", newPrefix),

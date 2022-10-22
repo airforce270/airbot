@@ -7,12 +7,12 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/commands/admin"
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/commands/botinfo"
 	"github.com/airforce270/airbot/commands/echo"
 	"github.com/airforce270/airbot/commands/twitch"
-	"github.com/airforce270/airbot/message"
 	"github.com/airforce270/airbot/permission"
 )
 
@@ -47,8 +47,8 @@ type Handler struct {
 }
 
 // Handle handles incoming messages, possibly returning messages to be sent in response.
-func (h *Handler) Handle(msg *message.IncomingMessage) ([]*message.Message, error) {
-	var outMsgs []*message.Message
+func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.Message, error) {
+	var outMsgs []*base.Message
 	for _, command := range allCommands {
 		messageHasPrefix := strings.HasPrefix(msg.Message.Text, msg.Prefix)
 		if !messageHasPrefix && (command.PrefixOnly || !h.nonPrefixCommandsEnabled) {
@@ -85,12 +85,12 @@ var (
 	helpPattern = regexp.MustCompile(helpCommandPattern.String() + `(\w+).*`)
 )
 
-func help(msg *message.IncomingMessage) ([]*message.Message, error) {
+func help(msg *base.IncomingMessage) ([]*base.Message, error) {
 	targetCommand := basecommand.ParseTarget(msg, helpPattern)
 
 	// No command provided
 	if targetCommand == msg.Message.User {
-		return []*message.Message{
+		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
 				Text:    fmt.Sprintf("For help with a command, use %shelp <command>. To see available commands, use %scommands", msg.Prefix, msg.Prefix),
@@ -106,7 +106,7 @@ func help(msg *message.IncomingMessage) ([]*message.Message, error) {
 		if help == "" {
 			help = "<no help information found>"
 		}
-		return []*message.Message{
+		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
 				Text:    fmt.Sprintf("[ %s%s ] %s", msg.Prefix, cmd.Name, help),

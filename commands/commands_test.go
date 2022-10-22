@@ -9,10 +9,10 @@ import (
 	"github.com/airforce270/airbot/apiclients/ivr"
 	"github.com/airforce270/airbot/apiclients/ivrtest"
 	"github.com/airforce270/airbot/apiclients/twitchtest"
+	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/model"
-	"github.com/airforce270/airbot/message"
 	"github.com/airforce270/airbot/permission"
 	"github.com/airforce270/airbot/platforms/twitch"
 	"github.com/airforce270/airbot/testing/fakeserver"
@@ -25,10 +25,10 @@ import (
 )
 
 type testCase struct {
-	input     *message.IncomingMessage
+	input     *base.IncomingMessage
 	apiResp   string
 	runBefore []func() error
-	want      []*message.Message
+	want      []*base.Message
 }
 
 func TestCommands(t *testing.T) {
@@ -42,8 +42,8 @@ func TestCommands(t *testing.T) {
 	tests := flatten(
 		// admin.go commands
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$join",
 					User:    "user1",
 					Channel: "user2",
@@ -53,7 +53,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			apiResp: twitchtest.GetChannelInformationResp,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "Successfully joined channel user1 with prefix $",
 					Channel: "user2",
@@ -65,8 +65,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$join",
 					User:    "user1",
 					Channel: "user2",
@@ -77,7 +77,7 @@ func TestCommands(t *testing.T) {
 			},
 			apiResp:   twitchtest.GetChannelInformationResp,
 			runBefore: []func() error{joinOtherUser1},
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "Channel user1 is already joined",
 					Channel: "user2",
@@ -85,8 +85,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$joinother user1",
 					User:    "user1",
 					Channel: "user2",
@@ -98,8 +98,8 @@ func TestCommands(t *testing.T) {
 			want: nil,
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$joinother user1",
 					User:    "user3",
 					Channel: "user2",
@@ -109,7 +109,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Owner,
 			},
 			apiResp: twitchtest.GetChannelInformationResp,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "Successfully joined channel user1 with prefix $",
 					Channel: "user2",
@@ -121,8 +121,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$joinother user1",
 					User:    "user1",
 					Channel: "user2",
@@ -133,7 +133,7 @@ func TestCommands(t *testing.T) {
 			},
 			apiResp:   twitchtest.GetChannelInformationResp,
 			runBefore: []func() error{joinOtherUser1},
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "Channel user1 is already joined",
 					Channel: "user2",
@@ -141,8 +141,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$leave",
 					User:    "user1",
 					Channel: "user1",
@@ -153,7 +153,7 @@ func TestCommands(t *testing.T) {
 			},
 			apiResp:   twitchtest.GetChannelInformationResp,
 			runBefore: []func() error{joinOtherUser1},
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "Successfully left channel.",
 					Channel: "user1",
@@ -161,8 +161,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$leave",
 					User:    "user1",
 					Channel: "user2",
@@ -174,8 +174,8 @@ func TestCommands(t *testing.T) {
 			want: nil,
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$leaveother user1",
 					User:    "user1",
 					Channel: "user2",
@@ -186,7 +186,7 @@ func TestCommands(t *testing.T) {
 			},
 			apiResp:   twitchtest.GetChannelInformationResp,
 			runBefore: []func() error{joinOtherUser1},
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "Successfully left channel user1",
 					Channel: "user2",
@@ -194,8 +194,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$leaveother user1",
 					User:    "user1",
 					Channel: "user2",
@@ -204,7 +204,7 @@ func TestCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
 			},
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "Bot is not in channel user1",
 					Channel: "user2",
@@ -212,8 +212,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$leaveother user1",
 					User:    "user1",
 					Channel: "user2",
@@ -225,8 +225,8 @@ func TestCommands(t *testing.T) {
 			want: nil,
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$setprefix &",
 					User:    "user1",
 					Channel: "user2",
@@ -235,7 +235,7 @@ func TestCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
 			},
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "Prefix set to &",
 					Channel: "user2",
@@ -243,8 +243,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$setprefix &",
 					User:    "user1",
 					Channel: "user2",
@@ -257,9 +257,31 @@ func TestCommands(t *testing.T) {
 		}),
 
 		// botinfo.go commands
+		testCasesWithSameOutput([]string{
+			"$bot",
+			"$botinfo",
+			"$info",
+		}, testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", newFakeDB()),
+			},
+			want: []*base.Message{
+				{
+					Text:    "Beep boop, this is Airbot running as fake-username in user2 with prefix $ on Twitch. Made by airforce2700, source available on GitHub ( $source )",
+					Channel: "user2",
+				},
+			},
+		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$help",
 					User:    "user1",
 					Channel: "user2",
@@ -268,7 +290,7 @@ func TestCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 			},
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "For help with a command, use $help <command>. To see available commands, use $commands",
 					Channel: "user2",
@@ -276,8 +298,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$help join",
 					User:    "user1",
 					Channel: "user2",
@@ -286,7 +308,7 @@ func TestCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 			},
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "[ $join ] Tells the bot to join your chat.",
 					Channel: "user2",
@@ -311,8 +333,8 @@ func TestCommands(t *testing.T) {
 			"what is the bot's prefix",
 			"yo what is the bot's prefix bro",
 		}, testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -320,7 +342,7 @@ func TestCommands(t *testing.T) {
 				Prefix:          "??",
 				PermissionLevel: permission.Normal,
 			},
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "This channel's prefix is ??",
 					Channel: "user2",
@@ -334,8 +356,8 @@ func TestCommands(t *testing.T) {
 			"forsen prefix",
 			"Successfully joined channel iP0G with prefix $",
 		}, testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -345,11 +367,30 @@ func TestCommands(t *testing.T) {
 			},
 			want: nil,
 		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$source",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			want: []*base.Message{
+				{
+					Text:    "Source code for airbot available at https://github.com/airforce270/airbot",
+					Channel: "user2",
+				},
+			},
+		}),
+		// stats is currently untested due to reliance on low-level syscalls
 
 		// echo.go commands
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$commands",
 					User:    "user1",
 					Channel: "user2",
@@ -358,7 +399,7 @@ func TestCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 			},
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "Commands available here: https://github.com/airforce270/airbot/blob/main/docs/commands.md",
 					Channel: "user2",
@@ -366,8 +407,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$TriHard",
 					User:    "user1",
 					Channel: "user2",
@@ -376,7 +417,7 @@ func TestCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 			},
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "TriHard 7",
 					Channel: "user2",
@@ -390,8 +431,8 @@ func TestCommands(t *testing.T) {
 			"$banreason",
 			"$banreason banneduser",
 		}, testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -400,7 +441,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			apiResp: ivrtest.TwitchUsersBannedResp,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "SeaGrade's ban reason: TOS_INDEFINITE",
 					Channel: "user2",
@@ -408,8 +449,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$banreason nonbanneduser",
 					User:    "user1",
 					Channel: "user2",
@@ -419,7 +460,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			apiResp: ivrtest.TwitchUsersNotStreamingResp,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "xQc is not banned.",
 					Channel: "user2",
@@ -427,8 +468,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$currentgame",
 					User:    "user1",
 					Channel: "user2",
@@ -438,7 +479,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			apiResp: twitchtest.GetChannelInformationResp,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "user1 is currenly playing Science&Technology",
 					Channel: "user2",
@@ -446,8 +487,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$founders",
 					User:    "user1",
 					Channel: "user2",
@@ -457,7 +498,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			apiResp: ivrtest.FoundersNormalResp,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "user1's founders are: FishyyKingyy, eljulidi1337, SamMist, Leochansz, lexieuzumaki7, ContraVz, rott______, DankJuicer, kronikZ____, blemplob",
 					Channel: "user2",
@@ -465,8 +506,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$founders hasfounders",
 					User:    "user1",
 					Channel: "user2",
@@ -476,7 +517,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			apiResp: ivrtest.FoundersNormalResp,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "hasfounders's founders are: FishyyKingyy, eljulidi1337, SamMist, Leochansz, lexieuzumaki7, ContraVz, rott______, DankJuicer, kronikZ____, blemplob",
 					Channel: "user2",
@@ -484,8 +525,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$founders nofounders",
 					User:    "user1",
 					Channel: "user2",
@@ -495,7 +536,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			apiResp: ivrtest.FoundersNoneResp,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "nofounders has no founders",
 					Channel: "user2",
@@ -503,8 +544,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$founders nofounders404",
 					User:    "user1",
 					Channel: "user2",
@@ -514,7 +555,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			apiResp: ivrtest.FoundersNone404Resp,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "nofounders404 has no founders",
 					Channel: "user2",
@@ -522,8 +563,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$logs xqc forsen",
 					User:    "user1",
 					Channel: "user2",
@@ -532,7 +573,7 @@ func TestCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 			},
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "forsen's logs in xqc's chat: https://logs.ivr.fi/?channel=xqc&username=forsen",
 					Channel: "user2",
@@ -540,8 +581,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$logs",
 					User:    "user1",
 					Channel: "user2",
@@ -550,7 +591,7 @@ func TestCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 			},
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "Usage: $logs <channel> <user>",
 					Channel: "user2",
@@ -558,8 +599,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$mods",
 					User:    "user1",
 					Channel: "user2",
@@ -569,7 +610,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			apiResp: ivrtest.ModsAndVIPsModsAndVIPsResp,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "user1's mods are: StreamElements, Fossabot, spintto, HNoAce",
 					Channel: "user2",
@@ -577,8 +618,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$mods otherchannel",
 					User:    "user1",
 					Channel: "user2",
@@ -588,7 +629,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			apiResp: ivrtest.ModsAndVIPsModsAndVIPsResp,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "otherchannel's mods are: StreamElements, Fossabot, spintto, HNoAce",
 					Channel: "user2",
@@ -596,8 +637,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$mods nomods",
 					User:    "user1",
 					Channel: "user2",
@@ -607,7 +648,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			apiResp: ivrtest.ModsAndVIPsNoneResp,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "nomods has no mods",
 					Channel: "user2",
@@ -618,8 +659,8 @@ func TestCommands(t *testing.T) {
 			"$title",
 			"$title otherchannel",
 		}, testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -628,7 +669,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			apiResp: twitchtest.GetChannelInformationResp,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "user1's title: TwitchDevMonthlyUpdate//May6,2021",
 					Channel: "user2",
@@ -641,8 +682,8 @@ func TestCommands(t *testing.T) {
 			"$vb",
 			"$vb otherchannel",
 		}, testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -651,7 +692,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			apiResp: ivrtest.TwitchUsersVerifiedBotResp,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "iP0G is a verified bot. ✅",
 					Channel: "user2",
@@ -662,8 +703,8 @@ func TestCommands(t *testing.T) {
 			"$verifiedbot notverified",
 			"$vb notverified",
 		}, testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -672,7 +713,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			apiResp: ivrtest.TwitchUsersNotVerifiedBotResp,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "xQc is not a verified bot. ❌",
 					Channel: "user2",
@@ -680,8 +721,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$vips",
 					User:    "user1",
 					Channel: "user2",
@@ -691,7 +732,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			apiResp: ivrtest.ModsAndVIPsModsAndVIPsResp,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "user1's VIPs are: bakonsword, alyjiahT_T, AVBest, Zaintew_, captkayy, seagrad, Dafkeee",
 					Channel: "user2",
@@ -699,8 +740,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$vips otherchannel",
 					User:    "user1",
 					Channel: "user2",
@@ -710,7 +751,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			apiResp: ivrtest.ModsAndVIPsModsAndVIPsResp,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "otherchannel's VIPs are: bakonsword, alyjiahT_T, AVBest, Zaintew_, captkayy, seagrad, Dafkeee",
 					Channel: "user2",
@@ -718,8 +759,8 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		singleTestCase(testCase{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$vips novips",
 					User:    "user1",
 					Channel: "user2",
@@ -729,7 +770,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			apiResp: ivrtest.ModsAndVIPsNoneResp,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "novips has no VIPs",
 					Channel: "user2",
@@ -770,13 +811,13 @@ func TestCommands(t *testing.T) {
 
 func TestCommands_EnableNonPrefixCommands(t *testing.T) {
 	tests := []struct {
-		input                   *message.IncomingMessage
+		input                   *base.IncomingMessage
 		enableNonPrefixCommands bool
-		want                    []*message.Message
+		want                    []*base.Message
 	}{
 		{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "whats the bots prefix",
 					User:    "user1",
 					Channel: "user2",
@@ -786,7 +827,7 @@ func TestCommands_EnableNonPrefixCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			enableNonPrefixCommands: true,
-			want: []*message.Message{
+			want: []*base.Message{
 				{
 					Text:    "This channel's prefix is ??",
 					Channel: "user2",
@@ -794,8 +835,8 @@ func TestCommands_EnableNonPrefixCommands(t *testing.T) {
 			},
 		},
 		{
-			input: &message.IncomingMessage{
-				Message: message.Message{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "whats the bots prefix",
 					User:    "user1",
 					Channel: "user2",
@@ -839,7 +880,7 @@ func singleTestCase(tc testCase) []testCase { return []testCase{tc} }
 func testCasesWithSameOutput(msgs []string, tc testCase) []testCase {
 	var testCases []testCase
 	for _, msg := range msgs {
-		input := message.IncomingMessage{}
+		input := base.IncomingMessage{}
 		if err := copier.CopyWithOption(&input, &tc.input, copier.Option{DeepCopy: true}); err != nil {
 			panic(err)
 		}
@@ -884,8 +925,8 @@ func newFakeDB() *gorm.DB {
 
 func joinOtherUser1() error {
 	handler := Handler{}
-	_, err := handler.Handle(&message.IncomingMessage{
-		Message: message.Message{
+	_, err := handler.Handle(&base.IncomingMessage{
+		Message: base.Message{
 			Text:    "$joinother user1",
 			User:    "user1",
 			Channel: "user2",

@@ -2,8 +2,8 @@
 package echo
 
 import (
+	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/commands/basecommand"
-	"github.com/airforce270/airbot/message"
 	"github.com/airforce270/airbot/permission"
 )
 
@@ -29,8 +29,8 @@ var Commands = [...]basecommand.Command{
 	},
 }
 
-func commands(msg *message.IncomingMessage) ([]*message.Message, error) {
-	return []*message.Message{
+func commands(msg *base.IncomingMessage) ([]*base.Message, error) {
+	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
 			Text:    "Commands available here: https://github.com/airforce270/airbot/blob/main/docs/commands.md",
@@ -38,8 +38,8 @@ func commands(msg *message.IncomingMessage) ([]*message.Message, error) {
 	}, nil
 }
 
-func triHard(msg *message.IncomingMessage) ([]*message.Message, error) {
-	return []*message.Message{
+func triHard(msg *base.IncomingMessage) ([]*base.Message, error) {
+	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
 			Text:    "TriHard 7",

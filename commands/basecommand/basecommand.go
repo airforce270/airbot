@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/airforce270/airbot/message"
+	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/permission"
 )
 
@@ -29,7 +29,7 @@ type Command struct {
 	// Pattern is the regexp pattern that should match for this command.
 	Pattern *regexp.Regexp
 	// Handler is the function to be run if this command matches.
-	Handler func(msg *message.IncomingMessage) ([]*message.Message, error)
+	Handler func(msg *base.IncomingMessage) ([]*base.Message, error)
 }
 
 // PrefixPattern compiles a regex pattern matching the prefix of a string, ignoring whitespace.
@@ -39,7 +39,7 @@ func PrefixPattern(pattern string) *regexp.Regexp {
 
 // ParseTarget parses the first regex pattern match from the message's text.
 // If no match is found, uses the user's username instead.
-func ParseTarget(msg *message.IncomingMessage, pattern *regexp.Regexp) string {
+func ParseTarget(msg *base.IncomingMessage, pattern *regexp.Regexp) string {
 	matches := pattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
 	if len(matches) <= 1 {
 		return strings.ToLower(msg.Message.User)
