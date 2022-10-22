@@ -18,6 +18,7 @@ import (
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/shirou/gopsutil/v3/process"
+	"golang.org/x/sync/errgroup"
 )
 
 // Commands contains this package's commands.
@@ -89,49 +90,100 @@ func source(msg *base.IncomingMessage) ([]*base.Message, error) {
 }
 
 func stats(msg *base.IncomingMessage) ([]*base.Message, error) {
-	cpuPercents, err := cpu.Percent(time.Millisecond*100, false)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve CPU percentage: %w", err)
-	}
-	cpuPercent := cpuPercents[0]
+	g := new(errgroup.Group)
 
-	memory, err := mem.VirtualMemory()
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve memory info: %w", err)
-	}
+	var cpuPercent float64
+	g.Go(func() error {
+		cpuPercents, err := cpu.Percent(time.Millisecond*100, false)
+		if err != nil {
+			return fmt.Errorf("failed to retrieve CPU percentage: %w", err)
+		}
+		cpuPercent = cpuPercents[0]
+		return nil
+	})
 
-	hostInfo, err := host.Info()
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve host info: %w", err)
-	}
+	var memory *mem.VirtualMemoryStat
+	g.Go(func() error {
+		m, err := mem.VirtualMemory()
+		if err != nil {
+			return fmt.Errorf("failed to retrieve memory info: %w", err)
+		}
+		memory = m
+		return nil
+	})
 
-	osInfo := fmt.Sprintf("%s %s", sentenceCase(hostInfo.Platform), sentenceCase(hostInfo.OS))
+	var hostInfo *host.InfoStat
+	g.Go(func() error {
+		hi, err := host.Info()
+		if err != nil {
+			return fmt.Errorf("failed to retrieve host info: %w", err)
+		}
+		hostInfo = hi
+		return nil
+	})
 
-	botProcess, err := process.NewProcess(int32(os.Getpid()))
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve host info: %w", err)
-	}
-	botProcessCreateTime, err := botProcess.CreateTime()
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve host info: %w", err)
-	}
-	botUptime := time.Since(time.UnixMilli(botProcessCreateTime))
+	var runningInDocker bool
+	g.Go(func() error {
+		// There's no reliable way to determine if we're running in Docker.
+		// So we set this environment variable in our docker compose config.
+		_, found := os.LookupEnv("RUNNING_IN_DOCKER")
+		runningInDocker = found
+		return nil
+	})
 
-	systemUptime := time.Duration(hostInfo.Uptime) * time.Second
+	var botUptime time.Duration
+	g.Go(func() error {
+		botProcess, err := process.NewProcess(int32(os.Getpid()))
+		if err != nil {
+			return fmt.Errorf("failed to find bot process: %w", err)
+		}
+		botProcessCreateTime, err := botProcess.CreateTime()
+		if err != nil {
+			return fmt.Errorf("failed to get bot startup time: %w", err)
+		}
+		botUptime = time.Since(time.UnixMilli(botProcessCreateTime))
+		return nil
+	})
 
 	db := database.Instance
 	if db == nil {
 		return nil, fmt.Errorf("database instance not initialized")
 	}
+
 	var recentlyProcessedMessages int64
-	db.Model(&model.Message{}).Where("created_at > ?", time.Now().Add(time.Second*-60)).Count(&recentlyProcessedMessages)
+	g.Go(func() error {
+		db.Model(&model.Message{}).Where("created_at > ?", time.Now().Add(time.Second*-60)).Count(&recentlyProcessedMessages)
+		return nil
+	})
+
 	var joinedChannels int64
-	db.Model(&model.JoinedChannel{}).Count(&joinedChannels)
+	g.Go(func() error {
+		db.Model(&model.JoinedChannel{}).Count(&joinedChannels)
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	startPart := fmt.Sprintf("Airbot running on %s %s", sentenceCase(hostInfo.Platform), sentenceCase(hostInfo.OS))
+	if runningInDocker {
+		startPart += " (Docker)"
+	}
+
+	parts := []string{
+		startPart,
+		fmt.Sprintf("bot uptime: %s", botUptime),
+		fmt.Sprintf("system uptime: %s", time.Duration(hostInfo.Uptime)*time.Second),
+		fmt.Sprintf("CPU: %2.1f%%", cpuPercent),
+		fmt.Sprintf("RAM: %2.1f%%", memory.UsedPercent),
+		fmt.Sprintf("processed %d messages in %d channels in the last 60 seconds", recentlyProcessedMessages, joinedChannels),
+	}
 
 	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
-			Text:    fmt.Sprintf("Airbot running on %s, bot uptime: %s, system uptime: %s, CPU: %2.1f%%, RAM: %2.1f%%, processed %d messages in %d channels in the last 60 seconds", osInfo, botUptime, systemUptime, cpuPercent, memory.UsedPercent, recentlyProcessedMessages, joinedChannels),
+			Text:    strings.Join(parts, ", "),
 		},
 	}, nil
 }

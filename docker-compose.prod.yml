@@ -2,6 +2,8 @@ services:
   server:
     image: ghcr.io/airforce270/airbot:release
     env_file: .env
+    environment:
+      - RUNNING_IN_DOCKER=true
     depends_on:
       database:
         condition: service_healthy
