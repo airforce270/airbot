@@ -15,15 +15,22 @@ type Platform interface {
 	// Username returns the bot's username within the platform.
 	Username() string
 
+	// Connect connects to the platform.
+	Connect() error
+	// Disconnect disconnects from the platform and should be called before exiting.
+	Disconnect() error
+
 	// Listen returns a channel that will provide incoming messages.
 	Listen() chan IncomingMessage
 	// Send sends a message.
 	Send(m Message) error
 
-	// Connect connects to the platform.
-	Connect() error
-	// Disconnect disconnects from the platform and should be called before exiting.
-	Disconnect() error
+	// Join joins a channel.
+	Join(channel, prefix string) error
+	// Leave leaves a channel.
+	Leave(channel string) error
+	// SetPrefix sets the prefix for a channel.
+	SetPrefix(channel, prefix string) error
 }
 
 // Message represents a chat message.

@@ -168,19 +168,22 @@ func (t *Twitch) Disconnect() error {
 	return t.i.Disconnect()
 }
 
-// Join joins a channel.
-func (t *Twitch) Join(channel *helix.ChannelInformation, prefix string) error {
-	if t.i != nil {
-		t.i.Join(channel.BroadcasterName)
-	} else {
-		log.Printf("Didn't actually join channel %s - IRC client is nil. This is expected in test, but if you see this in production, something's broken!", channel.BroadcasterName)
+func (t *Twitch) Join(channel string, prefix string) error {
+	channelInfo, err := t.Channel(channel)
+	if err != nil {
+		return fmt.Errorf("failed to look up channel: %w", err)
 	}
 
-	t.channels = append(t.channels, &twitchChannel{Name: channel.BroadcasterName, Prefix: prefix})
+	if t.i != nil {
+		t.i.Join(channelInfo.BroadcasterName)
+	} else {
+		log.Printf("Didn't actually join channel %s - IRC client is nil. This is expected in test, but if you see this in production, something's broken!", channelInfo.BroadcasterName)
+	}
+
+	t.channels = append(t.channels, &twitchChannel{Name: channelInfo.BroadcasterName, Prefix: prefix})
 	return nil
 }
 
-// Leave leaves a channel.
 func (t *Twitch) Leave(channel string) error {
 	if t.i != nil {
 		t.i.Depart(channel)
@@ -198,6 +201,16 @@ func (t *Twitch) Leave(channel string) error {
 	t.channels = newChannels
 
 	return nil
+}
+
+func (t *Twitch) SetPrefix(channel, prefix string) error {
+	for _, c := range t.channels {
+		if strings.EqualFold(c.Name, channel) {
+			c.Prefix = prefix
+			return nil
+		}
+	}
+	return fmt.Errorf("channel %s not joined", channel)
 }
 
 func (t *Twitch) User(channel string) (*helix.User, error) {
@@ -234,11 +247,11 @@ func (t *Twitch) Channel(channel string) (*helix.ChannelInformation, error) {
 	return &resp.Data.Channels[0], nil
 }
 
-// UpdateCachedJoinedChannels updates the in-memory joined channel data
+// updateCachedJoinedChannels updates the in-memory joined channel data
 // using the latest joined channel data from the database.
-func (t *Twitch) UpdateCachedJoinedChannels() {
+func (t *Twitch) updateCachedJoinedChannels() {
 	var dbChannels []model.JoinedChannel
-	t.db.Where(model.JoinedChannel{Platform: "Twitch"}).Find(&dbChannels)
+	t.db.Where(model.JoinedChannel{Platform: t.Name()}).Find(&dbChannels)
 
 	var channels []*twitchChannel
 	for _, dbChannel := range dbChannels {
@@ -284,7 +297,7 @@ func (t *Twitch) level(msg *twitchirc.PrivateMessage) permission.Level {
 func (t *Twitch) initializeJoinedChannels() {
 	var botChannel model.JoinedChannel
 	botChannelResp := t.db.FirstOrCreate(&botChannel, model.JoinedChannel{
-		Platform: "Twitch",
+		Platform: t.Name(),
 		Channel:  strings.ToLower(t.username),
 	})
 
@@ -295,7 +308,7 @@ func (t *Twitch) initializeJoinedChannels() {
 		})
 	}
 
-	t.UpdateCachedJoinedChannels()
+	t.updateCachedJoinedChannels()
 }
 
 func (t *Twitch) persistUserAndMessage(twitchID, twitchName, message, channel string, sentTime time.Time) {

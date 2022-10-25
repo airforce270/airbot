@@ -102,7 +102,10 @@ func joinChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Messa
 	db := database.Instance
 
 	var channels []model.JoinedChannel
-	db.Where(model.JoinedChannel{Platform: "Twitch", Channel: strings.ToLower(targetChannel)}).Find(&channels)
+	db.Where(model.JoinedChannel{
+		Platform: msg.Platform.Name(),
+		Channel:  strings.ToLower(targetChannel),
+	}).Find(&channels)
 
 	if len(channels) > 0 {
 		return []*base.Message{
@@ -113,47 +116,35 @@ func joinChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Messa
 		}, nil
 	}
 
-	tw := twitchplatform.Instance
-	if tw == nil {
-		return nil, fmt.Errorf("twitch platform connection not initialized")
-	}
-	channel, err := tw.Channel(targetChannel)
-	if err != nil {
-		if errors.Is(err, twitchplatform.ErrChannelNotFound) {
-			return []*base.Message{
-				{
-					Channel: msg.Message.Channel,
-					Text:    fmt.Sprintf("Channel %s not found", targetChannel),
-				},
-			}, nil
-		}
-		return nil, fmt.Errorf("failed to look up channel: %w", err)
-	}
-
 	channelRecord := model.JoinedChannel{
-		Platform: "Twitch",
-		Channel:  channel.BroadcasterName,
+		Platform: msg.Platform.Name(),
+		Channel:  targetChannel,
 		Prefix:   prefix,
 		JoinedAt: time.Now(),
 	}
 	result := db.Create(&channelRecord)
 	if result.Error != nil {
-		return nil, fmt.Errorf("failed to join channel %s: %w", channel.BroadcasterName, err)
+		return nil, fmt.Errorf("failed to join channel %s: %w", targetChannel, result.Error)
 	}
 
-	if err := tw.Join(channel, prefix); err != nil {
-		return nil, fmt.Errorf("failed to join channel %s: %w", channel.BroadcasterName, err)
+	if err := msg.Platform.Join(targetChannel, prefix); errors.Is(err, twitchplatform.ErrChannelNotFound) {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("Channel %s not found", targetChannel),
+			},
+		}, nil
 	}
 
 	msgs := []*base.Message{
 		{
 			Channel: msg.Message.Channel,
-			Text:    fmt.Sprintf("Successfully joined channel %s with prefix %s", channel.BroadcasterName, prefix),
+			Text:    fmt.Sprintf("Successfully joined channel %s with prefix %s", targetChannel, prefix),
 		},
 	}
-	if !strings.EqualFold(msg.Message.Channel, channel.BroadcasterName) {
+	if !strings.EqualFold(msg.Message.Channel, targetChannel) {
 		msgs = append(msgs, &base.Message{
-			Channel: channel.BroadcasterName,
+			Channel: targetChannel,
 			Text:    fmt.Sprintf("Successfully joined channel! (prefix: %s ) For all commands, type %scommands.", prefix, prefix),
 		})
 	}
@@ -164,7 +155,7 @@ func leaveChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Mess
 	db := database.Instance
 
 	var channels []model.JoinedChannel
-	db.Where(model.JoinedChannel{Platform: "Twitch", Channel: strings.ToLower(targetChannel)}).Find(&channels)
+	db.Where(model.JoinedChannel{Platform: msg.Platform.Name(), Channel: strings.ToLower(targetChannel)}).Find(&channels)
 
 	if len(channels) == 0 {
 		return []*base.Message{
@@ -175,16 +166,13 @@ func leaveChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Mess
 		}, nil
 	}
 
-	db.Delete(&channels)
-
-	tw := twitchplatform.Instance
-	if tw == nil {
-		return nil, fmt.Errorf("twitch platform connection not initialized")
+	for _, c := range channels {
+		db.Delete(&c)
 	}
 
 	go func() {
 		time.Sleep(time.Millisecond * 500)
-		if err := tw.Leave(targetChannel); err != nil {
+		if err := msg.Platform.Leave(targetChannel); err != nil {
 			log.Printf("failed to leave channel %s: %v", targetChannel, err)
 		}
 	}()
@@ -218,13 +206,8 @@ func setPrefix(msg *base.IncomingMessage) ([]*base.Message, error) {
 
 	db := database.Instance
 
-	tw := twitchplatform.Instance
-	if tw == nil {
-		return nil, fmt.Errorf("twitch platform connection not initialized")
-	}
-
 	var channels []model.JoinedChannel
-	db.Where(model.JoinedChannel{Platform: "Twitch", Channel: strings.ToLower(msg.Message.Channel)}).Find(&channels)
+	db.Where(model.JoinedChannel{Platform: msg.Platform.Name(), Channel: strings.ToLower(msg.Message.Channel)}).Find(&channels)
 
 	for _, channel := range channels {
 		channel.Prefix = newPrefix
@@ -242,7 +225,7 @@ func setPrefix(msg *base.IncomingMessage) ([]*base.Message, error) {
 		}
 	}
 
-	tw.UpdateCachedJoinedChannels()
+	msg.Platform.SetPrefix(msg.Message.Channel, newPrefix)
 
 	return []*base.Message{
 		{

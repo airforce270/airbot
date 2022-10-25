@@ -51,6 +51,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", newFakeDB()),
 			},
 			apiResp: twitchtest.GetChannelInformationResp,
 			want: []*base.Message{
@@ -74,6 +75,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", newFakeDB()),
 			},
 			apiResp:   twitchtest.GetChannelInformationResp,
 			runBefore: []func() error{joinOtherUser1},
@@ -107,6 +109,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
+				Platform:        twitch.NewForTesting("forsen", newFakeDB()),
 			},
 			apiResp: twitchtest.GetChannelInformationResp,
 			want: []*base.Message{
@@ -130,6 +133,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
+				Platform:        twitch.NewForTesting("forsen", newFakeDB()),
 			},
 			apiResp:   twitchtest.GetChannelInformationResp,
 			runBefore: []func() error{joinOtherUser1},
@@ -150,6 +154,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Admin,
+				Platform:        twitch.NewForTesting("forsen", newFakeDB()),
 			},
 			apiResp:   twitchtest.GetChannelInformationResp,
 			runBefore: []func() error{joinOtherUser1},
@@ -183,6 +188,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
+				Platform:        twitch.NewForTesting("forsen", newFakeDB()),
 			},
 			apiResp:   twitchtest.GetChannelInformationResp,
 			runBefore: []func() error{joinOtherUser1},
@@ -203,6 +209,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
+				Platform:        twitch.NewForTesting("forsen", newFakeDB()),
 			},
 			want: []*base.Message{
 				{
@@ -234,6 +241,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
+				Platform:        twitch.NewForTesting("forsen", newFakeDB()),
 			},
 			want: []*base.Message{
 				{
@@ -780,7 +788,7 @@ func TestCommands(t *testing.T) {
 		}),
 	)
 
-	for _, tc := range tests {
+	for i, tc := range tests {
 		t.Run(fmt.Sprintf("[%s] %s", tc.input.PermissionLevel.Name(), tc.input.Message.Text), func(t *testing.T) {
 			server.Resp = tc.apiResp
 			db := newFakeDB()
@@ -791,6 +799,7 @@ func TestCommands(t *testing.T) {
 					t.Fatalf("runBefore[%d] func failed: %v", i, err)
 				}
 			}
+			t.Logf("%d", i)
 
 			handler := Handler{nonPrefixCommandsEnabled: true}
 			got, err := handler.Handle(tc.input)
@@ -935,6 +944,7 @@ func joinOtherUser1() error {
 		},
 		Prefix:          "$",
 		PermissionLevel: permission.Owner,
+		Platform:        twitch.NewForTesting("forsen", newFakeDB()),
 	})
 	return err
 }
