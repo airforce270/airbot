@@ -788,7 +788,7 @@ func TestCommands(t *testing.T) {
 		}),
 	)
 
-	for i, tc := range tests {
+	for _, tc := range tests {
 		t.Run(fmt.Sprintf("[%s] %s", tc.input.PermissionLevel.Name(), tc.input.Message.Text), func(t *testing.T) {
 			server.Resp = tc.apiResp
 			db := newFakeDB()
@@ -799,7 +799,6 @@ func TestCommands(t *testing.T) {
 					t.Fatalf("runBefore[%d] func failed: %v", i, err)
 				}
 			}
-			t.Logf("%d", i)
 
 			handler := Handler{nonPrefixCommandsEnabled: true}
 			got, err := handler.Handle(tc.input)
