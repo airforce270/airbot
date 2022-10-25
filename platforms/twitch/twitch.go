@@ -74,7 +74,7 @@ func (t *Twitch) Send(msg base.Message) error {
 	return nil
 }
 
-func (t *Twitch) Listen() chan base.IncomingMessage {
+func (t *Twitch) Listen() <-chan base.IncomingMessage {
 	c := make(chan base.IncomingMessage)
 	t.i.OnPrivateMessage(func(msg twitchirc.PrivateMessage) {
 		go t.persistUserAndMessage(msg.User.ID, msg.User.DisplayName, msg.Message, msg.Channel, msg.Time)

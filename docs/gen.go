@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -25,7 +25,7 @@ const (
 var (
 	//go:embed "commands.md.gtpl"
 	commandsTmplData string
-	commandsFilePath = path.Join(directory, "commands.md")
+	commandsFilePath = filepath.Join(directory, "commands.md")
 
 	files = []fileToGenerate{
 		{

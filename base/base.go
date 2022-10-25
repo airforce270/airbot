@@ -21,7 +21,7 @@ type Platform interface {
 	Disconnect() error
 
 	// Listen returns a channel that will provide incoming messages.
-	Listen() chan IncomingMessage
+	Listen() <-chan IncomingMessage
 	// Send sends a message.
 	Send(m Message) error
 
