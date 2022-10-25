@@ -21,3 +21,6 @@ __debug_*
 config.json
 .config.json.swp
 .env
+
+# IDEs
+.vscode/
