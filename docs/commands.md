@@ -55,7 +55,7 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 - Replies with info about the bot.
 - > Usage: `$botinfo`
-- > Alternate commands: `$bot`, `$info`
+- > Alternate commands: `$bot`, `$info`, `$about`
 
 ### $prefix
 

@@ -261,6 +261,7 @@ func TestCommands(t *testing.T) {
 			"$bot",
 			"$botinfo",
 			"$info",
+			"$about",
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{

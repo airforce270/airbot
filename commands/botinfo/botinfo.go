@@ -25,7 +25,7 @@ import (
 var Commands = [...]basecommand.Command{
 	{
 		Name:           "botinfo",
-		AlternateNames: []string{"bot", "info"},
+		AlternateNames: []string{"bot", "info", "about"},
 		Help:           "Replies with info about the bot.",
 		Usage:          "$botinfo",
 		Permission:     permission.Normal,
@@ -95,11 +95,11 @@ func stats(msg *base.IncomingMessage) ([]*base.Message, error) {
 		return nil, fmt.Errorf("database instance not initialized")
 	}
 
-	g := new(errgroup.Group)
+	g := errgroup.Group{}
 
 	var cpuPercent float64
 	g.Go(func() error {
-		cpuPercents, err := cpu.Percent(time.Millisecond*100, false)
+		cpuPercents, err := cpu.Percent(time.Millisecond*50, false)
 		if err != nil {
 			return fmt.Errorf("failed to retrieve CPU percentage: %w", err)
 		}
