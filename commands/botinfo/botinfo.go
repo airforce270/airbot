@@ -30,7 +30,7 @@ var Commands = [...]basecommand.Command{
 		Usage:          "$botinfo",
 		Permission:     permission.Normal,
 		PrefixOnly:     false,
-		Pattern:        basecommand.PrefixPattern("bot|info|botinfo"),
+		Pattern:        basecommand.PrefixPattern("bot|info|botinfo|about"),
 		Handler:        botinfo,
 	},
 	{
