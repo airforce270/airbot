@@ -12,7 +12,7 @@ import (
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/database"
-	"github.com/airforce270/airbot/database/model"
+	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
 	"github.com/airforce270/airbot/platforms/twitch"
 	"github.com/airforce270/airbot/testing/fakeserver"
@@ -925,7 +925,7 @@ func newFakeDB() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
-	for _, m := range model.AllModels {
+	for _, m := range models.AllModels {
 		db.Migrator().DropTable(&m)
 	}
 	database.Migrate(db)

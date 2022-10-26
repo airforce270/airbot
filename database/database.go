@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/airforce270/airbot/database/model"
+	"github.com/airforce270/airbot/database/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -32,7 +32,7 @@ func Connect(dbname, user, password string) (*gorm.DB, error) {
 
 // Migrate performs GORM auto-migrations for all data models.
 func Migrate(db *gorm.DB) error {
-	for _, model := range model.AllModels {
+	for _, model := range models.AllModels {
 		if err := db.AutoMigrate(&model); err != nil {
 			return fmt.Errorf("failed to migrate %v: %w", model, err)
 		}
@@ -41,8 +41,8 @@ func Migrate(db *gorm.DB) error {
 }
 
 func LeaveChannel(db *gorm.DB, platformName, channel string) error {
-	var channels []model.JoinedChannel
-	db.Where(model.JoinedChannel{Platform: platformName, Channel: strings.ToLower(channel)}).Find(&channels)
+	var channels []models.JoinedChannel
+	db.Where(models.JoinedChannel{Platform: platformName, Channel: strings.ToLower(channel)}).Find(&channels)
 
 	if len(channels) == 0 {
 		return fmt.Errorf("bot is not in channel %s", channel)

@@ -11,7 +11,7 @@ import (
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/database"
-	"github.com/airforce270/airbot/database/model"
+	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
 
 	"github.com/shirou/gopsutil/v3/cpu"
@@ -152,13 +152,13 @@ func stats(msg *base.IncomingMessage) ([]*base.Message, error) {
 
 	var recentlyProcessedMessages int64
 	g.Go(func() error {
-		db.Model(&model.Message{}).Where("created_at > ?", time.Now().Add(time.Second*-60)).Count(&recentlyProcessedMessages)
+		db.Model(&models.Message{}).Where("created_at > ?", time.Now().Add(time.Second*-60)).Count(&recentlyProcessedMessages)
 		return nil
 	})
 
 	var joinedChannels int64
 	g.Go(func() error {
-		db.Model(&model.JoinedChannel{}).Count(&joinedChannels)
+		db.Model(&models.JoinedChannel{}).Count(&joinedChannels)
 		return nil
 	})
 

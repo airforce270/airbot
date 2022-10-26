@@ -12,7 +12,7 @@ import (
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/database"
-	"github.com/airforce270/airbot/database/model"
+	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
 	twitchplatform "github.com/airforce270/airbot/platforms/twitch"
 )
@@ -101,8 +101,8 @@ func joinChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Messa
 
 	db := database.Instance
 
-	var channels []model.JoinedChannel
-	db.Where(model.JoinedChannel{
+	var channels []models.JoinedChannel
+	db.Where(models.JoinedChannel{
 		Platform: msg.Platform.Name(),
 		Channel:  strings.ToLower(targetChannel),
 	}).Find(&channels)
@@ -116,7 +116,7 @@ func joinChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Messa
 		}, nil
 	}
 
-	channelRecord := model.JoinedChannel{
+	channelRecord := models.JoinedChannel{
 		Platform: msg.Platform.Name(),
 		Channel:  targetChannel,
 		Prefix:   prefix,
@@ -217,8 +217,8 @@ func setPrefix(msg *base.IncomingMessage) ([]*base.Message, error) {
 		return nil, fmt.Errorf("database instance not initialized")
 	}
 
-	var channels []model.JoinedChannel
-	db.Where(model.JoinedChannel{Platform: msg.Platform.Name(), Channel: strings.ToLower(msg.Message.Channel)}).Find(&channels)
+	var channels []models.JoinedChannel
+	db.Where(models.JoinedChannel{Platform: msg.Platform.Name(), Channel: strings.ToLower(msg.Message.Channel)}).Find(&channels)
 
 	for _, channel := range channels {
 		channel.Prefix = newPrefix

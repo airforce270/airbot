@@ -1,5 +1,5 @@
-// Package model defines database data models.
-package model
+// Package models defines database data models.
+package models
 
 import (
 	"time"

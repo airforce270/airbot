@@ -11,7 +11,7 @@ import (
 	"github.com/airforce270/airbot/apiclients/ivr"
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/database"
-	"github.com/airforce270/airbot/database/model"
+	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
 
 	twitchirc "github.com/gempir/go-twitch-irc/v3"
@@ -115,7 +115,7 @@ func (t *Twitch) Join(channel string, prefix string) error {
 	time.Sleep(time.Duration(250) * time.Millisecond)
 
 	var banCount int64
-	t.db.Model(&model.BotBan{}).Where("platform = ? AND channel = ? AND banned_at > ?", t.Name(), strings.ToLower(channel), startTime).Count(&banCount)
+	t.db.Model(&models.BotBan{}).Where("platform = ? AND channel = ? AND banned_at > ?", t.Name(), strings.ToLower(channel), startTime).Count(&banCount)
 	if isBanned := banCount > 0; isBanned {
 		return ErrBotIsBanned
 	}
@@ -267,8 +267,8 @@ func (t *Twitch) Channel(channel string) (*helix.ChannelInformation, error) {
 // updateCachedJoinedChannels updates the in-memory joined channel data
 // using the latest joined channel data from the database.
 func (t *Twitch) updateCachedJoinedChannels() {
-	var dbChannels []model.JoinedChannel
-	t.db.Where(model.JoinedChannel{Platform: t.Name()}).Find(&dbChannels)
+	var dbChannels []models.JoinedChannel
+	t.db.Where(models.JoinedChannel{Platform: t.Name()}).Find(&dbChannels)
 
 	var channels []*twitchChannel
 	for _, dbChannel := range dbChannels {
@@ -312,14 +312,14 @@ func (t *Twitch) level(msg *twitchirc.PrivateMessage) permission.Level {
 }
 
 func (t *Twitch) initializeJoinedChannels() {
-	var botChannel model.JoinedChannel
-	botChannelResp := t.db.FirstOrCreate(&botChannel, model.JoinedChannel{
+	var botChannel models.JoinedChannel
+	botChannelResp := t.db.FirstOrCreate(&botChannel, models.JoinedChannel{
 		Platform: t.Name(),
 		Channel:  strings.ToLower(t.username),
 	})
 
 	if botChannelResp.RowsAffected != 0 {
-		t.db.Model(&botChannel).Updates(model.JoinedChannel{
+		t.db.Model(&botChannel).Updates(models.JoinedChannel{
 			Prefix:   defaultBotPrefix,
 			JoinedAt: time.Now(),
 		})
@@ -376,10 +376,10 @@ func (t *Twitch) setUpIRCHandlers() {
 }
 
 func (t *Twitch) persistUserAndMessage(twitchID, twitchName, message, channel string, sentTime time.Time) {
-	var user model.User
-	t.db.FirstOrCreate(&user, model.User{TwitchID: twitchID})
-	t.db.Model(&user).Updates(model.User{TwitchName: twitchName})
-	t.db.Create(&model.Message{
+	var user models.User
+	t.db.FirstOrCreate(&user, models.User{TwitchID: twitchID})
+	t.db.Model(&user).Updates(models.User{TwitchName: twitchName})
+	t.db.Create(&models.Message{
 		Text:    message,
 		Channel: channel,
 		User:    user,
@@ -426,7 +426,7 @@ func (t *Twitch) updateVIPStatusForChannel(channel *twitchChannel, vips []*ivr.M
 func (t *Twitch) handleBannedFromChannel(channel string) {
 	log.Printf("[%s] Banned from channel %s, leaving it", t.Name(), channel)
 	go func() {
-		t.db.Create(&model.BotBan{
+		t.db.Create(&models.BotBan{
 			Platform: t.Name(),
 			Channel:  strings.ToLower(channel),
 			BannedAt: time.Now(),
