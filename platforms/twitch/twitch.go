@@ -10,6 +10,7 @@ import (
 
 	"github.com/airforce270/airbot/apiclients/ivr"
 	"github.com/airforce270/airbot/base"
+	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/model"
 	"github.com/airforce270/airbot/permission"
 
@@ -93,6 +94,58 @@ func (t *Twitch) Listen() <-chan base.IncomingMessage {
 	return c
 }
 
+var ErrBotIsBanned = errors.New("bot is banned from the channel")
+
+func (t *Twitch) Join(channel string, prefix string) error {
+	channelInfo, err := t.Channel(channel)
+	if err != nil {
+		return fmt.Errorf("failed to look up channel: %w", err)
+	}
+
+	startTime := time.Now()
+
+	if t.i != nil {
+		t.i.Join(channelInfo.BroadcasterName)
+	} else {
+		log.Printf("Didn't actually join channel %s - IRC client is nil. This is expected in test, but if you see this in production, something's broken!", channelInfo.BroadcasterName)
+	}
+
+	// Wait for ban messages to come in.
+	// If we're banned, the IRC server will send a ban message about 150ms after we try to join.
+	time.Sleep(time.Duration(250) * time.Millisecond)
+
+	var banCount int64
+	t.db.Model(&model.BotBan{}).Where("platform = ? AND channel = ? AND banned_at > ?", t.Name(), strings.ToLower(channel), startTime).Count(&banCount)
+	if isBanned := banCount > 0; isBanned {
+		return ErrBotIsBanned
+	}
+
+	t.channels = append(t.channels, &twitchChannel{Name: channelInfo.BroadcasterName, Prefix: prefix})
+	return nil
+}
+
+func (t *Twitch) Leave(channel string) error {
+	if t.i != nil {
+		t.i.Depart(channel)
+	} else {
+		log.Printf("Didn't actually depart channel %s - IRC client is nil. This is expected in test, but if you see this in production, something's broken!", channel)
+	}
+
+	var newChannels []*twitchChannel
+	for _, ch := range t.channels {
+		if strings.EqualFold(ch.Name, channel) {
+			continue
+		}
+		newChannels = append(newChannels, ch)
+	}
+	t.channels = newChannels
+
+	return nil
+}
+
+// https://dev.twitch.tv/docs/irc/msg-id#notice-message-ids
+const twitchMsgIdBanned = "msg_banned"
+
 func (t *Twitch) Connect() error {
 	log.Printf("Initializing channel data...")
 	t.initializeJoinedChannels()
@@ -101,8 +154,7 @@ func (t *Twitch) Connect() error {
 	i := twitchirc.NewClient(t.username, fmt.Sprintf("oauth:%s", t.accessToken))
 	t.i = i
 
-	t.i.OnUserNoticeMessage(func(msg twitchirc.UserNoticeMessage) { log.Printf("[Twitch] USERNOTICE: %s", msg.Raw) })
-	t.i.OnNoticeMessage(func(msg twitchirc.NoticeMessage) { log.Printf("[Twitch] NOTICE: %s", msg.Raw) })
+	t.setUpIRCHandlers()
 
 	ivrUsers, err := ivr.FetchUsers(t.username)
 	if err != nil {
@@ -116,7 +168,7 @@ func (t *Twitch) Connect() error {
 	}
 
 	if t.isVerifiedBot {
-		log.Printf("[Twitch] Bot user %s is a verified bot, using increased rate limit", t.username)
+		log.Printf("[%s] Bot user %s is a verified bot, using increased rate limit", t.Name(), t.username)
 		t.i.SetJoinRateLimiter(twitchirc.CreateVerifiedRateLimiter())
 	}
 
@@ -125,7 +177,7 @@ func (t *Twitch) Connect() error {
 	t.i.OnConnect(func() { twitchIRCReady <- true })
 	go func() {
 		if err := t.i.Connect(); err != nil {
-			panic(fmt.Sprintf("failed to connect to twitch IRC: %v", err))
+			log.Printf("failed to connect to twitch IRC: %v", err)
 		}
 	}()
 	<-twitchIRCReady
@@ -166,41 +218,6 @@ func (t *Twitch) Disconnect() error {
 	}
 	log.Printf("Disconnecting from Twitch IRC...")
 	return t.i.Disconnect()
-}
-
-func (t *Twitch) Join(channel string, prefix string) error {
-	channelInfo, err := t.Channel(channel)
-	if err != nil {
-		return fmt.Errorf("failed to look up channel: %w", err)
-	}
-
-	if t.i != nil {
-		t.i.Join(channelInfo.BroadcasterName)
-	} else {
-		log.Printf("Didn't actually join channel %s - IRC client is nil. This is expected in test, but if you see this in production, something's broken!", channelInfo.BroadcasterName)
-	}
-
-	t.channels = append(t.channels, &twitchChannel{Name: channelInfo.BroadcasterName, Prefix: prefix})
-	return nil
-}
-
-func (t *Twitch) Leave(channel string) error {
-	if t.i != nil {
-		t.i.Depart(channel)
-	} else {
-		log.Printf("Didn't actually depart channel %s - IRC client is nil. This is expected in test, but if you see this in production, something's broken!", channel)
-	}
-
-	var newChannels []*twitchChannel
-	for _, ch := range t.channels {
-		if strings.EqualFold(ch.Name, channel) {
-			continue
-		}
-		newChannels = append(newChannels, ch)
-	}
-	t.channels = newChannels
-
-	return nil
 }
 
 func (t *Twitch) SetPrefix(channel, prefix string) error {
@@ -311,6 +328,53 @@ func (t *Twitch) initializeJoinedChannels() {
 	t.updateCachedJoinedChannels()
 }
 
+func (t *Twitch) setUpIRCHandlers() {
+	t.i.OnClearMessage(func(msg twitchirc.ClearMessage) {
+		log.Printf("[%s] CLEAR: %s", t.Name(), msg.Raw)
+	})
+	t.i.OnClearChatMessage(func(msg twitchirc.ClearChatMessage) {
+		log.Printf("[%s] CLEARCHAT: %s", t.Name(), msg.Raw)
+	})
+	// OnConnect is set within Twitch.Connect()
+	t.i.OnGlobalUserStateMessage(func(msg twitchirc.GlobalUserStateMessage) {})
+	t.i.OnNoticeMessage(func(msg twitchirc.NoticeMessage) {
+		log.Printf("[%s] NOTICE: %s", t.Name(), msg.Raw)
+
+		// This fires when we the bot tries to join a channel it's banned in.
+		if msg.MsgID == twitchMsgIdBanned {
+			t.handleBannedFromChannel(msg.Channel)
+		}
+	})
+	t.i.OnPingMessage(func(msg twitchirc.PingMessage) {})
+	// OnPrivateMessage is set within Twitch.Connect()
+	t.i.OnPongMessage(func(msg twitchirc.PongMessage) {})
+	t.i.OnReconnectMessage(func(msg twitchirc.ReconnectMessage) {
+		log.Printf("[%s] RECONNECT: %s", t.Name(), msg.Raw)
+	})
+	t.i.OnRoomStateMessage(func(msg twitchirc.RoomStateMessage) {})
+	t.i.OnSelfJoinMessage(func(msg twitchirc.UserJoinMessage) {})
+	t.i.OnSelfPartMessage(func(msg twitchirc.UserPartMessage) {
+		log.Printf("[%s] SELFPART: %s", t.Name(), msg.Raw)
+	})
+	t.i.OnUnsetMessage(func(msg twitchirc.RawMessage) {
+		log.Printf("[%s] UNSET: %s", t.Name(), msg.Raw)
+	})
+	t.i.OnUserJoinMessage(func(msg twitchirc.UserJoinMessage) {
+		log.Printf("[%s] USERJOIN: %s", t.Name(), msg.Raw)
+	})
+	t.i.OnUserNoticeMessage(func(msg twitchirc.UserNoticeMessage) {
+		log.Printf("[%s] USERNOTICE: %s", t.Name(), msg.Raw)
+	})
+	t.i.OnUserPartMessage(func(msg twitchirc.UserPartMessage) {
+		log.Printf("[%s] USERPART: %s", t.Name(), msg.Raw)
+	})
+	t.i.OnUserStateMessage(func(msg twitchirc.UserStateMessage) {})
+	t.i.OnWhisperMessage(func(msg twitchirc.WhisperMessage) {
+		log.Printf("[%s] WHISPER: %s", t.Name(), msg.Raw)
+		t.persistUserAndMessage(msg.User.ID, msg.User.Name, msg.Message, fmt.Sprintf("whisper-%s", t.Username()), time.Now())
+	})
+}
+
 func (t *Twitch) persistUserAndMessage(twitchID, twitchName, message, channel string, sentTime time.Time) {
 	var user model.User
 	t.db.FirstOrCreate(&user, model.User{TwitchID: twitchID})
@@ -357,6 +421,27 @@ func (t *Twitch) updateVIPStatusForChannel(channel *twitchChannel, vips []*ivr.M
 		}
 	}
 	channel.BotIsVIP = false
+}
+
+func (t *Twitch) handleBannedFromChannel(channel string) {
+	log.Printf("[%s] Banned from channel %s, leaving it", t.Name(), channel)
+	go func() {
+		t.db.Create(&model.BotBan{
+			Platform: t.Name(),
+			Channel:  strings.ToLower(channel),
+			BannedAt: time.Now(),
+		})
+	}()
+	go func() {
+		if err := database.LeaveChannel(t.db, t.Name(), channel); err != nil {
+			log.Printf("[%s] Failed to leave channel %s (database): %v", t.Name(), channel, err)
+		}
+	}()
+	go func() {
+		if err := t.Leave(channel); err != nil {
+			log.Printf("[%s] Failed to leave channel %s (IRC): %v", t.Name(), channel, err)
+		}
+	}()
 }
 
 const defaultBotPrefix = "$"

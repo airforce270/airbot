@@ -40,6 +40,20 @@ func Migrate(db *gorm.DB) error {
 	return nil
 }
 
+func LeaveChannel(db *gorm.DB, platformName, channel string) error {
+	var channels []model.JoinedChannel
+	db.Where(model.JoinedChannel{Platform: platformName, Channel: strings.ToLower(channel)}).Find(&channels)
+
+	if len(channels) == 0 {
+		return fmt.Errorf("bot is not in channel %s", channel)
+	}
+
+	for _, c := range channels {
+		db.Delete(&c)
+	}
+	return nil
+}
+
 // formatDSN formats settings into a DSN for a Postgres GORM connection.
 func formatDSN(settings map[string]string) string {
 	parts := make([]string, len(settings))

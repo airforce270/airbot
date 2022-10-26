@@ -9,9 +9,22 @@ import (
 
 // AllModels contains one of each defined data model, for auto-migrations.
 var AllModels = []any{
+	BotBan{},
 	JoinedChannel{},
 	Message{},
 	User{},
+}
+
+// BotBan represents a bot being banned from a channel.
+type BotBan struct {
+	gorm.Model
+
+	// Platform contains the which platform this channel is on.
+	Platform string
+	// Channel is which channel should be joined.
+	Channel string
+	// JoinedAt is when the channel was joined.
+	BannedAt time.Time
 }
 
 // JoinedChannel represents a channel the bot should join.
@@ -45,7 +58,7 @@ type Message struct {
 	Time time.Time
 }
 
-// User represents a user
+// User represents a user.
 type User struct {
 	gorm.Model
 

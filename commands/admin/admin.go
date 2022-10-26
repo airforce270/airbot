@@ -127,11 +127,21 @@ func joinChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Messa
 		return nil, fmt.Errorf("failed to join channel %s: %w", targetChannel, result.Error)
 	}
 
-	if err := msg.Platform.Join(targetChannel, prefix); errors.Is(err, twitchplatform.ErrChannelNotFound) {
+	err := msg.Platform.Join(targetChannel, prefix)
+
+	if errors.Is(err, twitchplatform.ErrChannelNotFound) {
 		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
 				Text:    fmt.Sprintf("Channel %s not found", targetChannel),
+			},
+		}, nil
+	}
+	if errors.Is(err, twitchplatform.ErrBotIsBanned) {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("Bot is banned from %s", targetChannel),
 			},
 		}, nil
 	}
@@ -153,21 +163,19 @@ func joinChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Messa
 
 func leaveChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Message, error) {
 	db := database.Instance
+	if db == nil {
+		return nil, fmt.Errorf("database instance not initialized")
+	}
 
-	var channels []model.JoinedChannel
-	db.Where(model.JoinedChannel{Platform: msg.Platform.Name(), Channel: strings.ToLower(targetChannel)}).Find(&channels)
+	err := database.LeaveChannel(db, msg.Platform.Name(), targetChannel)
 
-	if len(channels) == 0 {
+	if err != nil {
 		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
 				Text:    fmt.Sprintf("Bot is not in channel %s", targetChannel),
 			},
 		}, nil
-	}
-
-	for _, c := range channels {
-		db.Delete(&c)
 	}
 
 	go func() {
@@ -205,6 +213,9 @@ func setPrefix(msg *base.IncomingMessage) ([]*base.Message, error) {
 	newPrefix := matches[1]
 
 	db := database.Instance
+	if db == nil {
+		return nil, fmt.Errorf("database instance not initialized")
+	}
 
 	var channels []model.JoinedChannel
 	db.Where(model.JoinedChannel{Platform: msg.Platform.Name(), Channel: strings.ToLower(msg.Message.Channel)}).Find(&channels)
