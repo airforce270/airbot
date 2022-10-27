@@ -2,6 +2,12 @@
 package echo
 
 import (
+	"fmt"
+	"log"
+	"regexp"
+	"strconv"
+	"strings"
+
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/permission"
@@ -18,6 +24,7 @@ var Commands = [...]basecommand.Command{
 		Pattern:    basecommand.PrefixPattern("commands"),
 		Handler:    commands,
 	},
+	pyramidCommand,
 	{
 		Name:       "TriHard",
 		Help:       "Replies with TriHard 7.",
@@ -29,6 +36,22 @@ var Commands = [...]basecommand.Command{
 	},
 }
 
+const maxPyramidWidth = 25
+
+var (
+	pyramidCommandPattern = basecommand.PrefixPattern("pyramid")
+	pyramidCommand        = basecommand.Command{
+		Name:       "pyramid",
+		Help:       fmt.Sprintf("Makes a pyramid in chat. Max width %d.", maxPyramidWidth),
+		Usage:      "$pyramid <width> <text>",
+		Permission: permission.Normal,
+		PrefixOnly: true,
+		Pattern:    pyramidCommandPattern,
+		Handler:    pyramid,
+	}
+	pyramidPattern = regexp.MustCompile(pyramidCommandPattern.String() + `(\d+)\s+(.*)`)
+)
+
 func commands(msg *base.IncomingMessage) ([]*base.Message, error) {
 	return []*base.Message{
 		{
@@ -38,6 +61,56 @@ func commands(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}, nil
 }
 
+func pyramid(msg *base.IncomingMessage) ([]*base.Message, error) {
+	matches := pyramidPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
+	if len(matches) != 3 {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "Usage: $pyramid <width> <text>",
+			},
+		}, nil
+	}
+
+	width64, err := strconv.ParseInt(matches[1], 10, 32)
+	if err != nil {
+		log.Printf("Failed to parse %q as int", matches[1])
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "Usage: $pyramid <width> <text>",
+			},
+		}, nil
+	}
+	width := int(width64)
+
+	if width > maxPyramidWidth {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("Max pyramid width is %d", maxPyramidWidth),
+			},
+		}, nil
+	}
+
+	text := matches[2]
+
+	msgsCount := width + width - 1
+	msgs := make([]*base.Message, msgsCount)
+
+	for i := 0; i < width; i++ {
+		msgs[i] = &base.Message{Channel: msg.Message.Channel, Text: repeatJoin(text, i+1, " ")}
+	}
+
+	offset := 1
+	for i := width; i < msgsCount; i++ {
+		msgs[i] = &base.Message{Channel: msg.Message.Channel, Text: repeatJoin(text, i-offset, " ")}
+		offset += 2
+	}
+
+	return msgs, nil
+}
+
 func triHard(msg *base.IncomingMessage) ([]*base.Message, error) {
 	return []*base.Message{
 		{
@@ -45,4 +118,17 @@ func triHard(msg *base.IncomingMessage) ([]*base.Message, error) {
 			Text:    "TriHard 7",
 		},
 	}, nil
+}
+
+// repeatJoin repeats a string and joins it on a delimiter.
+func repeatJoin(s string, n int, delimiter string) string {
+	var b strings.Builder
+	for i := 0; i < n; i++ {
+		b.WriteString(s)
+		if i == n-1 {
+			continue
+		}
+		b.WriteString(delimiter)
+	}
+	return b.String()
 }

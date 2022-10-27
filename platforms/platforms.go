@@ -3,6 +3,7 @@ package platforms
 
 import (
 	"log"
+	"runtime/debug"
 
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/commands"
@@ -38,6 +39,12 @@ func StartHandling(p base.Platform, db *gorm.DB, logIncoming, logOutgoing, enabl
 
 // processMessage processes a single message and may send a message in response.
 func processMessage(handler *commands.Handler, db *gorm.DB, p base.Platform, msg base.IncomingMessage, logIncoming, logOutgoing bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("processMessage panicked, recovered: %v; %s", r, debug.Stack())
+		}
+	}()
+
 	if logIncoming {
 		log.Printf("[%s<- %s/%s]: %s", p.Name(), msg.Message.Channel, msg.Message.User, msg.Message.Text)
 	}

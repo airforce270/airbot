@@ -79,6 +79,11 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - Replies with a link to the commands.
 - > Usage: `$commands`
 
+### $pyramid
+
+- Makes a pyramid in chat. Max width 25.
+- > Usage: `$pyramid <width> <text>`
+
 ### $TriHard
 
 - Replies with TriHard 7.
