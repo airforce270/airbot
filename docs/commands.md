@@ -83,11 +83,13 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 - Makes a pyramid in chat. Max width 25.
 - > Usage: `$pyramid <width> <text>`
+- > Minimum permission level: `Mod`
 
 ### $spam
 
 - Sends a message many times. Max amount 50.
 - > Usage: `$spam <count> <text>`
+- > Minimum permission level: `Mod`
 
 ### $TriHard
 
