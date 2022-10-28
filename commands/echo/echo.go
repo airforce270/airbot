@@ -25,6 +25,7 @@ var Commands = [...]basecommand.Command{
 		Handler:    commands,
 	},
 	pyramidCommand,
+	spamCommand,
 	{
 		Name:       "TriHard",
 		Help:       "Replies with TriHard 7.",
@@ -36,7 +37,11 @@ var Commands = [...]basecommand.Command{
 	},
 }
 
-const maxPyramidWidth = 25
+const (
+	safeMessageCount = 50
+	maxPyramidWidth  = safeMessageCount / 2
+	maxSpamAmount    = safeMessageCount
+)
 
 var (
 	pyramidCommandPattern = basecommand.PrefixPattern("pyramid")
@@ -50,6 +55,18 @@ var (
 		Handler:    pyramid,
 	}
 	pyramidPattern = regexp.MustCompile(pyramidCommandPattern.String() + `(\d+)\s+(.*)`)
+
+	spamCommandPattern = basecommand.PrefixPattern("spam")
+	spamCommand        = basecommand.Command{
+		Name:       "spam",
+		Help:       fmt.Sprintf("Sends a message many times. Max amount %d.", maxSpamAmount),
+		Usage:      "$spam <count> <text>",
+		Permission: permission.Normal,
+		PrefixOnly: true,
+		Pattern:    spamCommandPattern,
+		Handler:    spam,
+	}
+	spamPattern = regexp.MustCompile(spamCommandPattern.String() + `(\d+)\s+(.*)`)
 )
 
 func commands(msg *base.IncomingMessage) ([]*base.Message, error) {
@@ -59,6 +76,51 @@ func commands(msg *base.IncomingMessage) ([]*base.Message, error) {
 			Text:    "Commands available here: https://github.com/airforce270/airbot/blob/main/docs/commands.md",
 		},
 	}, nil
+}
+
+func spam(msg *base.IncomingMessage) ([]*base.Message, error) {
+	matches := spamPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
+	if len(matches) != 3 {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "Usage: $spam <count> <text>",
+			},
+		}, nil
+	}
+
+	count64, err := strconv.ParseInt(matches[1], 10, 32)
+	if err != nil {
+		log.Printf("Failed to parse %q as int", matches[1])
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "Usage: $spam <count> <text>",
+			},
+		}, nil
+	}
+	count := int(count64)
+
+	if count > maxSpamAmount {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("Max spam amount is %d", maxSpamAmount),
+			},
+		}, nil
+	}
+
+	text := matches[2]
+
+	msgsCount := count
+	msgs := make([]*base.Message, msgsCount)
+
+	out := base.Message{Channel: msg.Message.Channel, Text: text}
+	for i := 0; i < count; i++ {
+		msgs[i] = &out
+	}
+
+	return msgs, nil
 }
 
 func pyramid(msg *base.IncomingMessage) ([]*base.Message, error) {
