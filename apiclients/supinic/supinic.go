@@ -60,7 +60,7 @@ func (c *Client) updateBotActivity() error {
 	}
 
 	if !resp.Success {
-		return fmt.Errorf("supinic UpdateBotActivity returned success=false")
+		return fmt.Errorf("supinic UpdateBotActivity returned success=false, resp: %q", apiResp)
 	}
 
 	return nil
