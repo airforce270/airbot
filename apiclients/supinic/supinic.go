@@ -94,6 +94,7 @@ func (c *Client) call(method, path string, body io.Reader) ([]byte, error) {
 		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
 	}
 	req.Header.Add("Authorization", fmt.Sprintf("Basic %s:%s", c.userID, c.apiKey))
+	req.Header.Add("User-Agent", "Airbot/0.0.0 (by airforce2700;https://github.com/airforce270/airbot)")
 
 	resp, err := c.h.Do(req)
 	if err != nil {
