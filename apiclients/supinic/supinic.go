@@ -44,6 +44,21 @@ func (c *Client) pingAPI() {
 	}
 }
 
+// baseAPIResponse contains the common fields returned by the IVR API.
+// This struct should be embedded in a API-call specific struct.
+// The actual response data will be contained in the Data field
+// and can (should) overridden with a more specific type.
+type baseAPIResponse struct {
+	// StatusCode is the status code of the response.
+	StatusCode int `json:"statusCode"`
+	// TimestampMs is the timestamp in milliseconds when the response was sent.
+	TimestampMs int64 `json:"timestamp"`
+	// Data is the response data itself.
+	Data any `json:"data"`
+	// Error is the error, if any.
+	Error string `json:"error"`
+}
+
 // updateBotActivity updates the Supinic API to indicate this bot is online.
 // https://supinic.com/api/#api-Bot_Program-updateBotActivity
 func (c *Client) updateBotActivity() error {
@@ -53,13 +68,16 @@ func (c *Client) updateBotActivity() error {
 	}
 
 	resp := struct {
-		Success bool `json:"success"`
+		baseAPIResponse
+		Data struct {
+			Success bool `json:"success"`
+		} `json:"data"`
 	}{}
 	if err := json.Unmarshal(apiResp, &resp); err != nil {
 		return fmt.Errorf("failed to unmarshal UpdateBotActivity response (%q): %w", apiResp, err)
 	}
 
-	if !resp.Success {
+	if !resp.Data.Success {
 		return fmt.Errorf("supinic UpdateBotActivity returned success=false, resp: %q", apiResp)
 	}
 

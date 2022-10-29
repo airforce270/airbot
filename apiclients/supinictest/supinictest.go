@@ -2,6 +2,6 @@
 package supinictest
 
 const (
-	UpdateBotActivitySuccessResp = `{"success":true}`
-	UpdateBotActivityFailureResp = `{"success":false}`
+	UpdateBotActivitySuccessResp = `{"statusCode":200,"timestamp":1667031962798,"data":{"success":true},"error":null}`
+	UpdateBotActivityFailureResp = `{"statusCode":401,"timestamp":1667031962798,"data":{"success":false},"error":"Authorization failed"}`
 )
