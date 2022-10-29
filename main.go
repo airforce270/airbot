@@ -8,6 +8,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/airforce270/airbot/apiclients/supinic"
 	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/platforms"
@@ -49,6 +50,7 @@ func wait() {
 
 func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
+	startListeningForSigterm()
 
 	log.Printf("Reading config from %s...", config.Path)
 	cfg, err := config.Read(config.Path)
@@ -85,7 +87,11 @@ func main() {
 		cleanupFuncs = append(cleanupFuncs, cleanupFunc{name: p.Name(), f: p.Disconnect})
 	}
 
-	startListeningForSigterm()
+	if cfg.Supinic.IsConfigured() && cfg.Supinic.ShouldPingAPI {
+		log.Println("Starting to ping the Supinic API...")
+		supinicClient := supinic.NewClient(cfg.Supinic.UserID, cfg.Supinic.APIKey)
+		go supinicClient.StartPinging()
+	}
 
 	log.Printf("Airbot is now running.")
 	wait()

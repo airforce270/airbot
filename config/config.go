@@ -19,6 +19,8 @@ type Config struct {
 	Platforms PlatformConfig `json:"platforms"`
 	// EnableNonPrefixCommands is whether non-prefix commands should be enabled.
 	EnableNonPrefixCommands bool `json:"enableNonPrefixCommands"`
+	// Supinic contains config for talking to the Supinic API.
+	Supinic SupinicConfig `json:"supinic"`
 }
 
 // PlatformConfig is platform-specific config data.
@@ -40,6 +42,35 @@ type TwitchConfig struct {
 	AccessToken string `json:"accessToken"`
 	// Owners contains the Twitch usernames of the bot owner(s).
 	Owners []string `json:"owners"`
+}
+
+const (
+	// placeholderSupinicUserID is the placeholder UserID for the Supinic API.
+	// If the user ID is this value, it means the user hasn't configured it.
+	placeholderSupinicUserID = "not-required-to-run-bot"
+	// placeholderSupinicAPIKey is the placeholder APIKey for the Supinic API.
+	// If the API key is this value, it means the user hasn't configured it.
+	placeholderSupinicAPIKey = "you-can-safely-leave-this-as-is"
+)
+
+// SupinicConfig contains data for talking to the Supinic API.
+type SupinicConfig struct {
+	// UserID is the Supinic User ID of the bot.
+	// https://supinic.com/user/auth-key
+	UserID string `json:"userId"`
+	// APIKey is an authentication key for the bot.
+	// https://supinic.com/user/auth-key
+	APIKey string `json:"apiKey"`
+	// ShouldPingAPI is whether the Supinic API should be pinged from time to time
+	// to let the Supinic API know that the bot is alive.
+	// Normally, this should only be done by af2bot, the reference instance of Airbot.
+	ShouldPingAPI bool `json:"shouldPingApi"`
+}
+
+func (s *SupinicConfig) IsConfigured() bool {
+	hasDefaultValue := s.UserID == placeholderSupinicUserID || s.APIKey == placeholderSupinicAPIKey
+	isUnset := s.UserID == "" || s.APIKey == ""
+	return !hasDefaultValue && !isUnset
 }
 
 // Read reads the config data from the given path.

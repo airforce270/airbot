@@ -10,5 +10,10 @@
       "owners": []
     }
   },
-  "enableNonPrefixCommands": true
+  "enableNonPrefixCommands": true,
+  "supinic": {
+    "userId": "not-required-to-run-bot",
+    "apiKey": "you-can-safely-leave-this-as-is",
+    "shouldPingApi": false
+  }
 }

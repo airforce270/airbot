@@ -262,10 +262,6 @@ func get(reqURL string) (respBody []byte, err error) {
 	if httpResp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("bad response from IVR API (URL:%s): %v", reqURL, httpResp)
 	}
-
-	if httpResp.Body == nil {
-		return nil, fmt.Errorf("no data returned from IVR API: %v", httpResp)
-	}
 	defer httpResp.Body.Close()
 
 	body, err := io.ReadAll(httpResp.Body)
