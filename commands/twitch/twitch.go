@@ -124,10 +124,10 @@ var (
 	}
 	verifiedBotPattern = regexp.MustCompile(verifiedBotCommandPattern.String() + `(\w+).*`)
 
-	verifiedBotQuietCommandPattern = basecommand.PrefixPattern("(?:verifiedbot|vb)quiet")
+	verifiedBotQuietCommandPattern = basecommand.PrefixPattern("(?:verifiedbot|vb)(q(uiet)?)")
 	verifiedBotQuietCommand        = basecommand.Command{
 		Name:           "verifiedbotquiet",
-		AlternateNames: []string{"vbquiet"},
+		AlternateNames: []string{"vbq"},
 		Help:           "Replies whether a user is a verified bot, but responds quietly.",
 		Usage:          "$verifiedbotquiet [user]",
 		Permission:     permission.Normal,

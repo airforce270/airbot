@@ -852,8 +852,12 @@ func TestCommands(t *testing.T) {
 		testCasesWithSameOutput([]string{
 			"$verifiedbotquiet",
 			"$verifiedbotquiet otherchannel",
+			"$verifiedbotq",
+			"$verifiedbotq otherchannel",
 			"$vbquiet",
 			"$vbquiet otherchannel",
+			"$vbq",
+			"$vbq otherchannel",
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
@@ -874,7 +878,9 @@ func TestCommands(t *testing.T) {
 		}),
 		testCasesWithSameOutput([]string{
 			"$verifiedbotquiet notverified",
+			"$verifiedbotq notverified",
 			"$vbquiet notverified",
+			"$vbq notverified",
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{

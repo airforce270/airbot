@@ -140,7 +140,7 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 - Replies whether a user is a verified bot, but responds quietly.
 - > Usage: `$verifiedbotquiet [user]`
-- > Alternate commands: `$vbquiet`
+- > Alternate commands: `$vbq`
 
 ### $vips
 
