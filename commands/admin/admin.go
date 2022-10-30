@@ -218,7 +218,7 @@ func setPrefix(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}
 
 	var channels []models.JoinedChannel
-	db.Where(models.JoinedChannel{Platform: msg.Platform.Name(), Channel: strings.ToLower(msg.Message.Channel)}).Find(&channels)
+	db.Where("platform = ? AND LOWER(channel) = ?", msg.Platform.Name(), strings.ToLower(msg.Message.Channel)).Find(&channels)
 
 	for _, channel := range channels {
 		channel.Prefix = newPrefix
