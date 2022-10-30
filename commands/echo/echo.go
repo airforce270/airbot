@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/commands/basecommand"
@@ -46,25 +47,27 @@ const (
 var (
 	pyramidCommandPattern = basecommand.PrefixPattern("pyramid")
 	pyramidCommand        = basecommand.Command{
-		Name:       "pyramid",
-		Help:       fmt.Sprintf("Makes a pyramid in chat. Max width %d.", maxPyramidWidth),
-		Usage:      "$pyramid <width> <text>",
-		Permission: permission.Mod,
-		PrefixOnly: true,
-		Pattern:    pyramidCommandPattern,
-		Handler:    pyramid,
+		Name:            "pyramid",
+		Help:            fmt.Sprintf("Makes a pyramid in chat. Max width %d.", maxPyramidWidth),
+		Usage:           "$pyramid <width> <text>",
+		Permission:      permission.Mod,
+		ChannelCooldown: time.Duration(30) * time.Second,
+		PrefixOnly:      true,
+		Pattern:         pyramidCommandPattern,
+		Handler:         pyramid,
 	}
 	pyramidPattern = regexp.MustCompile(pyramidCommandPattern.String() + `(\d+)\s+(.*)`)
 
 	spamCommandPattern = basecommand.PrefixPattern("spam")
 	spamCommand        = basecommand.Command{
-		Name:       "spam",
-		Help:       fmt.Sprintf("Sends a message many times. Max amount %d.", maxSpamAmount),
-		Usage:      "$spam <count> <text>",
-		Permission: permission.Mod,
-		PrefixOnly: true,
-		Pattern:    spamCommandPattern,
-		Handler:    spam,
+		Name:            "spam",
+		Help:            fmt.Sprintf("Sends a message many times. Max amount %d.", maxSpamAmount),
+		Usage:           "$spam <count> <text>",
+		Permission:      permission.Mod,
+		ChannelCooldown: time.Duration(30) * time.Second,
+		PrefixOnly:      true,
+		Pattern:         spamCommandPattern,
+		Handler:         spam,
 	}
 	spamPattern = regexp.MustCompile(spamCommandPattern.String() + `(\d+)\s+(.*)`)
 )

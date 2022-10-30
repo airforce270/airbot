@@ -6,6 +6,7 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/commands/admin"
@@ -14,7 +15,10 @@ import (
 	"github.com/airforce270/airbot/commands/bulk"
 	"github.com/airforce270/airbot/commands/echo"
 	"github.com/airforce270/airbot/commands/twitch"
+	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
+
+	"gorm.io/gorm"
 )
 
 // CommandGroups contains all groups of commands.
@@ -36,14 +40,17 @@ func init() {
 }
 
 // NewHandler creates a new Handler.
-func NewHandler(enableNonPrefixCommands bool) Handler {
+func NewHandler(db *gorm.DB, enableNonPrefixCommands bool) Handler {
 	return Handler{
+		db:                       db,
 		nonPrefixCommandsEnabled: enableNonPrefixCommands,
 	}
 }
 
 // Handler handles messages.
 type Handler struct {
+	// db is a connection to the database.
+	db *gorm.DB
 	// nonPrefixCommandsEnabled is whether non-prefix commands should be enabled.
 	nonPrefixCommandsEnabled bool
 }
@@ -63,6 +70,15 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.Message, error) {
 			log.Printf("Permission denied: command %s, user %s, channel %s; has permission %s, required: %s", command.Name, msg.Message.User, msg.Message.Channel, msg.PermissionLevel.Name(), command.Permission.Name())
 			continue
 		}
+		channelCooldown := models.ChannelCommandCooldown{}
+		h.db.FirstOrCreate(&channelCooldown, models.ChannelCommandCooldown{
+			Channel: msg.Message.Channel,
+			Command: command.Name,
+		})
+		if command.ChannelCooldown > time.Since(channelCooldown.LastRun) {
+			log.Printf("Skipping %s%s: cooldown is %s but it has only been %s", msg.Prefix, command.Name, command.ChannelCooldown, time.Since(channelCooldown.LastRun))
+			continue
+		}
 
 		respMsgs, err := command.Handler(msg)
 		if err != nil {
@@ -70,6 +86,9 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.Message, error) {
 		}
 
 		outMsgs = append(outMsgs, respMsgs...)
+
+		channelCooldown.LastRun = time.Now()
+		h.db.Save(&channelCooldown)
 	}
 	return outMsgs, nil
 }

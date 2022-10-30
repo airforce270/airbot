@@ -28,7 +28,7 @@ func Build(cfg *config.Config, db *gorm.DB) (map[string]base.Platform, error) {
 // StartHandling starts handling commands coming from the given platform.
 // This function blocks and should be run within a goroutine.
 func StartHandling(p base.Platform, db *gorm.DB, logIncoming, logOutgoing, enableNonPrefixCommands bool) {
-	handler := commands.NewHandler(enableNonPrefixCommands)
+	handler := commands.NewHandler(db, enableNonPrefixCommands)
 	c := p.Listen()
 
 	for {

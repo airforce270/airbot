@@ -10,6 +10,7 @@ import (
 // AllModels contains one of each defined data model, for auto-migrations.
 var AllModels = []any{
 	BotBan{},
+	ChannelCommandCooldown{},
 	JoinedChannel{},
 	Message{},
 	User{},
@@ -25,6 +26,18 @@ type BotBan struct {
 	Channel string
 	// JoinedAt is when the channel was joined.
 	BannedAt time.Time
+}
+
+// ChannelCommandCooldown contains a record of a command cooldown in a channel.
+type ChannelCommandCooldown struct {
+	gorm.Model
+
+	// Channel is the channel the command has a cooldown in.
+	Channel string
+	// Command is the name of the command with a cooldown.
+	Command string
+	// LastRun is when the command was last run in the channel.
+	LastRun time.Time
 }
 
 // JoinedChannel represents a channel the bot should join.

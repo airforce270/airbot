@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/permission"
@@ -23,6 +24,8 @@ type Command struct {
 	Usage string
 	// Permission is the permission level required to run the command.
 	Permission permission.Level
+	// ChannelCooldown is the cooldown between when a command can be used in a given channel.
+	ChannelCooldown time.Duration
 	// PrefixOnly is whether the command should only be triggered if used with the prefix.
 	// i.e. `$title xqc` but not `title xqc`
 	PrefixOnly bool

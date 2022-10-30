@@ -27,6 +27,9 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 {{- if and .Permission .Permission.IsElevated }}
 - > Minimum permission level: `{{ .Permission.Name }}`
 {{- end }}
+{{- if .ChannelCooldown }}
+- > Per-channel cooldown: `{{ .ChannelCooldown }}`
+{{- end }}
 {{- if .AlternateNames }}
 - > Alternate commands: {{ formatAlternateNames .AlternateNames }}
 {{- end }}
