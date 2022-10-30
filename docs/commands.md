@@ -72,6 +72,14 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - Replies with stats about the bot.
 - > Usage: `$stats`
 
+## Bulk
+
+### $filesay
+
+- Runs all commands in a given pastebin file.
+- > Usage: `$filesay <pastebin raw url>`
+- > Minimum permission level: `Mod`
+
 ## Echo
 
 ### $commands

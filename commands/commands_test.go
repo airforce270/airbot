@@ -8,6 +8,8 @@ import (
 
 	"github.com/airforce270/airbot/apiclients/ivr"
 	"github.com/airforce270/airbot/apiclients/ivrtest"
+	"github.com/airforce270/airbot/apiclients/pastebin"
+	"github.com/airforce270/airbot/apiclients/pastebintest"
 	"github.com/airforce270/airbot/apiclients/twitchtest"
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/config"
@@ -395,6 +397,68 @@ func TestCommands(t *testing.T) {
 			},
 		}),
 		// stats is currently untested due to reliance on low-level syscalls
+
+		// bulk.go commands
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$filesay https://pastebin.com/raw/B7TBjQEy",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Mod,
+			},
+			apiResp: pastebintest.MultiLineFetchPasteResp,
+			want: []*base.Message{
+				{
+					Text:    "line1",
+					Channel: "user2",
+				},
+				{
+					Text:    "line2",
+					Channel: "user2",
+				},
+				{
+					Text:    "line3",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$filesay https://pastebin.com/raw/B7TBjQEy",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			apiResp: pastebintest.MultiLineFetchPasteResp,
+			want:    nil,
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$filesay",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Mod,
+			},
+			apiResp: pastebintest.MultiLineFetchPasteResp,
+			want: []*base.Message{
+				{
+					Text:    "usage: $filesay <pastebin raw url>",
+					Channel: "user2",
+				},
+			},
+		}),
 
 		// echo.go commands
 		singleTestCase(testCase{
@@ -1082,11 +1146,13 @@ var (
 
 func setFakes(url string, db *gorm.DB) {
 	ivr.BaseURL = url
+	pastebin.FetchPasteURLOverride = url
 	twitch.Instance = twitch.NewForTesting(url, db)
 }
 
 func resetFakes() {
 	ivr.BaseURL = savedIVRURL
+	pastebin.FetchPasteURLOverride = ""
 	twitch.Instance = twitch.NewForTesting(helix.DefaultAPIBaseURL, nil)
 }
 
