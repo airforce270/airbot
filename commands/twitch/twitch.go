@@ -39,7 +39,7 @@ var (
 		PrefixOnly: true,
 		Permission: permission.Normal,
 	}
-	banReasonPattern = regexp.MustCompile(banReasonCommandPattern.String() + `(\w+).*`)
+	banReasonPattern = regexp.MustCompile(banReasonCommandPattern.String() + `@?(\w+).*`)
 
 	currentGameCommandPattern = basecommand.PrefixPattern("currentgame")
 	currentGameCommand        = basecommand.Command{
@@ -50,7 +50,7 @@ var (
 		PrefixOnly: true,
 		Permission: permission.Normal,
 	}
-	currentGamePattern = regexp.MustCompile(currentGameCommandPattern.String() + `(\w+).*`)
+	currentGamePattern = regexp.MustCompile(currentGameCommandPattern.String() + `@?(\w+).*`)
 
 	foundersCommandPattern = basecommand.PrefixPattern("founders")
 	foundersCommand        = basecommand.Command{
@@ -61,7 +61,7 @@ var (
 		PrefixOnly: true,
 		Permission: permission.Normal,
 	}
-	foundersPattern = regexp.MustCompile(foundersCommandPattern.String() + `(\w+).*`)
+	foundersPattern = regexp.MustCompile(foundersCommandPattern.String() + `@?(\w+).*`)
 
 	logsCommandPattern = basecommand.PrefixPattern("logs")
 	logsCommand        = basecommand.Command{
@@ -73,7 +73,7 @@ var (
 		Pattern:    logsCommandPattern,
 		Handler:    logs,
 	}
-	logsPattern = regexp.MustCompile(logsCommandPattern.String() + `(\w+)\s+(\w+).*`)
+	logsPattern = regexp.MustCompile(logsCommandPattern.String() + `@?(\w+)\s+@?(\w+).*`)
 
 	modsCommandPattern = basecommand.PrefixPattern("mods")
 	modsCommand        = basecommand.Command{
@@ -85,7 +85,7 @@ var (
 		Pattern:    modsCommandPattern,
 		Handler:    mods,
 	}
-	modsPattern = regexp.MustCompile(modsCommandPattern.String() + `(\w+).*`)
+	modsPattern = regexp.MustCompile(modsCommandPattern.String() + `@?(\w+).*`)
 
 	nameColorCommandPattern = basecommand.PrefixPattern("namecolor")
 	nameColorCommand        = basecommand.Command{
@@ -97,7 +97,7 @@ var (
 		Pattern:    nameColorCommandPattern,
 		Handler:    nameColor,
 	}
-	nameColorPattern = regexp.MustCompile(nameColorCommandPattern.String() + `(\w+).*`)
+	nameColorPattern = regexp.MustCompile(nameColorCommandPattern.String() + `@?(\w+).*`)
 
 	titleCommandPattern = basecommand.PrefixPattern("title")
 	titleCommand        = basecommand.Command{
@@ -109,7 +109,7 @@ var (
 		Pattern:    titleCommandPattern,
 		Handler:    title,
 	}
-	titlePattern = regexp.MustCompile(titleCommandPattern.String() + `(\w+).*`)
+	titlePattern = regexp.MustCompile(titleCommandPattern.String() + `@?(\w+).*`)
 
 	verifiedBotCommandPattern = regexp.MustCompile(`\s*(?:verifiedbot|vb)(?:\s+|$)`)
 	verifiedBotCommand        = basecommand.Command{
@@ -122,7 +122,7 @@ var (
 		Pattern:        verifiedBotCommandPattern,
 		Handler:        verifiedBot,
 	}
-	verifiedBotPattern = regexp.MustCompile(verifiedBotCommandPattern.String() + `(\w+).*`)
+	verifiedBotPattern = regexp.MustCompile(verifiedBotCommandPattern.String() + `@?(\w+).*`)
 
 	verifiedBotQuietCommandPattern = basecommand.PrefixPattern("(?:verifiedbot|vb)(q(uiet)?)")
 	verifiedBotQuietCommand        = basecommand.Command{
@@ -135,7 +135,7 @@ var (
 		Pattern:        verifiedBotQuietCommandPattern,
 		Handler:        verifiedBotQuiet,
 	}
-	verifiedBotQuietPattern = regexp.MustCompile(verifiedBotQuietCommandPattern.String() + `(\w+).*`)
+	verifiedBotQuietPattern = regexp.MustCompile(verifiedBotQuietCommandPattern.String() + `@?(\w+).*`)
 
 	vipsCommandPattern = basecommand.PrefixPattern("vips")
 	vipsCommand        = basecommand.Command{
@@ -147,7 +147,7 @@ var (
 		Pattern:    vipsCommandPattern,
 		Handler:    vips,
 	}
-	vipsPattern = regexp.MustCompile(vipsCommandPattern.String() + `(\w+).*`)
+	vipsPattern = regexp.MustCompile(vipsCommandPattern.String() + `@?(\w+).*`)
 )
 
 func banReason(msg *base.IncomingMessage) ([]*base.Message, error) {
