@@ -1034,7 +1034,7 @@ func TestCommands(t *testing.T) {
 				}
 			}
 
-			handler := Handler{nonPrefixCommandsEnabled: true}
+			handler := Handler{db: db, nonPrefixCommandsEnabled: true}
 			got, err := handler.Handle(tc.input)
 			if err != nil {
 				fmt.Printf("unexpected error: %v\n", err)
@@ -1095,7 +1095,8 @@ func TestCommands_EnableNonPrefixCommands(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(fmt.Sprintf("[%s]: %s", tc.input.PermissionLevel.Name(), tc.input.Message.Text), func(t *testing.T) {
-			handler := Handler{nonPrefixCommandsEnabled: tc.enableNonPrefixCommands}
+			db := newFakeDB()
+			handler := Handler{db: db, nonPrefixCommandsEnabled: tc.enableNonPrefixCommands}
 			got, err := handler.Handle(tc.input)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
@@ -1169,7 +1170,8 @@ func newFakeDB() *gorm.DB {
 }
 
 func joinOtherUser1() error {
-	handler := Handler{}
+	db := newFakeDB()
+	handler := Handler{db: db}
 	_, err := handler.Handle(&base.IncomingMessage{
 		Message: base.Message{
 			Text:    "$joinother user1",
@@ -1179,7 +1181,7 @@ func joinOtherUser1() error {
 		},
 		Prefix:          "$",
 		PermissionLevel: permission.Owner,
-		Platform:        twitch.NewForTesting("forsen", newFakeDB()),
+		Platform:        twitch.NewForTesting("forsen", db),
 	})
 	return err
 }
