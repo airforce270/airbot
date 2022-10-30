@@ -136,6 +136,12 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - > Usage: `$verifiedbot [user]`
 - > Alternate commands: `$vb`
 
+### $verifiedbotquiet
+
+- Replies whether a user is a verified bot, but responds quietly.
+- > Usage: `$verifiedbotquiet [user]`
+- > Alternate commands: `$vbquiet`
+
 ### $vips
 
 - Replies with a channel's VIPs.

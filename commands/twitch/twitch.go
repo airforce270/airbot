@@ -23,6 +23,7 @@ var Commands = [...]basecommand.Command{
 	nameColorCommand,
 	titleCommand,
 	verifiedBotCommand,
+	verifiedBotQuietCommand,
 	vipsCommand,
 }
 
@@ -110,7 +111,7 @@ var (
 	}
 	titlePattern = regexp.MustCompile(titleCommandPattern.String() + `(\w+).*`)
 
-	verifiedBotCommandPattern = basecommand.PrefixPattern("(?:verifiedbot|vb)")
+	verifiedBotCommandPattern = regexp.MustCompile(`\s*(?:verifiedbot|vb)(?:\s+|$)`)
 	verifiedBotCommand        = basecommand.Command{
 		Name:           "verifiedbot",
 		AlternateNames: []string{"vb"},
@@ -122,6 +123,19 @@ var (
 		Handler:        verifiedBot,
 	}
 	verifiedBotPattern = regexp.MustCompile(verifiedBotCommandPattern.String() + `(\w+).*`)
+
+	verifiedBotQuietCommandPattern = basecommand.PrefixPattern("(?:verifiedbot|vb)quiet")
+	verifiedBotQuietCommand        = basecommand.Command{
+		Name:           "verifiedbotquiet",
+		AlternateNames: []string{"vbquiet"},
+		Help:           "Replies whether a user is a verified bot, but responds quietly.",
+		Usage:          "$verifiedbotquiet [user]",
+		Permission:     permission.Normal,
+		PrefixOnly:     true,
+		Pattern:        verifiedBotQuietCommandPattern,
+		Handler:        verifiedBotQuiet,
+	}
+	verifiedBotQuietPattern = regexp.MustCompile(verifiedBotQuietCommandPattern.String() + `(\w+).*`)
 
 	vipsCommandPattern = basecommand.PrefixPattern("vips")
 	vipsCommand        = basecommand.Command{
@@ -379,6 +393,41 @@ func verifiedBot(msg *base.IncomingMessage) ([]*base.Message, error) {
 		resp = fmt.Sprintf("%s is a verified bot. ✅", user.DisplayName)
 	} else {
 		resp = fmt.Sprintf("%s is not a verified bot. ❌", user.DisplayName)
+	}
+
+	return []*base.Message{
+		{
+			Channel: msg.Message.Channel,
+			Text:    resp,
+		},
+	}, nil
+}
+
+func verifiedBotQuiet(msg *base.IncomingMessage) ([]*base.Message, error) {
+	targetUser := basecommand.ParseTarget(msg, verifiedBotQuietPattern)
+
+	users, err := ivr.FetchUsers(targetUser)
+	if err != nil {
+		return nil, err
+	}
+	if len(users) == 0 {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("Couldn't find user %s", targetUser),
+			},
+		}, nil
+	}
+	if len(users) > 1 {
+		return nil, fmt.Errorf("more than 1 user returned for %s: %v", targetUser, users)
+	}
+	user := users[0]
+
+	var resp string
+	if user.IsVerifiedBot {
+		resp = "✅"
+	} else {
+		resp = "❌"
 	}
 
 	return []*base.Message{

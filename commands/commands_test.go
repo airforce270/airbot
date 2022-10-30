@@ -849,6 +849,50 @@ func TestCommands(t *testing.T) {
 				},
 			},
 		}),
+		testCasesWithSameOutput([]string{
+			"$verifiedbotquiet",
+			"$verifiedbotquiet otherchannel",
+			"$vbquiet",
+			"$vbquiet otherchannel",
+		}, testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			apiResp: ivrtest.TwitchUsersVerifiedBotResp,
+			want: []*base.Message{
+				{
+					Text:    "✅",
+					Channel: "user2",
+				},
+			},
+		}),
+		testCasesWithSameOutput([]string{
+			"$verifiedbotquiet notverified",
+			"$vbquiet notverified",
+		}, testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			apiResp: ivrtest.TwitchUsersNotVerifiedBotResp,
+			want: []*base.Message{
+				{
+					Text:    "❌",
+					Channel: "user2",
+				},
+			},
+		}),
 		singleTestCase(testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
