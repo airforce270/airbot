@@ -106,6 +106,21 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - Replies with TriHard 7.
 - > Usage: `$TriHard`
 
+## Fun
+
+### $bibleverse
+
+- Looks up a bible verse.
+- > Usage: `$bibleverse <book> <chapter:verse>`
+- > Alternate commands: `$bv`
+
+## Moderation
+
+### $vanish
+
+- Times you out for 1 second.
+- > Usage: `$vanish`
+
 ## Twitch
 
 ### $banreason

@@ -15,6 +15,7 @@ import (
 	"github.com/airforce270/airbot/commands/bulk"
 	"github.com/airforce270/airbot/commands/echo"
 	"github.com/airforce270/airbot/commands/fun"
+	"github.com/airforce270/airbot/commands/moderation"
 	"github.com/airforce270/airbot/commands/twitch"
 	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
@@ -24,12 +25,13 @@ import (
 
 // CommandGroups contains all groups of commands.
 var CommandGroups = map[string][]basecommand.Command{
-	"Admin":    admin.Commands[:],
-	"Bot info": append([]basecommand.Command{helpCommand}, botinfo.Commands[:]...),
-	"Bulk":     bulk.Commands[:],
-	"Fun":      fun.Commands[:],
-	"Echo":     echo.Commands[:],
-	"Twitch":   twitch.Commands[:],
+	"Admin":      admin.Commands[:],
+	"Bot info":   append([]basecommand.Command{helpCommand}, botinfo.Commands[:]...),
+	"Bulk":       bulk.Commands[:],
+	"Fun":        fun.Commands[:],
+	"Moderation": moderation.Commands[:],
+	"Echo":       echo.Commands[:],
+	"Twitch":     twitch.Commands[:],
 }
 
 // allCommands contains all all commands that can be run.

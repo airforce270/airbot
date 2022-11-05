@@ -689,6 +689,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), newFakeDB()),
 			},
 			apiResp: twitchtest.BanUserResp,
 			want:    nil,
