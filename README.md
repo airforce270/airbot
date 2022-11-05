@@ -66,3 +66,42 @@ To connect to the bot's container while it's running, run `docker attach airbot-
 To connect to the database's container while it's running, run `docker attach airbot-database-1`.
 
 To disconnect from a container, press `CTRL-p CTRL-q`.
+
+#### Updating database
+
+To update Postgres to a new major version (example is moving from version **14**
+to **15**):
+
+1. Make sure the version-specific migrator image is available [here](https://github.com/tianon/docker-postgres-upgrade)
+
+1. Run:
+
+    ```shell
+    docker run --rm \
+        --env-file=.env \
+        -e POSTGRES_INITDB_ARGS="-U airbot" \
+        -v airbot_postgres-14-data:/var/lib/postgresql/14/data \
+        -v airbot_postgres-15-data:/var/lib/postgresql/15/data \
+        tianon/postgres-upgrade:14-to-15
+    ```
+
+    - Note that the `POSTGRES_INITDB_ARGS` value should match the `PGUSER` value
+      in your `.env` file.
+    - If the upgrade fails, run `docker volume rm airbot_postgres-15-data` and
+      try again.
+
+1. Run:
+
+    ```shell
+    docker run --rm \
+        -v airbot_postgres-14-data:/var/lib/postgresql/14/data \
+        -v airbot_postgres-15-data:/var/lib/postgresql/15/data \
+        busybox \
+        cp /var/lib/postgresql/14/data/pg_hba.conf /var/lib/postgresql/15/data/pg_hba.conf
+    ```
+
+1. Update `docker-compose.yml` to use the new Postgres image
+    - Under `services.database`, change `image` from `postgres:14` to `postgres:15`
+1. Update `docker-compose.yml` to use the new volume
+    - Under `volumes.postgres-data`, change `name` from `airbot_postgres-14-data`
+      to `airbot_postgres-15-data`
