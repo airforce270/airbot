@@ -633,13 +633,49 @@ func TestCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 			},
-			apiResp: bibletest.LookupVerseSingleVerseResp,
+			apiResp: bibletest.LookupVerseSingleVerse1Resp,
 			want: []*base.Message{
 				{
-					Text:    "[Philippians 4:8]: Finally, brothers, whatever things are true, whatever things are honorable, whatever things are just, whatever things are pure, whatever things are lovely, whatever things are of good report; if there is any virtue, and if there is any praise, think about these things.\n",
+					Text:    "[Philippians 4:8]: Finally, brothers, whatever things are true, whatever things are honorable, whatever things are just, whatever things are pure, whatever things are lovely, whatever things are of good report; if there is any virtue, and if there is any praise, think about these things. ",
 					Channel: "user2",
 				},
 			},
+		}),
+		testCasesWithSameOutput([]string{
+			"$bibleverse John 3:16",
+			"$bv John 3:16",
+		}, testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			apiResp: bibletest.LookupVerseSingleVerse2Resp,
+			want: []*base.Message{
+				{
+					Text:    "[John 3:16]:  For God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.  ",
+					Channel: "user2",
+				},
+			},
+		}),
+		testCasesWithSameOutput([]string{
+			"$bibleverse",
+			"$bv",
+		}, testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			want: nil,
 		}),
 
 		// twitch.go commands

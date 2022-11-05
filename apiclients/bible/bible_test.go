@@ -26,7 +26,7 @@ func TestFetchUser(t *testing.T) {
 	}{
 		{
 			desc:    "single verse",
-			useResp: bibletest.LookupVerseSingleVerseResp,
+			useResp: bibletest.LookupVerseSingleVerse1Resp,
 			want: Verse{
 				BookID:   "PHP",
 				BookName: "Philippians",

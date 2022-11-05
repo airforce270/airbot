@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 
 	"github.com/airforce270/airbot/apiclients/bible"
 	"github.com/airforce270/airbot/base"
@@ -49,10 +50,12 @@ func bibleVerse(msg *base.IncomingMessage) ([]*base.Message, error) {
 		return nil, nil
 	}
 
+	verseText := strings.ReplaceAll(verse.Text, "\n", " ")
+
 	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
-			Text:    fmt.Sprintf("[%s %d:%d]: %s", verse.BookName, verse.Chapter, verse.Verse, verse.Text),
+			Text:    fmt.Sprintf("[%s %d:%d]: %s", verse.BookName, verse.Chapter, verse.Verse, verseText),
 		},
 	}, nil
 }
