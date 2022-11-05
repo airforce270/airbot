@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"bytes"
+	"crypto/rand"
 	"fmt"
 	"os"
 	"testing"
@@ -13,6 +15,7 @@ import (
 	"github.com/airforce270/airbot/apiclients/pastebintest"
 	"github.com/airforce270/airbot/apiclients/twitchtest"
 	"github.com/airforce270/airbot/base"
+	"github.com/airforce270/airbot/commands/fun"
 	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/models"
@@ -677,6 +680,83 @@ func TestCommands(t *testing.T) {
 			},
 			want: nil,
 		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$cock",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), newFakeDB()),
+			},
+			want: []*base.Message{
+				{
+					Text:    "user1's cock is 3 inches long",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$cock someone",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), newFakeDB()),
+			},
+			want: []*base.Message{
+				{
+					Text:    "someone's cock is 3 inches long",
+					Channel: "user2",
+				},
+			},
+		}),
+
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$iq",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), newFakeDB()),
+			},
+			want: []*base.Message{
+				{
+					Text:    "user1's IQ is 100",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$iq someone",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), newFakeDB()),
+			},
+			want: []*base.Message{
+				{
+					Text:    "someone's IQ is 100",
+					Channel: "user2",
+				},
+			},
+		}),
 
 		// moderation.go commands
 		singleTestCase(testCase{
@@ -1226,13 +1306,24 @@ var (
 	savedIVRURL = ivr.BaseURL
 )
 
+type fakeExpRandSource struct {
+	Value uint64
+}
+
+func (s fakeExpRandSource) Uint64() uint64  { return s.Value }
+func (s fakeExpRandSource) Seed(val uint64) {}
+
 func setFakes(url string, db *gorm.DB) {
+	fun.RandReader = bytes.NewBuffer([]byte{3})
+	fun.RandSource = fakeExpRandSource{Value: uint64(150)}
 	ivr.BaseURL = url
 	pastebin.FetchPasteURLOverride = url
 	twitch.Instance = twitch.NewForTesting(url, db)
 }
 
 func resetFakes() {
+	fun.RandReader = rand.Reader
+	fun.RandSource = nil
 	ivr.BaseURL = savedIVRURL
 	pastebin.FetchPasteURLOverride = ""
 	twitch.Instance = twitch.NewForTesting(helix.DefaultAPIBaseURL, nil)
