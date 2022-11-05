@@ -87,6 +87,11 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - Replies with a link to the commands.
 - > Usage: `$commands`
 
+### $gn
+
+- Says good night.
+- > Usage: `$gn`
+
 ### $pyramid
 
 - Makes a pyramid in chat. Max width 25.
@@ -106,6 +111,11 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - Replies with TriHard 7.
 - > Usage: `$TriHard`
 
+### $tuck
+
+- Tuck someone to bed.
+- > Usage: `$tuck <user>`
+
 ## Fun
 
 ### $bibleverse
@@ -113,6 +123,16 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - Looks up a bible verse.
 - > Usage: `$bibleverse <book> <chapter:verse>`
 - > Alternate commands: `$bv`
+
+### $cock
+
+- Tells you the length :)
+- > Usage: `$cock [user]`
+
+### $iq
+
+- Tells you someone's IQ
+- > Usage: `$iq [user]`
 
 ## Moderation
 

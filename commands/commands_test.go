@@ -486,6 +486,24 @@ func TestCommands(t *testing.T) {
 		singleTestCase(testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$gn",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			want: []*base.Message{
+				{
+					Text:    "FeelsOkayMan <3 gn user1",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$spam 3 yo",
 					User:    "user1",
 					Channel: "user2",
@@ -617,6 +635,37 @@ func TestCommands(t *testing.T) {
 			want: []*base.Message{
 				{
 					Text:    "TriHard 7",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$tuck",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			want: nil,
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$tuck someone",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			want: []*base.Message{
+				{
+					Text:    "Bedge user1 tucks someone into bed.",
 					Channel: "user2",
 				},
 			},

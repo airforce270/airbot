@@ -25,6 +25,22 @@ var Commands = [...]basecommand.Command{
 		Pattern:    basecommand.PrefixPattern("commands"),
 		Handler:    commands,
 	},
+	{
+		Name:       "gn",
+		Help:       "Says good night.",
+		Usage:      "$gn",
+		Permission: permission.Normal,
+		PrefixOnly: true,
+		Pattern:    basecommand.PrefixPattern("gn"),
+		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
+			return []*base.Message{
+				{
+					Channel: msg.Message.Channel,
+					Text:    fmt.Sprintf("FeelsOkayMan <3 gn %s", msg.Message.User),
+				},
+			}, nil
+		},
+	},
 	pyramidCommand,
 	spamCommand,
 	{
@@ -34,8 +50,16 @@ var Commands = [...]basecommand.Command{
 		Permission: permission.Normal,
 		PrefixOnly: true,
 		Pattern:    basecommand.PrefixPattern("TriHard"),
-		Handler:    triHard,
+		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
+			return []*base.Message{
+				{
+					Channel: msg.Message.Channel,
+					Text:    "TriHard 7",
+				},
+			}, nil
+		},
 	},
+	tuckCommand,
 }
 
 const (
@@ -70,6 +94,18 @@ var (
 		Handler:         spam,
 	}
 	spamPattern = regexp.MustCompile(spamCommandPattern.String() + `(\d+)\s+(.*)`)
+
+	tuckCommandPattern = basecommand.PrefixPattern("tuck")
+	tuckCommand        = basecommand.Command{
+		Name:       "tuck",
+		Help:       "Tuck someone to bed.",
+		Usage:      "$tuck <user>",
+		Permission: permission.Normal,
+		PrefixOnly: true,
+		Pattern:    tuckCommandPattern,
+		Handler:    tuck,
+	}
+	tuckPattern = regexp.MustCompile(tuckCommandPattern.String() + `(\w+).*`)
 )
 
 func commands(msg *base.IncomingMessage) ([]*base.Message, error) {
@@ -176,11 +212,16 @@ func pyramid(msg *base.IncomingMessage) ([]*base.Message, error) {
 	return msgs, nil
 }
 
-func triHard(msg *base.IncomingMessage) ([]*base.Message, error) {
+func tuck(msg *base.IncomingMessage) ([]*base.Message, error) {
+	target := basecommand.ParseTarget(msg, tuckPattern)
+	if strings.EqualFold(target, msg.Message.User) {
+		return nil, nil
+	}
+
 	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
-			Text:    "TriHard 7",
+			Text:    fmt.Sprintf("Bedge %s tucks %s into bed.", msg.Message.User, target),
 		},
 	}, nil
 }
