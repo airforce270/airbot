@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/airforce270/airbot/apiclients/bibletest"
 	"github.com/airforce270/airbot/apiclients/ivr"
 	"github.com/airforce270/airbot/apiclients/ivrtest"
 	"github.com/airforce270/airbot/apiclients/pastebin"
@@ -613,6 +614,29 @@ func TestCommands(t *testing.T) {
 			want: []*base.Message{
 				{
 					Text:    "TriHard 7",
+					Channel: "user2",
+				},
+			},
+		}),
+
+		// fun.go commands
+		testCasesWithSameOutput([]string{
+			"$bibleverse Philippians 4:8",
+			"$bv Philippians 4:8",
+		}, testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			apiResp: bibletest.LookupVerseSingleVerseResp,
+			want: []*base.Message{
+				{
+					Text:    "[Philippians 4:8]: Finally, brothers, whatever things are true, whatever things are honorable, whatever things are just, whatever things are pure, whatever things are lovely, whatever things are of good report; if there is any virtue, and if there is any praise, think about these things.\n",
 					Channel: "user2",
 				},
 			},
