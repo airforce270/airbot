@@ -31,9 +31,6 @@ type Platform interface {
 	Leave(channel string) error
 	// SetPrefix sets the prefix for a channel.
 	SetPrefix(channel, prefix string) error
-
-	// Timeout times out a user.
-	Timeout(channel, user string, duration time.Duration) error
 }
 
 // Message represents a chat message.

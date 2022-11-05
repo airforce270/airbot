@@ -2,7 +2,7 @@
 package moderation
 
 import (
-	"time"
+	"fmt"
 
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/commands/basecommand"
@@ -28,8 +28,10 @@ var (
 )
 
 func vanish(msg *base.IncomingMessage) ([]*base.Message, error) {
-	if err := msg.Platform.Timeout(msg.Message.Channel, msg.Message.User, time.Duration(1)*time.Second); err != nil {
-		return nil, err
-	}
-	return nil, nil
+	return []*base.Message{
+		{
+			Channel: msg.Message.Channel,
+			Text:    fmt.Sprintf("/timeout %s 1", msg.Message.User),
+		},
+	}, nil
 }

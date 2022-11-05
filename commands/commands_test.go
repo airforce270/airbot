@@ -691,8 +691,12 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting(server.URL(), newFakeDB()),
 			},
-			apiResp: twitchtest.BanUserResp,
-			want:    nil,
+			want: []*base.Message{
+				{
+					Text:    "/timeout user1 1",
+					Channel: "user2",
+				},
+			},
 		}),
 
 		// twitch.go commands
