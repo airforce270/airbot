@@ -230,6 +230,27 @@ func (t *Twitch) SetPrefix(channel, prefix string) error {
 	return fmt.Errorf("channel %s not joined", channel)
 }
 
+func (t *Twitch) Timeout(channel, user string, duration time.Duration) error {
+	userToTimeout, err := t.User(user)
+	if err != nil {
+		return fmt.Errorf("failed to lookup user %s: %w", user, err)
+	}
+
+	_, err = t.h.BanUser(&helix.BanUserParams{
+		BroadcasterID: t.id,
+		ModeratorId:   t.id,
+		Body: helix.BanUserRequestBody{
+			UserId:   userToTimeout.ID,
+			Duration: int(duration.Seconds()),
+			Reason:   "vanish",
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to timeout user %s: %w", user, err)
+	}
+	return nil
+}
+
 func (t *Twitch) User(channel string) (*helix.User, error) {
 	users, err := t.h.GetUsers(&helix.UsersParams{Logins: []string{channel}})
 	if err != nil {

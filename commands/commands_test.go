@@ -678,6 +678,22 @@ func TestCommands(t *testing.T) {
 			want: nil,
 		}),
 
+		// moderation.go commands
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$vanish",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			apiResp: twitchtest.BanUserResp,
+			want:    nil,
+		}),
+
 		// twitch.go commands
 		testCasesWithSameOutput([]string{
 			"$br",
