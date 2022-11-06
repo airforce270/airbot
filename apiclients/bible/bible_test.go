@@ -22,17 +22,26 @@ func TestFetchUser(t *testing.T) {
 	tests := []struct {
 		desc    string
 		useResp string
-		want    Verse
+		want    *GetVersesResponse
 	}{
 		{
 			desc:    "single verse",
 			useResp: bibletest.LookupVerseSingleVerse1Resp,
-			want: Verse{
-				BookID:   "PHP",
-				BookName: "Philippians",
-				Chapter:  4,
-				Verse:    8,
-				Text:     "Finally, brothers, whatever things are true, whatever things are honorable, whatever things are just, whatever things are pure, whatever things are lovely, whatever things are of good report; if there is any virtue, and if there is any praise, think about these things.\n",
+			want: &GetVersesResponse{
+				Reference: "Philippians 4:8",
+				Verses: []Verse{
+					{
+						BookID:   "PHP",
+						BookName: "Philippians",
+						Chapter:  4,
+						Verse:    8,
+						Text:     "Finally, brothers, whatever things are true, whatever things are honorable, whatever things are just, whatever things are pure, whatever things are lovely, whatever things are of good report; if there is any virtue, and if there is any praise, think about these things.\n",
+					},
+				},
+				Text:            "Finally, brothers, whatever things are true, whatever things are honorable, whatever things are just, whatever things are pure, whatever things are lovely, whatever things are of good report; if there is any virtue, and if there is any praise, think about these things.\n",
+				TranslationID:   "web",
+				TranslationName: "World English Bible",
+				TranslationNote: "Public Domain",
 			},
 		},
 	}
@@ -40,7 +49,7 @@ func TestFetchUser(t *testing.T) {
 	for _, tc := range tests {
 		server.Resp = tc.useResp
 		t.Run(tc.desc, func(t *testing.T) {
-			got, err := FetchVerse("Philippians 4:8")
+			got, err := FetchVerses("Philippians 4:8")
 			if err != nil {
 				t.Fatalf("FetchVerse() unexpected error: %v", err)
 			}

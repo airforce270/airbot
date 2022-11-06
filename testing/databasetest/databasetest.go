@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// NewFakeDB creates a new connection to the in-memory database for testing.
 func NewFakeDB() *gorm.DB {
 	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"))
 	if err != nil {

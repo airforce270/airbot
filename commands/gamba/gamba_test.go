@@ -33,10 +33,12 @@ func TestFetchUserPoints(t *testing.T) {
 		want         int64
 	}{
 		{
+			desc:         "no transactions",
 			transactions: []models.GambaTransaction{},
 			want:         0,
 		},
 		{
+			desc: "single transaction for single user",
 			transactions: []models.GambaTransaction{
 				{
 					Game:  "FAKE - TEST",
@@ -47,6 +49,7 @@ func TestFetchUserPoints(t *testing.T) {
 			want: 50,
 		},
 		{
+			desc: "multiple transactions for single user",
 			transactions: []models.GambaTransaction{
 				{
 					Game:  "FAKE - TEST",
@@ -62,6 +65,7 @@ func TestFetchUserPoints(t *testing.T) {
 			want: 30,
 		},
 		{
+			desc: "multiple transactions +/- for single user",
 			transactions: []models.GambaTransaction{
 				{
 					Game:  "FAKE - TEST",
@@ -87,6 +91,7 @@ func TestFetchUserPoints(t *testing.T) {
 			want: 135,
 		},
 		{
+			desc: "single transaction for other user",
 			transactions: []models.GambaTransaction{
 				{
 					Game:  "FAKE - TEST",
@@ -95,6 +100,52 @@ func TestFetchUserPoints(t *testing.T) {
 				},
 			},
 			want: 0,
+		},
+		{
+			desc: "multiple transactions +/- for multiple users",
+			transactions: []models.GambaTransaction{
+				{
+					Game:  "FAKE - TEST",
+					User:  user1,
+					Delta: 50,
+				},
+				{
+					Game:  "FAKE - TEST",
+					User:  user1,
+					Delta: -20,
+				},
+				{
+					Game:  "FAKE - TEST",
+					User:  user1,
+					Delta: 5,
+				},
+				{
+					Game:  "FAKE - TEST",
+					User:  user1,
+					Delta: 100,
+				},
+				{
+					Game:  "FAKE - TEST",
+					User:  user2,
+					Delta: 50,
+				},
+				{
+					Game:  "FAKE - TEST",
+					User:  user2,
+					Delta: -20,
+				},
+				{
+					Game:  "FAKE - TEST",
+					User:  user2,
+					Delta: 5,
+				},
+				{
+					Game:  "FAKE - TEST",
+					User:  user2,
+					Delta: 100,
+				},
+			},
+			want: 135,
 		},
 	}
 

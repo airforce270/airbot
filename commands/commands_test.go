@@ -718,7 +718,7 @@ func TestCommands(t *testing.T) {
 			apiResp: bibletest.LookupVerseSingleVerse1Resp,
 			want: []*base.Message{
 				{
-					Text:    "[Philippians 4:8]: Finally, brothers, whatever things are true, whatever things are honorable, whatever things are just, whatever things are pure, whatever things are lovely, whatever things are of good report; if there is any virtue, and if there is any praise, think about these things. ",
+					Text:    "[Philippians 4:8]: Finally, brothers, whatever things are true, whatever things are honorable, whatever things are just, whatever things are pure, whatever things are lovely, whatever things are of good report; if there is any virtue, and if there is any praise, think about these things.\n",
 					Channel: "user2",
 				},
 			},
@@ -740,7 +740,7 @@ func TestCommands(t *testing.T) {
 			apiResp: bibletest.LookupVerseSingleVerse2Resp,
 			want: []*base.Message{
 				{
-					Text:    "[John 3:16]:  For God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.  ",
+					Text:    "[John 3:16]: \nFor God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.\n\n",
 					Channel: "user2",
 				},
 			},

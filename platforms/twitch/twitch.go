@@ -72,8 +72,11 @@ func (t *Twitch) Send(msg base.Message) error {
 		time.Sleep(time.Millisecond * 100)
 	}
 
-	go t.persistUserAndMessage(t.id, t.username, msg.Text, msg.Channel, msg.Time)
-	t.i.Say(msg.Channel, msg.Text)
+	// Any newlines in the message causes Twitch to drop the rest of the message.
+	text := strings.ReplaceAll(msg.Text, "\n", " ")
+
+	go t.persistUserAndMessage(t.id, t.username, text, msg.Channel, msg.Time)
+	t.i.Say(msg.Channel, text)
 	return nil
 }
 

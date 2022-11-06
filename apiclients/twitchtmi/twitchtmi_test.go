@@ -30,7 +30,7 @@ func TestFetchChatters(t *testing.T) {
 				ChatterCount: 15,
 				Chatters: Chatters{
 					Broadcaster: []string{"airforce2700"},
-					Vips:        []string{},
+					VIPs:        []string{},
 					Moderators:  []string{"af2bot", "streamelements", "fossabot", "ip0g"},
 					Staff:       []string{},
 					Admins:      []string{},

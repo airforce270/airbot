@@ -18,6 +18,8 @@ var (
 	inactiveGrantAmount = 3
 )
 
+// StartGrantingPoints starts a loop to grant points to all chatters on an interval.
+// This function blocks and should be run within a goroutine.
 func StartGrantingPoints(ps map[string]base.Platform, db *gorm.DB) {
 	for {
 		go grantPoints(ps, db)
@@ -25,12 +27,15 @@ func StartGrantingPoints(ps map[string]base.Platform, db *gorm.DB) {
 	}
 }
 
+// grant represents a points grant that may be given to a user.
 type grant struct {
-	User     models.User
+	// User is the user the grant is for.
+	User models.User
+	// IsActive is whether the user is currently active.
 	IsActive bool
 }
 
-// Persist persists the grant in the database. This is not idempotent.
+// Persist persists the grant in the database. This is not an idempotent operation.
 func (g grant) Persist(db *gorm.DB) error {
 	amount := activeGrantAmount
 	if !g.IsActive {
@@ -47,7 +52,7 @@ func (g grant) Persist(db *gorm.DB) error {
 	return nil
 }
 
-// GrantPoints performs a single point grant to all active and inactive users.
+// grantPoints performs a single point grant to all active and inactive users.
 func grantPoints(ps map[string]base.Platform, db *gorm.DB) {
 	var grants []grant
 
@@ -80,6 +85,8 @@ func grantPoints(ps map[string]base.Platform, db *gorm.DB) {
 	}
 }
 
+// getInactiveUsers gets all inactive users to grant points to.
+// The users returned are not guaranteed to be inactive, the results returned are overinclusive.
 func getInactiveUsers(ps map[string]base.Platform, db *gorm.DB) []models.User {
 	var users []models.User
 	for _, p := range ps {
@@ -101,6 +108,8 @@ func getInactiveUsers(ps map[string]base.Platform, db *gorm.DB) []models.User {
 	return users
 }
 
+// getActiveUsers gets all active users to grant points to.
+// The users returned are guaranteed to be active.
 func getActiveUsers(db *gorm.DB) ([]models.User, error) {
 	var recentMessagesUniqueByUser []models.Message
 	result := db.Select("user_id").Distinct("user_id").Where("time > ?", time.Now().Add(-grantInterval)).Find(&recentMessagesUniqueByUser)

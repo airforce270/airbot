@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 )
@@ -13,21 +12,45 @@ import (
 // Base URL for API requests. Should only be changed for testing.
 var BaseURL = "https://bible-api.com"
 
-type GetVerseResponse struct {
-	Reference       string  `json:"reference"`
-	Verses          []Verse `json:"verses"`
-	Text            string  `json:"text"`
-	TranslationID   string  `json:"translation_id"`
-	TranslationName string  `json:"translation_name"`
-	TranslationNote string  `json:"translation_note"`
+// GetVersesResponse represents the response from the Bible API for a GetVerses request.
+// https://bible-api.com/
+type GetVersesResponse struct {
+	// Reference is the specific reference to the verse.
+	// ex: "John 3:16"
+	Reference string `json:"reference"`
+	// Verses contains the specific verses returned.
+	Verses []Verse `json:"verses"`
+	// Text is the combined text of the returned verses.
+	// ex: "For God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life."
+	Text string `json:"text"`
+	// TranslationID is the short identifier of the translation used.
+	// ex: "web"
+	TranslationID string `json:"translation_id"`
+	// TranslationName is the human-readable name of the translation used.
+	// ex: "World English Bible"
+	TranslationName string `json:"translation_name"`
+	// TranslationNote contains notes about the translation used.
+	// ex: "Public Domain"
+	TranslationNote string `json:"translation_note"`
 }
 
+// Verse represents a specific verse from the Bible.
 type Verse struct {
-	BookID   string `json:"book_id"`
+	// BookID is the short ID of the book.
+	// ex: "JHN"
+	BookID string `json:"book_id"`
+	// BookName is the human-readable name of the book.
+	// ex: "John"
 	BookName string `json:"book_name"`
-	Chapter  int    `json:"chapter"`
-	Verse    int    `json:"verse"`
-	Text     string `json:"text"`
+	// Chapter is the chapter of the verse.
+	// ex: 3
+	Chapter int `json:"chapter"`
+	// Verse is the verse number.
+	// ex: 16
+	Verse int `json:"verse"`
+	// Text is the text of the verse.
+	// ex: "For God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life."
+	Text string `json:"text"`
 }
 
 func get(reqURL string) (respBody []byte, err error) {
@@ -48,23 +71,16 @@ func get(reqURL string) (respBody []byte, err error) {
 	return body, nil
 }
 
-func FetchVerse(verse string) (Verse, error) {
+func FetchVerses(verse string) (*GetVersesResponse, error) {
 	body, err := get(fmt.Sprintf("%s/%s", BaseURL, url.QueryEscape(verse)))
 	if err != nil {
-		return Verse{}, err
+		return nil, err
 	}
 
-	resp := GetVerseResponse{}
+	resp := GetVersesResponse{}
 	if err = json.Unmarshal(body, &resp); err != nil {
-		return Verse{}, fmt.Errorf("failed to unmarshal response from Bible API: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal response from Bible API: %w", err)
 	}
 
-	if len(resp.Verses) == 0 {
-		return Verse{}, fmt.Errorf("no verses returned: %v", resp)
-	}
-	if len(resp.Verses) > 1 {
-		log.Printf("Matched more than 1 verse: %v", resp)
-	}
-
-	return resp.Verses[0], nil
+	return &resp, nil
 }

@@ -8,7 +8,6 @@ import (
 	"math"
 	"math/big"
 	"regexp"
-	"strings"
 
 	"github.com/airforce270/airbot/apiclients/bible"
 	"github.com/airforce270/airbot/base"
@@ -75,18 +74,16 @@ func bibleVerse(msg *base.IncomingMessage) ([]*base.Message, error) {
 		return nil, nil
 	}
 
-	verse, err := bible.FetchVerse(verseQuery)
+	verses, err := bible.FetchVerses(verseQuery)
 	if err != nil {
-		log.Printf("Failed to look up bible verse: %v", err)
+		log.Printf("Failed to look up Bible verses: %v", err)
 		return nil, nil
 	}
-
-	verseText := strings.ReplaceAll(verse.Text, "\n", " ")
 
 	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
-			Text:    fmt.Sprintf("[%s %d:%d]: %s", verse.BookName, verse.Chapter, verse.Verse, verseText),
+			Text:    fmt.Sprintf("[%s]: %s", verses.Reference, verses.Text),
 		},
 	}, nil
 }
