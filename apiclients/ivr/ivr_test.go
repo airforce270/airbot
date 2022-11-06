@@ -244,12 +244,12 @@ func TestFetchModsAndVIPs(t *testing.T) {
 	tests := []struct {
 		desc    string
 		useResp string
-		want    *modsAndVIPsResponse
+		want    *ModsAndVIPsResponse
 	}{
 		{
 			desc:    "no mods or vips",
 			useResp: ivrtest.ModsAndVIPsNoneResp,
-			want: &modsAndVIPsResponse{
+			want: &ModsAndVIPsResponse{
 				Mods: []*ModOrVIPUser{},
 				VIPs: []*ModOrVIPUser{},
 			},
@@ -257,7 +257,7 @@ func TestFetchModsAndVIPs(t *testing.T) {
 		{
 			desc:    "mods only",
 			useResp: ivrtest.ModsAndVIPsModsOnlyResp,
-			want: &modsAndVIPsResponse{
+			want: &ModsAndVIPsResponse{
 				Mods: []*ModOrVIPUser{
 					{
 						ID:          "429509069",
@@ -278,7 +278,7 @@ func TestFetchModsAndVIPs(t *testing.T) {
 		{
 			desc:    "large, many mods and vips",
 			useResp: ivrtest.ModsAndVIPsModsAndVIPsResp,
-			want: &modsAndVIPsResponse{
+			want: &ModsAndVIPsResponse{
 				Mods: []*ModOrVIPUser{
 					{
 						ID:          "100135110",
@@ -378,26 +378,26 @@ func TestFetchFounders(t *testing.T) {
 	tests := []struct {
 		desc    string
 		useResp string
-		want    *foundersResponse
+		want    *FoundersResponse
 	}{
 		{
 			desc:    "no founders 404",
 			useResp: ivrtest.FoundersNone404Resp,
-			want: &foundersResponse{
+			want: &FoundersResponse{
 				Founders: nil,
 			},
 		},
 		{
 			desc:    "no founders",
 			useResp: ivrtest.FoundersNoneResp,
-			want: &foundersResponse{
+			want: &FoundersResponse{
 				Founders: []*Founder{},
 			},
 		},
 		{
 			desc:    "founders",
 			useResp: ivrtest.FoundersNormalResp,
-			want: &foundersResponse{
+			want: &FoundersResponse{
 				Founders: []*Founder{
 					{
 						ID:                "415575292",

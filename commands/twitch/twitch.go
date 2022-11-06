@@ -203,7 +203,7 @@ func currentGame(msg *base.IncomingMessage) ([]*base.Message, error) {
 		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
-				Text:    fmt.Sprintf("%s is not currenly playing anything", channel.BroadcasterName),
+				Text:    fmt.Sprintf("%s is not currently playing anything", channel.BroadcasterName),
 			},
 		}, nil
 	}
@@ -211,7 +211,7 @@ func currentGame(msg *base.IncomingMessage) ([]*base.Message, error) {
 	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
-			Text:    fmt.Sprintf("%s is currenly playing %s", channel.BroadcasterName, channel.GameName),
+			Text:    fmt.Sprintf("%s is currently playing %s", channel.BroadcasterName, channel.GameName),
 		},
 	}, nil
 }

@@ -1112,7 +1112,7 @@ func TestCommands(t *testing.T) {
 			apiResp: twitchtest.GetChannelInformationResp,
 			want: []*base.Message{
 				{
-					Text:    "user1 is currenly playing Science&Technology",
+					Text:    "user1 is currently playing Science&Technology",
 					Channel: "user2",
 				},
 			},

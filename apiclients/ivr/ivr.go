@@ -152,9 +152,9 @@ type panelInfo struct {
 	ID string `json:"id"`
 }
 
-// modsAndVIPsResponse is the type that the IVR API responds with
+// ModsAndVIPsResponse is the type that the IVR API responds with
 // for calls to /v2/twitch/modvip/{user}.
-type modsAndVIPsResponse struct {
+type ModsAndVIPsResponse struct {
 	// Mods is the moderators of the channel.
 	Mods []*ModOrVIPUser `json:"mods"`
 	// VIPs is the VIPs of the channel.
@@ -173,9 +173,9 @@ type ModOrVIPUser struct {
 	GrantedAt time.Time `json:"grantedAt"`
 }
 
-// foundersResponse is the type that the IVR API responds with
+// FoundersResponse is the type that the IVR API responds with
 // for calls to /v2/twitch/founders/{user}.
-type foundersResponse struct {
+type FoundersResponse struct {
 	Founders []*Founder `json:"founders"`
 }
 
@@ -208,13 +208,13 @@ func FetchUsers(username string) ([]*TwitchUsersResponseItem, error) {
 	return resp, nil
 }
 
-func FetchModsAndVIPs(channel string) (*modsAndVIPsResponse, error) {
+func FetchModsAndVIPs(channel string) (*ModsAndVIPsResponse, error) {
 	body, err := get(fmt.Sprintf("%s/v2/twitch/modvip/%s", BaseURL, channel))
 	if err != nil {
 		return nil, err
 	}
 
-	resp := modsAndVIPsResponse{}
+	resp := ModsAndVIPsResponse{}
 	if err = json.Unmarshal(body, &resp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
 	}
@@ -222,7 +222,7 @@ func FetchModsAndVIPs(channel string) (*modsAndVIPsResponse, error) {
 	return &resp, nil
 }
 
-func FetchFounders(channel string) (*foundersResponse, error) {
+func FetchFounders(channel string) (*FoundersResponse, error) {
 	reqURL := fmt.Sprintf("%s/v2/twitch/founders/%s", BaseURL, channel)
 	httpResp, err := http.Get(reqURL)
 	if err != nil {
@@ -230,7 +230,7 @@ func FetchFounders(channel string) (*foundersResponse, error) {
 	}
 	// The IVR API responds with a 404 when the user has no founders.
 	if httpResp.StatusCode == http.StatusNotFound {
-		return &foundersResponse{}, nil
+		return &FoundersResponse{}, nil
 	}
 	if httpResp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("bad response from IVR API (URL:%s): %v", reqURL, httpResp)
@@ -246,7 +246,7 @@ func FetchFounders(channel string) (*foundersResponse, error) {
 		return nil, fmt.Errorf("failed to read response from IVR API: %w", err)
 	}
 
-	resp := foundersResponse{}
+	resp := FoundersResponse{}
 	if err = json.Unmarshal(body, &resp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
 	}
