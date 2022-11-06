@@ -1,4 +1,4 @@
-name: Create and publish Docker image to GitHub Container Repo
+name: Push Docker image to GHCR
 
 on:
   push:

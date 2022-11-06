@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -22,6 +22,33 @@ jobs:
       - name: Build
         run: go build -v ./...
 
+      - name: Test
+        run: go test -v ./...
+
+  build-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3.1.0
+
+      - name: Set up Go
+        uses: actions/setup-go@v3.3.1
+        with:
+          go-version: 1.19
+          cache: true
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v3.2.0
+        with:
+          context: .
+          push: false
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3.1.0
+
       - name: Check format
         run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
 
@@ -31,17 +58,14 @@ jobs:
           version: "2022.1.3"
           install-go: false
 
+      - name: Upload to codecov
+        uses: codecov/codecov-action@v3.1.1
+        with:
+          fail_ci_if_error: true
+          verbose: true
+
       - name: Vet
         run: go vet
-
-      - name: Test
-        run: go test -v ./...
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v3.2.0
-        with:
-          context: .
-          push: false
 
   lint-markdown:
     runs-on: ubuntu-latest
