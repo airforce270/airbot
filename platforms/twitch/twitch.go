@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/airforce270/airbot/apiclients/ivr"
+	"github.com/airforce270/airbot/apiclients/twitchtmi"
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/models"
@@ -83,6 +85,7 @@ func (t *Twitch) Listen() <-chan base.IncomingMessage {
 			Message: base.Message{
 				Text:    msg.Message,
 				Channel: msg.Channel,
+				UserID:  msg.User.ID,
 				User:    msg.User.Name,
 				Time:    msg.Time,
 			},
@@ -228,6 +231,52 @@ func (t *Twitch) SetPrefix(channel, prefix string) error {
 		}
 	}
 	return fmt.Errorf("channel %s not joined", channel)
+}
+
+func (t *Twitch) Users() ([]string, error) {
+	var allChatters []string
+	for _, c := range t.channels {
+		chatters, err := twitchtmi.FetchChatters(c.Name)
+		if err != nil {
+			return nil, fmt.Errorf("[%s] failed to fetch chatters for %s: %w", t.Name(), c.Name, err)
+		}
+		allChatters = append(allChatters, chatters.AllChatters()...)
+	}
+
+	chatterIDs := map[string]string{}
+	chatterIDsMtx := sync.RWMutex{}
+
+	for _, chatterName := range allChatters {
+		chatterIDs[chatterName] = ""
+	}
+
+	wg := sync.WaitGroup{}
+	wg.Add(len(chatterIDs))
+	chatterIDsMtx.Lock()
+	for chatterName := range chatterIDs {
+		go func(chatterName string) {
+			defer wg.Done()
+
+			user, err := t.User(chatterName)
+			if err != nil {
+				log.Printf("[%s] Failed to look up chatter %s's ID: %v", t.Name(), chatterName, err)
+				return
+			}
+
+			chatterIDsMtx.Lock()
+			chatterIDs[chatterName] = user.ID
+			chatterIDsMtx.Unlock()
+		}(chatterName)
+	}
+	chatterIDsMtx.Unlock()
+
+	wg.Wait()
+
+	var ids []string
+	for _, chatterID := range chatterIDs {
+		ids = append(ids, chatterID)
+	}
+	return ids, nil
 }
 
 func (t *Twitch) User(channel string) (*helix.User, error) {
@@ -471,6 +520,7 @@ func NewForTesting(url string, db *gorm.DB) *Twitch {
 		username:      "fake-username",
 		id:            "",
 		isVerifiedBot: false,
+		channels:      []*twitchChannel{{Name: "user1"}},
 		owners:        nil,
 		clientID:      "fake-client-id",
 		accessToken:   "fake-access-token",

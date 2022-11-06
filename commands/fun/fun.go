@@ -15,7 +15,6 @@ import (
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/permission"
 
-	exprand "golang.org/x/exp/rand"
 	"gonum.org/v1/gonum/stat/distuv"
 )
 
@@ -94,12 +93,10 @@ func bibleVerse(msg *base.IncomingMessage) ([]*base.Message, error) {
 
 const cockMaxLength = 14
 
-var RandReader = rand.Reader
-
 func cock(msg *base.IncomingMessage) ([]*base.Message, error) {
 	target := basecommand.ParseTarget(msg, cockPattern)
 
-	length, err := rand.Int(RandReader, big.NewInt(cockMaxLength+1))
+	length, err := rand.Int(base.RandReader, big.NewInt(cockMaxLength+1))
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate random number: %w", err)
 	}
@@ -112,12 +109,10 @@ func cock(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}, nil
 }
 
-var RandSource exprand.Source = nil
-
 func iq(msg *base.IncomingMessage) ([]*base.Message, error) {
 	target := basecommand.ParseTarget(msg, iqPattern)
 
-	userIqFloat := distuv.Normal{Mu: 100, Sigma: 15, Src: RandSource}.Rand()
+	userIqFloat := distuv.Normal{Mu: 100, Sigma: 15, Src: base.RandSource}.Rand()
 	userIq := int64(math.Round(userIqFloat))
 
 	return []*base.Message{

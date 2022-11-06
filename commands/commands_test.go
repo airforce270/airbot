@@ -15,18 +15,17 @@ import (
 	"github.com/airforce270/airbot/apiclients/pastebintest"
 	"github.com/airforce270/airbot/apiclients/twitchtest"
 	"github.com/airforce270/airbot/base"
-	"github.com/airforce270/airbot/commands/fun"
 	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
 	"github.com/airforce270/airbot/platforms/twitch"
+	"github.com/airforce270/airbot/testing/databasetest"
 	"github.com/airforce270/airbot/testing/fakeserver"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/jinzhu/copier"
 	"github.com/nicklaw5/helix/v2"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -51,13 +50,14 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$join",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting("forsen", newFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
 			},
 			apiResp: twitchtest.GetChannelInformationResp,
 			want: []*base.Message{
@@ -75,13 +75,14 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$join",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting("forsen", newFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
 			},
 			apiResp:   twitchtest.GetChannelInformationResp,
 			runBefore: []func() error{joinOtherUser1},
@@ -96,6 +97,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$joinother user1",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -115,7 +117,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
-				Platform:        twitch.NewForTesting("forsen", newFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
 			},
 			apiResp: twitchtest.GetChannelInformationResp,
 			want: []*base.Message{
@@ -133,13 +135,14 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$joinother user1",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
-				Platform:        twitch.NewForTesting("forsen", newFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
 			},
 			apiResp:   twitchtest.GetChannelInformationResp,
 			runBefore: []func() error{joinOtherUser1},
@@ -154,13 +157,14 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$leave",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user1",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Admin,
-				Platform:        twitch.NewForTesting("forsen", newFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
 			},
 			apiResp:   twitchtest.GetChannelInformationResp,
 			runBefore: []func() error{joinOtherUser1},
@@ -175,6 +179,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$leave",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -188,13 +193,14 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$leaveother user1",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
-				Platform:        twitch.NewForTesting("forsen", newFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
 			},
 			apiResp:   twitchtest.GetChannelInformationResp,
 			runBefore: []func() error{joinOtherUser1},
@@ -209,13 +215,14 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$leaveother user1",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
-				Platform:        twitch.NewForTesting("forsen", newFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
 			},
 			want: []*base.Message{
 				{
@@ -228,6 +235,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$leaveother user1",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -241,13 +249,14 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$setprefix &",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
-				Platform:        twitch.NewForTesting("forsen", newFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
 			},
 			want: []*base.Message{
 				{
@@ -260,6 +269,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$setprefix &",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -279,13 +289,14 @@ func TestCommands(t *testing.T) {
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting("forsen", newFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
 			},
 			want: []*base.Message{
 				{
@@ -298,6 +309,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$help",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -316,6 +328,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$help join",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -350,6 +363,7 @@ func TestCommands(t *testing.T) {
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -373,6 +387,7 @@ func TestCommands(t *testing.T) {
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -386,6 +401,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$source",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -407,6 +423,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$filesay https://pastebin.com/raw/B7TBjQEy",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -434,6 +451,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$filesay https://pastebin.com/raw/B7TBjQEy",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -448,6 +466,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$filesay",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -469,6 +488,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$commands",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -487,6 +507,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$gn",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -505,6 +526,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$spam 3 yo",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -531,6 +553,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$spam 3 yo",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -544,6 +567,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$pyramid 5 yo",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -594,6 +618,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$pyramid 1000 yo",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -612,6 +637,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$pyramid 5 yo",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -625,6 +651,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$TriHard",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -643,6 +670,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$tuck",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -656,6 +684,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$tuck someone",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -678,6 +707,7 @@ func TestCommands(t *testing.T) {
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -699,6 +729,7 @@ func TestCommands(t *testing.T) {
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -720,6 +751,7 @@ func TestCommands(t *testing.T) {
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -733,13 +765,14 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$cock",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting(server.URL(), newFakeDB()),
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDB()),
 			},
 			want: []*base.Message{
 				{
@@ -752,13 +785,14 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$cock someone",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting(server.URL(), newFakeDB()),
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDB()),
 			},
 			want: []*base.Message{
 				{
@@ -767,18 +801,18 @@ func TestCommands(t *testing.T) {
 				},
 			},
 		}),
-
 		singleTestCase(testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$iq",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting(server.URL(), newFakeDB()),
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDB()),
 			},
 			want: []*base.Message{
 				{
@@ -791,17 +825,111 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$iq someone",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting(server.URL(), newFakeDB()),
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDB()),
 			},
 			want: []*base.Message{
 				{
 					Text:    "someone's IQ is 100",
+					Channel: "user2",
+				},
+			},
+		}),
+
+		// gamba.go commands
+		testCasesWithSameOutput([]string{
+			"$points",
+			"$points user1",
+			"$p",
+			"$p user1",
+		}, testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			runBefore: []func() error{
+				add50PointsToUser1,
+			},
+			want: []*base.Message{
+				{
+					Text:    "GAMBA user1 has 50 points",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$roulette 10",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			runBefore: []func() error{
+				setRandValueTo1,
+				add50PointsToUser1,
+			},
+			want: []*base.Message{
+				{
+					Text:    "GAMBA user1 won 10 points in roulette and now has 60 points!",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$roulette 10",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			runBefore: []func() error{
+				setRandValueTo0,
+				add50PointsToUser1,
+			},
+			want: []*base.Message{
+				{
+					Text:    "GAMBA user1 lost 10 points in roulette and now has 40 points!",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$roulette 10",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			want: []*base.Message{
+				{
+					Text:    "user1: You don't have enough points for that (current: 0)",
 					Channel: "user2",
 				},
 			},
@@ -812,13 +940,14 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$vanish",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting(server.URL(), newFakeDB()),
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDB()),
 			},
 			want: []*base.Message{
 				{
@@ -836,6 +965,7 @@ func TestCommands(t *testing.T) {
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -855,6 +985,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$banreason nonbanneduser",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -874,6 +1005,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$currentgame",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -893,6 +1025,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$founders",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -912,6 +1045,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$founders hasfounders",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -931,6 +1065,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$founders nofounders",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -950,6 +1085,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$founders nofounders404",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -969,6 +1105,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$logs xqc forsen",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -987,6 +1124,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$logs",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -1005,6 +1143,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$mods",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -1024,6 +1163,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$mods otherchannel",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -1043,6 +1183,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$mods nomods",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -1064,6 +1205,7 @@ func TestCommands(t *testing.T) {
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -1087,6 +1229,7 @@ func TestCommands(t *testing.T) {
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -1108,6 +1251,7 @@ func TestCommands(t *testing.T) {
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -1135,6 +1279,7 @@ func TestCommands(t *testing.T) {
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -1158,6 +1303,7 @@ func TestCommands(t *testing.T) {
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -1177,6 +1323,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$vips",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -1196,6 +1343,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$vips otherchannel",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -1215,6 +1363,7 @@ func TestCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$vips novips",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -1235,7 +1384,7 @@ func TestCommands(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(fmt.Sprintf("[%s] %s", tc.input.PermissionLevel.Name(), tc.input.Message.Text), func(t *testing.T) {
 			server.Resp = tc.apiResp
-			db := newFakeDB()
+			db := databasetest.NewFakeDB()
 			database.Instance = db
 			setFakes(server.URL(), db)
 			for i, f := range tc.runBefore {
@@ -1272,6 +1421,7 @@ func TestCommands_EnableNonPrefixCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "whats the bots prefix",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -1291,6 +1441,7 @@ func TestCommands_EnableNonPrefixCommands(t *testing.T) {
 			input: &base.IncomingMessage{
 				Message: base.Message{
 					Text:    "whats the bots prefix",
+					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -1305,7 +1456,7 @@ func TestCommands_EnableNonPrefixCommands(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(fmt.Sprintf("[%s]: %s", tc.input.PermissionLevel.Name(), tc.input.Message.Text), func(t *testing.T) {
-			db := newFakeDB()
+			db := databasetest.NewFakeDB()
 			handler := Handler{db: db, nonPrefixCommandsEnabled: tc.enableNonPrefixCommands}
 			got, err := handler.Handle(tc.input)
 			if err != nil {
@@ -1363,39 +1514,28 @@ func (s fakeExpRandSource) Uint64() uint64  { return s.Value }
 func (s fakeExpRandSource) Seed(val uint64) {}
 
 func setFakes(url string, db *gorm.DB) {
-	fun.RandReader = bytes.NewBuffer([]byte{3})
-	fun.RandSource = fakeExpRandSource{Value: uint64(150)}
+	base.RandReader = bytes.NewBuffer([]byte{3})
+	base.RandSource = fakeExpRandSource{Value: uint64(150)}
 	ivr.BaseURL = url
 	pastebin.FetchPasteURLOverride = url
 	twitch.Instance = twitch.NewForTesting(url, db)
 }
 
 func resetFakes() {
-	fun.RandReader = rand.Reader
-	fun.RandSource = nil
+	base.RandReader = rand.Reader
+	base.RandSource = nil
 	ivr.BaseURL = savedIVRURL
 	pastebin.FetchPasteURLOverride = ""
 	twitch.Instance = twitch.NewForTesting(helix.DefaultAPIBaseURL, nil)
 }
 
-func newFakeDB() *gorm.DB {
-	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"))
-	if err != nil {
-		panic(err)
-	}
-	for _, m := range models.AllModels {
-		db.Migrator().DropTable(&m)
-	}
-	database.Migrate(db)
-	return db
-}
-
 func joinOtherUser1() error {
-	db := newFakeDB()
+	db := databasetest.NewFakeDB()
 	handler := Handler{db: db}
 	_, err := handler.Handle(&base.IncomingMessage{
 		Message: base.Message{
 			Text:    "$joinother user1",
+			UserID:  "user1",
 			User:    "user1",
 			Channel: "user2",
 			Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
@@ -1405,4 +1545,36 @@ func joinOtherUser1() error {
 		Platform:        twitch.NewForTesting("forsen", db),
 	})
 	return err
+}
+
+func setRandValueTo0() error {
+	base.RandReader = bytes.NewBuffer([]byte{0})
+	return nil
+}
+
+func setRandValueTo1() error {
+	base.RandReader = bytes.NewBuffer([]byte{1})
+	return nil
+}
+
+func add50PointsToUser1() error {
+	db := databasetest.NewFakeDB()
+	var user models.User
+	result := db.FirstOrCreate(&user, models.User{
+		TwitchID:   "user1",
+		TwitchName: "user1",
+	})
+	if result.Error != nil {
+		return fmt.Errorf("failed to find/create user: %v", result.Error)
+	}
+	txn := models.GambaTransaction{
+		Game:  "FAKE - TEST",
+		User:  user,
+		Delta: 50,
+	}
+	result = db.Create(&txn)
+	if result.Error != nil {
+		return fmt.Errorf("failed to insert gamba transaction: %v", result.Error)
+	}
+	return nil
 }

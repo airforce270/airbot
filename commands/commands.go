@@ -15,6 +15,7 @@ import (
 	"github.com/airforce270/airbot/commands/bulk"
 	"github.com/airforce270/airbot/commands/echo"
 	"github.com/airforce270/airbot/commands/fun"
+	"github.com/airforce270/airbot/commands/gamba"
 	"github.com/airforce270/airbot/commands/moderation"
 	"github.com/airforce270/airbot/commands/twitch"
 	"github.com/airforce270/airbot/database/models"
@@ -29,6 +30,7 @@ var CommandGroups = map[string][]basecommand.Command{
 	"Bot info":   append([]basecommand.Command{helpCommand}, botinfo.Commands[:]...),
 	"Bulk":       bulk.Commands[:],
 	"Fun":        fun.Commands[:],
+	"Gamba":      gamba.Commands[:],
 	"Moderation": moderation.Commands[:],
 	"Echo":       echo.Commands[:],
 	"Twitch":     twitch.Commands[:],

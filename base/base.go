@@ -2,10 +2,13 @@
 package base
 
 import (
+	"crypto/rand"
 	"strings"
 	"time"
 
 	"github.com/airforce270/airbot/permission"
+
+	exprand "golang.org/x/exp/rand"
 )
 
 // Platform represents a connection to a given platform (i.e. Twitch, Discord)
@@ -31,6 +34,9 @@ type Platform interface {
 	Leave(channel string) error
 	// SetPrefix sets the prefix for a channel.
 	SetPrefix(channel, prefix string) error
+
+	// Users returns the IDs of the current users in all channels the bot has joined.
+	Users() ([]string, error)
 }
 
 // Message represents a chat message.
@@ -40,6 +46,8 @@ type Message struct {
 	// Channel represents the channel the message was sent in
 	// (or should be sent in).
 	Channel string
+	// UserID is the unique ID of the user that sent the message.
+	UserID string
 	// User is the username of the user that sent the message.
 	User string
 	// Time is when the message was sent.
@@ -62,3 +70,8 @@ type IncomingMessage struct {
 func (m *IncomingMessage) MessageTextWithoutPrefix() string {
 	return strings.Replace(m.Message.Text, m.Prefix, "", 1)
 }
+
+var (
+	RandReader                = rand.Reader
+	RandSource exprand.Source = nil
+)

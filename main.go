@@ -11,6 +11,7 @@ import (
 	"github.com/airforce270/airbot/apiclients/supinic"
 	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/database"
+	"github.com/airforce270/airbot/gamba"
 	"github.com/airforce270/airbot/platforms"
 )
 
@@ -86,6 +87,8 @@ func main() {
 		go platforms.StartHandling(p, db, cfg.LogIncoming, cfg.LogOutgoing, cfg.EnableNonPrefixCommands)
 		cleanupFuncs = append(cleanupFuncs, cleanupFunc{name: p.Name(), f: p.Disconnect})
 	}
+
+	go gamba.StartGrantingPoints(ps, db)
 
 	if cfg.Supinic.IsConfigured() && cfg.Supinic.ShouldPingAPI {
 		log.Println("Starting to ping the Supinic API...")

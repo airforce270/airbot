@@ -23,15 +23,13 @@ var (
 		Permission: permission.Normal,
 		PrefixOnly: true,
 		Pattern:    vanishCommandPattern,
-		Handler:    vanish,
+		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
+			return []*base.Message{
+				{
+					Channel: msg.Message.Channel,
+					Text:    fmt.Sprintf("/timeout %s 1", msg.Message.User),
+				},
+			}, nil
+		},
 	}
 )
-
-func vanish(msg *base.IncomingMessage) ([]*base.Message, error) {
-	return []*base.Message{
-		{
-			Channel: msg.Message.Channel,
-			Text:    fmt.Sprintf("/timeout %s 1", msg.Message.User),
-		},
-	}, nil
-}

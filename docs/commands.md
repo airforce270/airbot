@@ -134,6 +134,21 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - Tells you someone's IQ
 - > Usage: `$iq [user]`
 
+## Gamba
+
+### $points
+
+- Checks how many points you have.
+- > Usage: `$points [user]`
+- > Alternate commands: `$p`
+
+### $roulette
+
+- Roulettes some points.
+- > Usage: `$roulette <amount>`
+- > Per-channel cooldown: `5s`
+- > Alternate commands: `$r`
+
 ## Moderation
 
 ### $vanish

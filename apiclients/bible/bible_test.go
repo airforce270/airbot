@@ -10,12 +10,12 @@ import (
 )
 
 var (
-	originalBibleBaseURL = BaseURL
+	originalBaseURL = BaseURL
 )
 
 func TestFetchUser(t *testing.T) {
 	server := fakeserver.New()
-	server.AddOnClose(func() { originalBibleBaseURL = BaseURL })
+	server.AddOnClose(func() { originalBaseURL = BaseURL })
 	defer server.Close()
 	BaseURL = server.URL()
 

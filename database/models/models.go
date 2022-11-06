@@ -11,6 +11,7 @@ import (
 var AllModels = []any{
 	BotBan{},
 	ChannelCommandCooldown{},
+	GambaTransaction{},
 	JoinedChannel{},
 	Message{},
 	User{},
@@ -38,6 +39,20 @@ type ChannelCommandCooldown struct {
 	Command string
 	// LastRun is when the command was last run in the channel.
 	LastRun time.Time
+}
+
+// GambaTransaction represents a single gamba transaction.
+type GambaTransaction struct {
+	gorm.Model
+
+	// UserID is the ID of the user that executed the transaction.
+	UserID uint
+	// User is the user that executed the transaction.
+	User User
+	// Game is the gamba game the transaction was for.
+	Game string
+	// Delta is the win/loss of the transaction.
+	Delta int64
 }
 
 // JoinedChannel represents a channel the bot should join.
