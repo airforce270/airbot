@@ -15,6 +15,12 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 ## Admin
 
+### $echo
+
+- Echoes back whatever is sent.
+- > Usage: `$echo`
+- > Minimum permission level: `Owner`
+
 ### $join
 
 - Tells the bot to join your chat.
@@ -151,7 +157,7 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 ### $roulette
 
 - Roulettes some points.
-- > Usage: `$roulette <amount>`
+- > Usage: `$roulette <amount|percent%|all>`
 - > Per-channel cooldown: `5s`
 - > Alternate commands: `$r`
 

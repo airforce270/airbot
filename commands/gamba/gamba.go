@@ -47,7 +47,7 @@ var (
 		Name:            "roulette",
 		AlternateNames:  []string{"r"},
 		Help:            "Roulettes some points.",
-		Usage:           "$roulette <amount>",
+		Usage:           "$roulette <amount|percent%|all>",
 		Permission:      permission.Normal,
 		ChannelCooldown: time.Duration(5) * time.Second,
 		PrefixOnly:      true,

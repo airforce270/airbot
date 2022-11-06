@@ -49,6 +49,39 @@ func TestCommands(t *testing.T) {
 		singleTestCase(testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$echo say something",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Owner,
+			},
+			want: []*base.Message{
+				{
+					Text:    "say something",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$echo say something",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Mod,
+			},
+			want: nil,
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$join",
 					UserID:  "user1",
 					User:    "user1",

@@ -20,6 +20,7 @@ import (
 
 // Commands contains this package's commands.
 var Commands = [...]basecommand.Command{
+	echoCommand,
 	joinCommand,
 	joinOtherCommand,
 	joinedCommand,
@@ -29,6 +30,29 @@ var Commands = [...]basecommand.Command{
 }
 
 var (
+	echoCommandPattern = basecommand.PrefixPattern("echo")
+	echoCommand        = basecommand.Command{
+		Name:       "echo",
+		Help:       "Echoes back whatever is sent.",
+		Usage:      "$echo",
+		Permission: permission.Owner,
+		PrefixOnly: true,
+		Pattern:    echoCommandPattern,
+		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
+			matches := echoPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
+			if len(matches) < 2 {
+				return nil, nil
+			}
+			return []*base.Message{
+				{
+					Channel: msg.Message.Channel,
+					Text:    matches[1],
+				},
+			}, nil
+		},
+	}
+	echoPattern = regexp.MustCompile(echoCommandPattern.String() + `(.+)`)
+
 	joinCommandPattern = basecommand.PrefixPattern("join$")
 	joinCommand        = basecommand.Command{
 		Name:       "join",

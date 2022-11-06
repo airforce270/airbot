@@ -23,7 +23,14 @@ var Commands = [...]basecommand.Command{
 		Permission: permission.Normal,
 		PrefixOnly: true,
 		Pattern:    basecommand.PrefixPattern("commands"),
-		Handler:    commands,
+		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
+			return []*base.Message{
+				{
+					Channel: msg.Message.Channel,
+					Text:    "Commands available here: https://github.com/airforce270/airbot/blob/main/docs/commands.md",
+				},
+			}, nil
+		},
 	},
 	{
 		Name:       "gn",
@@ -107,15 +114,6 @@ var (
 	}
 	tuckPattern = regexp.MustCompile(tuckCommandPattern.String() + `(\w+).*`)
 )
-
-func commands(msg *base.IncomingMessage) ([]*base.Message, error) {
-	return []*base.Message{
-		{
-			Channel: msg.Message.Channel,
-			Text:    "Commands available here: https://github.com/airforce270/airbot/blob/main/docs/commands.md",
-		},
-	}, nil
-}
 
 func spam(msg *base.IncomingMessage) ([]*base.Message, error) {
 	matches := spamPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
