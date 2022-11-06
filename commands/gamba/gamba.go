@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"math/big"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/airforce270/airbot/base"
@@ -52,7 +54,7 @@ var (
 		Pattern:         rouletteCommandPattern,
 		Handler:         roulette,
 	}
-	roulettePattern = regexp.MustCompile(rouletteCommandPattern.String() + `(\d+).*`)
+	roulettePattern = regexp.MustCompile(rouletteCommandPattern.String() + `(all|\d+%|\d+).*`)
 )
 
 func points(msg *base.IncomingMessage) ([]*base.Message, error) {
@@ -86,20 +88,6 @@ func points(msg *base.IncomingMessage) ([]*base.Message, error) {
 }
 
 func roulette(msg *base.IncomingMessage) ([]*base.Message, error) {
-	amountStr := basecommand.ParseTarget(msg, roulettePattern)
-	amount, err := strconv.ParseInt(amountStr, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse roulette amount %q: %w", amountStr, err)
-	}
-	if amount < 0 {
-		return []*base.Message{
-			{
-				Channel: msg.Message.Channel,
-				Text:    "nice try forsenCD",
-			},
-		}, nil
-	}
-
 	db := database.Instance
 	if db == nil {
 		return nil, fmt.Errorf("database connection not initialized")
@@ -120,7 +108,32 @@ func roulette(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}
 
 	points := fetchUserPoints(db, user)
-	if amount > points {
+
+	var amount int64
+	amountStr := basecommand.ParseTarget(msg, roulettePattern)
+	if amountStr == "all" {
+		amount = points
+	} else if strings.HasSuffix(amountStr, "%") {
+		percent, err := strconv.ParseInt(strings.Replace(amountStr, "%", "", 1), 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse roulette amount percent %q: %w", amountStr, err)
+		}
+		amount = int64(math.Floor(float64(points) * (float64(percent) / 100)))
+	} else {
+		var err error
+		amount, err = strconv.ParseInt(amountStr, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse roulette amount %q: %w", amountStr, err)
+		}
+	}
+	if amount < 0 {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "nice try forsenCD",
+			},
+		}, nil
+	} else if amount > points {
 		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,

@@ -955,6 +955,8 @@ func TestCommands(t *testing.T) {
 		testCasesWithSameOutput([]string{
 			"$roulette 10",
 			"$r 10",
+			"$roulette 20%",
+			"$r 20%",
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
@@ -981,6 +983,8 @@ func TestCommands(t *testing.T) {
 		testCasesWithSameOutput([]string{
 			"$roulette 10",
 			"$r 10",
+			"$roulette 20%",
+			"$r 20%",
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
@@ -1000,6 +1004,32 @@ func TestCommands(t *testing.T) {
 			want: []*base.Message{
 				{
 					Text:    "GAMBA user1 lost 10 points in roulette and now has 40 points!",
+					Channel: "user2",
+				},
+			},
+		}),
+		testCasesWithSameOutput([]string{
+			"$roulette all",
+			"$r all",
+		}, testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDB()),
+			},
+			runBefore: []func() error{
+				setRandValueTo1,
+				add50PointsToUser1,
+			},
+			want: []*base.Message{
+				{
+					Text:    "GAMBA user1 won 50 points in roulette and now has 100 points!",
 					Channel: "user2",
 				},
 			},
