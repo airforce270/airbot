@@ -44,8 +44,8 @@ type Platform interface {
 	// User returns the (database) user for the username of a user on the platform.
 	// It will return ErrUserUnknown if the user has never been seen by the bot.
 	User(username string) (models.User, error)
-	// CurrentUserIDs returns the IDs of the current users in all channels the bot has joined.
-	CurrentUserIDs() ([]string, error)
+	// CurrentUsers returns the names of the current users in all channels the bot has joined.
+	CurrentUsers() ([]string, error)
 }
 
 // Message represents a chat message.

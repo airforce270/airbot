@@ -2,6 +2,7 @@
 package gamba
 
 import (
+	"errors"
 	"log"
 	"time"
 
@@ -90,16 +91,20 @@ func grantPoints(ps map[string]base.Platform, db *gorm.DB) {
 func getInactiveUsers(ps map[string]base.Platform, db *gorm.DB) []models.User {
 	var users []models.User
 	for _, p := range ps {
-		allUsers, err := p.CurrentUserIDs()
+		allUsers, err := p.CurrentUsers()
 		if err != nil {
 			log.Printf("Failed to retrieve users from %s: %v", p.Name(), err)
 			continue
 		}
+
 		for _, u := range allUsers {
-			var user models.User
-			result := db.Where(models.User{TwitchID: u}).First(&user)
-			if result.Error != nil {
-				log.Printf("Failed to look up %s user %s in database: %v", p.Name(), u, result.Error)
+			user, err := p.User(u)
+			if err != nil {
+				if errors.Is(err, base.ErrUserUnknown) {
+					// user needs to type something somewhere before they can get points automatically
+					continue
+				}
+				log.Printf("Failed to retrieve user from %s: %v", p.Name(), err)
 				continue
 			}
 			users = append(users, user)

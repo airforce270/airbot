@@ -105,10 +105,18 @@ func roulette(msg *base.IncomingMessage) ([]*base.Message, error) {
 		return nil, fmt.Errorf("database connection not initialized")
 	}
 
-	var user models.User
-	result := db.Where(models.User{TwitchID: msg.Message.UserID}).Find(&user)
-	if result.Error != nil {
-		return nil, fmt.Errorf("failed to lookup user in db: %w", result.Error)
+	user, err := msg.Platform.User(msg.Message.User)
+	if err != nil {
+		if errors.Is(err, base.ErrUserUnknown) {
+			// This should never happen, as the incoming message should have been logged already
+			return []*base.Message{
+				{
+					Channel: msg.Message.Channel,
+					Text:    fmt.Sprintf("%s has never been seen by %s", msg.Message.User, msg.Platform.Username()),
+				},
+			}, nil
+		}
+		return nil, err
 	}
 
 	points := fetchUserPoints(db, user)

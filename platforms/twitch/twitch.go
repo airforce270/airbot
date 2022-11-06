@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/airforce270/airbot/apiclients/ivr"
@@ -248,7 +247,7 @@ func (t *Twitch) User(username string) (models.User, error) {
 	return user, nil
 }
 
-func (t *Twitch) CurrentUserIDs() ([]string, error) {
+func (t *Twitch) CurrentUsers() ([]string, error) {
 	var allChatters []string
 	for _, c := range t.channels {
 		chatters, err := twitchtmi.FetchChatters(c.Name)
@@ -257,41 +256,7 @@ func (t *Twitch) CurrentUserIDs() ([]string, error) {
 		}
 		allChatters = append(allChatters, chatters.AllChatters()...)
 	}
-
-	chatterIDs := map[string]string{}
-	chatterIDsMtx := sync.RWMutex{}
-
-	for _, chatterName := range allChatters {
-		chatterIDs[chatterName] = ""
-	}
-
-	wg := sync.WaitGroup{}
-	wg.Add(len(chatterIDs))
-	chatterIDsMtx.Lock()
-	for chatterName := range chatterIDs {
-		go func(chatterName string) {
-			defer wg.Done()
-
-			user, err := t.FetchUser(chatterName)
-			if err != nil {
-				log.Printf("[%s] Failed to look up chatter %s's ID: %v", t.Name(), chatterName, err)
-				return
-			}
-
-			chatterIDsMtx.Lock()
-			chatterIDs[chatterName] = user.ID
-			chatterIDsMtx.Unlock()
-		}(chatterName)
-	}
-	chatterIDsMtx.Unlock()
-
-	wg.Wait()
-
-	var ids []string
-	for _, chatterID := range chatterIDs {
-		ids = append(ids, chatterID)
-	}
-	return ids, nil
+	return allChatters, nil
 }
 
 func (t *Twitch) FetchUser(channel string) (*helix.User, error) {
