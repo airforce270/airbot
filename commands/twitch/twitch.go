@@ -11,6 +11,7 @@ import (
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/permission"
 	twitchplatform "github.com/airforce270/airbot/platforms/twitch"
+	"github.com/airforce270/airbot/utils"
 )
 
 // Commands contains this package's commands.
@@ -241,7 +242,7 @@ func founders(msg *base.IncomingMessage) ([]*base.Message, error) {
 		}, nil
 	}
 
-	foundersGroups := chunkBy(founders.Founders, maxUsersPerMessage)
+	foundersGroups := utils.Chunk(founders.Founders, maxUsersPerMessage)
 
 	var messages []*base.Message
 
@@ -299,7 +300,7 @@ func mods(msg *base.IncomingMessage) ([]*base.Message, error) {
 		}, nil
 	}
 
-	modGroups := chunkBy(modsAndVIPs.Mods, maxUsersPerMessage)
+	modGroups := utils.Chunk(modsAndVIPs.Mods, maxUsersPerMessage)
 
 	var messages []*base.Message
 
@@ -455,7 +456,7 @@ func vips(msg *base.IncomingMessage) ([]*base.Message, error) {
 		}, nil
 	}
 
-	vipGroups := chunkBy(modsAndVIPs.VIPs, maxUsersPerMessage)
+	vipGroups := utils.Chunk(modsAndVIPs.VIPs, maxUsersPerMessage)
 
 	var messages []*base.Message
 	for i, vipGroup := range vipGroups {
@@ -488,11 +489,4 @@ func namesFromModsOrVIPs(users []*ivr.ModOrVIPUser) []string {
 		names = append(names, user.DisplayName)
 	}
 	return names
-}
-
-func chunkBy[T any](items []T, chunkSize int) (chunks [][]T) {
-	for chunkSize < len(items) {
-		items, chunks = items[chunkSize:], append(chunks, items[0:chunkSize:chunkSize])
-	}
-	return append(chunks, items)
 }

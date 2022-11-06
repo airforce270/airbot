@@ -156,6 +156,41 @@ func TestCommands(t *testing.T) {
 		singleTestCase(testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$joined",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Owner,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
+			},
+			runBefore: []func() error{joinOtherUser1},
+			want: []*base.Message{
+				{
+					Text:    "Bot is currently in user1",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$joined",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			want: nil,
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$leave",
 					UserID:  "user1",
 					User:    "user1",

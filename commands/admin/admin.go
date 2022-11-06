@@ -15,12 +15,14 @@ import (
 	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
 	twitchplatform "github.com/airforce270/airbot/platforms/twitch"
+	"github.com/airforce270/airbot/utils"
 )
 
 // Commands contains this package's commands.
 var Commands = [...]basecommand.Command{
 	joinCommand,
 	joinOtherCommand,
+	joinedCommand,
 	leaveCommand,
 	leaveOtherCommand,
 	setPrefixCommand,
@@ -38,6 +40,17 @@ var (
 		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
 			return joinChannel(msg, msg.Message.User)
 		},
+	}
+
+	joinedCommandPattern = basecommand.PrefixPattern("joined$")
+	joinedCommand        = basecommand.Command{
+		Name:       "joined",
+		Help:       "Lists the channels the bot is currently in.",
+		Usage:      "$joined",
+		Permission: permission.Owner,
+		PrefixOnly: true,
+		Pattern:    joinedCommandPattern,
+		Handler:    joined,
 	}
 
 	joinOtherCommandPattern = basecommand.PrefixPattern("joinother")
@@ -159,6 +172,44 @@ func joinChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Messa
 		})
 	}
 	return msgs, nil
+}
+
+const maxUsersPerMessage = 15
+
+func joined(msg *base.IncomingMessage) ([]*base.Message, error) {
+	db := database.Instance
+	if db == nil {
+		return nil, fmt.Errorf("database instance not initialized")
+	}
+
+	var joinedChannels []*models.JoinedChannel
+	result := db.Find(&joinedChannels)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to find channels: %w", result.Error)
+	}
+	var channels []string
+	for _, c := range joinedChannels {
+		channels = append(channels, c.Channel)
+	}
+
+	channelsGroups := utils.Chunk(channels, maxUsersPerMessage)
+
+	var messages []*base.Message
+
+	for i, channelsGroup := range channelsGroups {
+		var text string
+		if i == 0 {
+			text = fmt.Sprintf("Bot is currently in %s", strings.Join(channelsGroup, ", "))
+		} else {
+			text = strings.Join(channels, ", ")
+		}
+		if len(channelsGroups) > 1 && len(channelsGroups)-1 != i {
+			text += ","
+		}
+		messages = append(messages, &base.Message{Channel: msg.Message.Channel, Text: text})
+	}
+
+	return messages, nil
 }
 
 func leaveChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Message, error) {

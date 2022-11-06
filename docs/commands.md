@@ -26,6 +26,12 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - > Usage: `$joinother <channel>`
 - > Minimum permission level: `Owner`
 
+### $joined
+
+- Lists the channels the bot is currently in.
+- > Usage: `$joined`
+- > Minimum permission level: `Owner`
+
 ### $leave
 
 - Tells the bot to leave your chat.
