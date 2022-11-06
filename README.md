@@ -1,5 +1,6 @@
 # airbot
 
+<!-- markdownlint-disable-next-line line-length -->
 [![CodeFactor](https://www.codefactor.io/repository/github/airforce270/airbot/badge)](https://www.codefactor.io/repository/github/airforce270/airbot) [![GoReportCard](https://goreportcard.com/badge/github.com/airforce270/airbot)](https://goreportcard.com/report/github.com/airforce270/airbot) [![Go version](https://img.shields.io/github/go-mod/go-version/airforce270/airbot.svg)](go.mod)
  [![godoc](https://img.shields.io/badge/godoc-reference-blue.svg)](https://pkg.go.dev/github.com/airforce270/airbot)
 
