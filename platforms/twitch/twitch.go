@@ -203,7 +203,7 @@ func (t *Twitch) Connect() error {
 	}
 	t.h = h
 
-	botUser, err := t.User(t.username)
+	botUser, err := t.FetchUser(t.username)
 	if err != nil {
 		return err
 	}
@@ -236,7 +236,19 @@ func (t *Twitch) SetPrefix(channel, prefix string) error {
 	return fmt.Errorf("channel %s not joined", channel)
 }
 
-func (t *Twitch) Users() ([]string, error) {
+func (t *Twitch) User(username string) (models.User, error) {
+	var user models.User
+	result := t.db.Where(models.User{TwitchName: username}).First(&user)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return models.User{}, fmt.Errorf("twitch user %s has never been seen by the bot: %w", username, base.ErrUserUnknown)
+	}
+	if result.Error != nil {
+		return models.User{}, fmt.Errorf("failed to retrieve twitch user %s from db: %w", username, result.Error)
+	}
+	return user, nil
+}
+
+func (t *Twitch) CurrentUserIDs() ([]string, error) {
 	var allChatters []string
 	for _, c := range t.channels {
 		chatters, err := twitchtmi.FetchChatters(c.Name)
@@ -260,7 +272,7 @@ func (t *Twitch) Users() ([]string, error) {
 		go func(chatterName string) {
 			defer wg.Done()
 
-			user, err := t.User(chatterName)
+			user, err := t.FetchUser(chatterName)
 			if err != nil {
 				log.Printf("[%s] Failed to look up chatter %s's ID: %v", t.Name(), chatterName, err)
 				return
@@ -282,7 +294,7 @@ func (t *Twitch) Users() ([]string, error) {
 	return ids, nil
 }
 
-func (t *Twitch) User(channel string) (*helix.User, error) {
+func (t *Twitch) FetchUser(channel string) (*helix.User, error) {
 	users, err := t.h.GetUsers(&helix.UsersParams{Logins: []string{channel}})
 	if err != nil {
 		return nil, err
@@ -299,7 +311,7 @@ func (t *Twitch) User(channel string) (*helix.User, error) {
 var ErrChannelNotFound = errors.New("channel not found")
 
 func (t *Twitch) Channel(channel string) (*helix.ChannelInformation, error) {
-	user, err := t.User(channel)
+	user, err := t.FetchUser(channel)
 	if err != nil {
 		return nil, err
 	}

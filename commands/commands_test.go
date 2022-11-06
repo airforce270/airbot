@@ -904,10 +904,36 @@ func TestCommands(t *testing.T) {
 				},
 			},
 		}),
-		singleTestCase(testCase{
+		testCasesWithSameOutput([]string{
+			"$points user1",
+			"$p user1",
+		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
-					Text:    "$roulette 10",
+					UserID:  "user2",
+					User:    "user2",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			runBefore: []func() error{
+				add50PointsToUser1,
+			},
+			want: []*base.Message{
+				{
+					Text:    "GAMBA user1 has 50 points",
+					Channel: "user2",
+				},
+			},
+		}),
+		testCasesWithSameOutput([]string{
+			"$roulette 10",
+			"$r 10",
+		}, testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -927,10 +953,12 @@ func TestCommands(t *testing.T) {
 				},
 			},
 		}),
-		singleTestCase(testCase{
+		testCasesWithSameOutput([]string{
+			"$roulette 10",
+			"$r 10",
+		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
-					Text:    "$roulette 10",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -950,10 +978,12 @@ func TestCommands(t *testing.T) {
 				},
 			},
 		}),
-		singleTestCase(testCase{
+		testCasesWithSameOutput([]string{
+			"$roulette 10",
+			"$r 10",
+		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
-					Text:    "$roulette 10",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",

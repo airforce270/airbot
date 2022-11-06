@@ -3,6 +3,7 @@ package gamba
 
 import (
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"log"
 	"math/big"
@@ -39,7 +40,7 @@ var (
 	}
 	pointsPattern = regexp.MustCompile(pointsCommandPattern.String() + `@?(\w+).*`)
 
-	rouletteCommandPattern = basecommand.PrefixPattern("roulette")
+	rouletteCommandPattern = basecommand.PrefixPattern("(?:r(?: |$)|roulette)")
 	rouletteCommand        = basecommand.Command{
 		Name:            "roulette",
 		AlternateNames:  []string{"r"},
@@ -61,8 +62,18 @@ func points(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}
 
 	target := basecommand.ParseTarget(msg, pointsPattern)
-	var user models.User
-	db.Where(models.User{TwitchID: msg.Message.UserID}).First(&user)
+	user, err := msg.Platform.User(target)
+	if err != nil {
+		if errors.Is(err, base.ErrUserUnknown) {
+			return []*base.Message{
+				{
+					Channel: msg.Message.Channel,
+					Text:    fmt.Sprintf("%s has never been seen by %s", target, msg.Platform.Username()),
+				},
+			}, nil
+		}
+		return nil, err
+	}
 
 	pointsCount := fetchUserPoints(db, user)
 

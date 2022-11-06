@@ -3,12 +3,18 @@ package base
 
 import (
 	"crypto/rand"
+	"errors"
 	"strings"
 	"time"
 
+	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
 
 	exprand "golang.org/x/exp/rand"
+)
+
+var (
+	ErrUserUnknown = errors.New("user has never been seen by the bot")
 )
 
 // Platform represents a connection to a given platform (i.e. Twitch, Discord)
@@ -35,8 +41,11 @@ type Platform interface {
 	// SetPrefix sets the prefix for a channel.
 	SetPrefix(channel, prefix string) error
 
-	// Users returns the IDs of the current users in all channels the bot has joined.
-	Users() ([]string, error)
+	// User returns the (database) user for the username of a user on the platform.
+	// It will return ErrUserUnknown if the user has never been seen by the bot.
+	User(username string) (models.User, error)
+	// CurrentUserIDs returns the IDs of the current users in all channels the bot has joined.
+	CurrentUserIDs() ([]string, error)
 }
 
 // Message represents a chat message.

@@ -90,7 +90,7 @@ func grantPoints(ps map[string]base.Platform, db *gorm.DB) {
 func getInactiveUsers(ps map[string]base.Platform, db *gorm.DB) []models.User {
 	var users []models.User
 	for _, p := range ps {
-		allUsers, err := p.Users()
+		allUsers, err := p.CurrentUserIDs()
 		if err != nil {
 			log.Printf("Failed to retrieve users from %s: %v", p.Name(), err)
 			continue
