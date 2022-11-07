@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/airforce270/airbot/base"
+	"github.com/airforce270/airbot/cache"
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/models"
@@ -20,6 +21,7 @@ import (
 
 // Commands contains this package's commands.
 var Commands = [...]basecommand.Command{
+	botSlowmodeCommand,
 	echoCommand,
 	joinCommand,
 	joinOtherCommand,
@@ -30,6 +32,18 @@ var Commands = [...]basecommand.Command{
 }
 
 var (
+	botSlowmodeCommandPattern = basecommand.PrefixPattern("botslowmode")
+	botSlowmodeCommand        = basecommand.Command{
+		Name:       "botslowmode",
+		Help:       "Sets the bot to follow a global (per-platform) 1 second slowmode.",
+		Usage:      "$botslowmode <on|off>",
+		Permission: permission.Owner,
+		PrefixOnly: true,
+		Pattern:    botSlowmodeCommandPattern,
+		Handler:    botSlowmode,
+	}
+	botSlowmodePattern = regexp.MustCompile(botSlowmodeCommandPattern.String() + `(on|off).*`)
+
 	echoCommandPattern = basecommand.PrefixPattern("echo")
 	echoCommand        = basecommand.Command{
 		Name:       "echo",
@@ -131,12 +145,52 @@ var (
 	setPrefixPattern = regexp.MustCompile(setPrefixCommandPattern.String() + `(\S+).*`)
 )
 
+func botSlowmode(msg *base.IncomingMessage) ([]*base.Message, error) {
+	matches := botSlowmodePattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
+	if len(matches) < 2 || (matches[1] != "on" && matches[1] != "off") {
+		return nil, nil
+	}
+	enable := matches[1] == "on"
+
+	cdb := cache.Instance
+	if cdb == nil {
+		return nil, fmt.Errorf("cache instance not initialized")
+	}
+	err := cache.SetSlowmode(msg.Platform, cdb, enable)
+	if err != nil {
+		failureMsgStart := "Failed to enable"
+		if !enable {
+			failureMsgStart = "Failed to disable"
+		}
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("%s bot slowmode on %s", failureMsgStart, msg.Platform.Name()),
+			},
+		}, nil
+	}
+
+	outMsgStart := "Enabled"
+	if !enable {
+		outMsgStart = "Disabled"
+	}
+	return []*base.Message{
+		{
+			Channel: msg.Message.Channel,
+			Text:    fmt.Sprintf("%s bot slowmode on %s", outMsgStart, msg.Platform.Name()),
+		},
+	}, nil
+}
+
 const defaultPrefix = "$"
 
 func joinChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Message, error) {
 	prefix := defaultPrefix
 
 	db := database.Instance
+	if db == nil {
+		return nil, fmt.Errorf("database instance not initialized")
+	}
 
 	var channels []models.JoinedChannel
 	db.Where(models.JoinedChannel{

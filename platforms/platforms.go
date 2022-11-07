@@ -4,12 +4,15 @@ package platforms
 import (
 	"log"
 	"runtime/debug"
+	"time"
 
 	"github.com/airforce270/airbot/base"
+	"github.com/airforce270/airbot/cache"
 	"github.com/airforce270/airbot/commands"
 	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/platforms/twitch"
 
+	"github.com/go-redis/redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -27,18 +30,21 @@ func Build(cfg *config.Config, db *gorm.DB) (map[string]base.Platform, error) {
 
 // StartHandling starts handling commands coming from the given platform.
 // This function blocks and should be run within a goroutine.
-func StartHandling(p base.Platform, db *gorm.DB, logIncoming, logOutgoing, enableNonPrefixCommands bool) {
+func StartHandling(p base.Platform, db *gorm.DB, cdb *redis.Client, logIncoming, logOutgoing, enableNonPrefixCommands bool) {
 	handler := commands.NewHandler(db, enableNonPrefixCommands)
-	c := p.Listen()
+	inC := p.Listen()
+
+	outC := make(chan base.Message)
+	go startSending(p, outC, cdb, logOutgoing)
 
 	for {
-		msg := <-c
-		go processMessage(&handler, db, p, msg, logIncoming, logOutgoing)
+		msg := <-inC
+		go processMessage(&handler, db, p, outC, msg, logIncoming)
 	}
 }
 
-// processMessage processes a single message and may send a message in response.
-func processMessage(handler *commands.Handler, db *gorm.DB, p base.Platform, msg base.IncomingMessage, logIncoming, logOutgoing bool) {
+// processMessage processes a single message and may queue messages to be sent in response.
+func processMessage(handler *commands.Handler, db *gorm.DB, p base.Platform, outC chan<- base.Message, msg base.IncomingMessage, logIncoming bool) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("processMessage panicked, recovered: %v; %s", r, debug.Stack())
@@ -59,12 +65,30 @@ func processMessage(handler *commands.Handler, db *gorm.DB, p base.Platform, msg
 	}
 
 	for _, out := range outMsgs {
+		outC <- *out
+	}
+}
+
+// startSending sends messages from the queue.
+func startSending(p base.Platform, outC <-chan base.Message, cdb *redis.Client, logOutgoing bool) {
+	for {
+		out := <-outC
+
 		if logOutgoing {
 			log.Printf("[%s-> %s/%s]: %s", p.Name(), out.Channel, p.Username(), out.Text)
 		}
 
-		if err := p.Send(*out); err != nil {
+		if err := p.Send(out); err != nil {
 			log.Printf("Failed to send message %v: %v", out, err)
+		}
+
+		slowmode, err := cache.FetchSlowmode(p, cdb)
+		if err != nil {
+			log.Printf("Failed to fetch slowmode status for %s: %v", p.Name(), err)
+		}
+
+		if slowmode {
+			time.Sleep(time.Duration(1) * time.Second)
 		}
 	}
 }

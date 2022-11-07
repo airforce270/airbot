@@ -46,6 +46,7 @@ func TestCommands(t *testing.T) {
 
 	tests := flatten(
 		// admin.go commands
+		// $botslowmode is currently untested, need to find a good way to have a fake redis cache for test
 		singleTestCase(testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{

@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/airforce270/airbot/apiclients/supinic"
+	"github.com/airforce270/airbot/cache"
 	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/gamba"
@@ -66,6 +67,10 @@ func main() {
 	}
 	database.Instance = db
 
+	log.Printf("Connecting to cache...")
+	cdb := cache.NewClient()
+	cache.Instance = cdb
+
 	log.Printf("Performing database migrations...")
 	if database.Migrate(db); err != nil {
 		log.Fatalf("failed to perform database migrations: %v", err)
@@ -84,7 +89,7 @@ func main() {
 		}
 
 		log.Printf("Starting to handle messages on %s...", p.Name())
-		go platforms.StartHandling(p, db, cfg.LogIncoming, cfg.LogOutgoing, cfg.EnableNonPrefixCommands)
+		go platforms.StartHandling(p, db, cdb, cfg.LogIncoming, cfg.LogOutgoing, cfg.EnableNonPrefixCommands)
 		cleanupFuncs = append(cleanupFuncs, cleanupFunc{name: p.Name(), f: p.Disconnect})
 	}
 

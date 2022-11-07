@@ -12,6 +12,14 @@ services:
       interval: 1s
       timeout: 5s
       retries: 10
+  cache:
+    image: redis:7
+    restart: always
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - '6379:6379'
+    command: redis-server
   server:
     build:
       context: .
