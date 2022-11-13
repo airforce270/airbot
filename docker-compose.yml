@@ -19,7 +19,9 @@ services:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
       - '6379:6379'
-    command: redis-server
+    command: redis-server --save 30 1
+    volumes:
+      - redis-data:/data
   server:
     build:
       context: .
@@ -35,3 +37,4 @@ services:
 volumes:
   postgres-data:
     name: airbot_postgres-15-data
+  redis-data:
