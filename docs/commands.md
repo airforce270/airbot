@@ -11,7 +11,7 @@ Some commands include parameters.
 
 If the parameter is wrapped in `<angle brackets>`, it's a **required** parameter.
 
-If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
+If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 ## Admin
 
@@ -179,14 +179,18 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 ### $banreason
 
 - Replies with the reason someone was banned on Twitch.
+- > Usage: `$banreason <user>`
+- > Alternate commands: `$br`
 
 ### $currentgame
 
 - Replies with the game that's currently being streamed on a channel.
+- > Usage: `$currentgame <channel>`
 
 ### $founders
 
 - Replies with a channel's founders.
+- > Usage: `$founders <channel>`
 
 ### $logs
 
