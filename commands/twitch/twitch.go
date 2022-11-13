@@ -33,12 +33,14 @@ const maxUsersPerMessage = 15
 var (
 	banReasonCommandPattern = basecommand.PrefixPattern("(?:banreason|br)")
 	banReasonCommand        = basecommand.Command{
-		Name:       "banreason",
-		Help:       "Replies with the reason someone was banned on Twitch.",
-		Pattern:    banReasonCommandPattern,
-		Handler:    banReason,
-		PrefixOnly: true,
-		Permission: permission.Normal,
+		Name:           "banreason",
+		AlternateNames: []string{"br"},
+		Help:           "Replies with the reason someone was banned on Twitch.",
+		Usage:          "$banreason <user>",
+		PrefixOnly:     true,
+		Permission:     permission.Normal,
+		Pattern:        banReasonCommandPattern,
+		Handler:        banReason,
 	}
 	banReasonPattern = regexp.MustCompile(banReasonCommandPattern.String() + `@?(\w+).*`)
 
@@ -46,10 +48,11 @@ var (
 	currentGameCommand        = basecommand.Command{
 		Name:       "currentgame",
 		Help:       "Replies with the game that's currently being streamed on a channel.",
-		Pattern:    currentGameCommandPattern,
-		Handler:    currentGame,
+		Usage:      "$currentgame <channel>",
 		PrefixOnly: true,
 		Permission: permission.Normal,
+		Pattern:    currentGameCommandPattern,
+		Handler:    currentGame,
 	}
 	currentGamePattern = regexp.MustCompile(currentGameCommandPattern.String() + `@?(\w+).*`)
 
@@ -57,10 +60,11 @@ var (
 	foundersCommand        = basecommand.Command{
 		Name:       "founders",
 		Help:       "Replies with a channel's founders.",
-		Pattern:    foundersCommandPattern,
-		Handler:    founders,
+		Usage:      "$founders <channel>",
 		PrefixOnly: true,
 		Permission: permission.Normal,
+		Pattern:    foundersCommandPattern,
+		Handler:    founders,
 	}
 	foundersPattern = regexp.MustCompile(foundersCommandPattern.String() + `@?(\w+).*`)
 
