@@ -30,6 +30,9 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 {{- if .ChannelCooldown }}
 - > Per-channel cooldown: `{{ .ChannelCooldown }}`
 {{- end }}
+{{- if .UserCooldown }}
+- > Per-user cooldown: `{{ .UserCooldown }}`
+{{- end }}
 {{- if .AlternateNames }}
 - > Alternate commands: {{ formatAlternateNames .AlternateNames }}
 {{- end }}

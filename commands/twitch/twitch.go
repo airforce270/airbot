@@ -79,8 +79,8 @@ var (
 	modsCommandPattern = basecommand.PrefixPattern("mods")
 	modsCommand        = basecommand.Command{
 		Name:       "mods",
-		Help:       "Replies with a channel's mods.",
-		Usage:      "$mods [user]",
+		Help:       "Replies with a channel's mods. If no channel is provided, the current channel will be used.",
+		Usage:      "$mods [channel]",
 		Permission: permission.Normal,
 		PrefixOnly: true,
 		Pattern:    modsCommandPattern,
@@ -103,8 +103,8 @@ var (
 	titleCommandPattern = basecommand.PrefixPattern("title")
 	titleCommand        = basecommand.Command{
 		Name:       "title",
-		Help:       "Replies with a channel's title.",
-		Usage:      "$title [user]",
+		Help:       "Replies with a channel's title. If no channel is provided, the current channel will be used.",
+		Usage:      "$title [channel]",
 		Permission: permission.Normal,
 		PrefixOnly: true,
 		Pattern:    titleCommandPattern,
@@ -141,8 +141,8 @@ var (
 	vipsCommandPattern = basecommand.PrefixPattern("vips")
 	vipsCommand        = basecommand.Command{
 		Name:       "vips",
-		Help:       "Replies with a channel's VIPs.",
-		Usage:      "$vips [user]",
+		Help:       "Replies with a channel's VIPs. If no channel is provided, the current channel will be used.",
+		Usage:      "$vips [channel]",
 		Permission: permission.Normal,
 		PrefixOnly: true,
 		Pattern:    vipsCommandPattern,
@@ -284,7 +284,7 @@ func logs(msg *base.IncomingMessage) ([]*base.Message, error) {
 }
 
 func mods(msg *base.IncomingMessage) ([]*base.Message, error) {
-	targetChannel := basecommand.ParseTarget(msg, modsPattern)
+	targetChannel := basecommand.ParseTargetWithDefault(msg, modsPattern, msg.Message.Channel)
 
 	modsAndVIPs, err := ivr.FetchModsAndVIPs(targetChannel)
 	if err != nil {
@@ -349,7 +349,7 @@ func nameColor(msg *base.IncomingMessage) ([]*base.Message, error) {
 }
 
 func title(msg *base.IncomingMessage) ([]*base.Message, error) {
-	targetChannel := basecommand.ParseTarget(msg, titlePattern)
+	targetChannel := basecommand.ParseTargetWithDefault(msg, titlePattern, msg.Message.Channel)
 
 	tw := twitchplatform.Instance
 	if tw == nil {
@@ -440,7 +440,7 @@ func verifiedBotQuiet(msg *base.IncomingMessage) ([]*base.Message, error) {
 }
 
 func vips(msg *base.IncomingMessage) ([]*base.Message, error) {
-	targetChannel := basecommand.ParseTarget(msg, vipsPattern)
+	targetChannel := basecommand.ParseTargetWithDefault(msg, vipsPattern, msg.Message.Channel)
 
 	modsAndVIPs, err := ivr.FetchModsAndVIPs(targetChannel)
 	if err != nil {

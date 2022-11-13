@@ -15,6 +15,12 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 ## Admin
 
+### $botslowmode
+
+- Sets the bot to follow a global (per-platform) 1 second slowmode.
+- > Usage: `$botslowmode <on|off>`
+- > Minimum permission level: `Owner`
+
 ### $echo
 
 - Echoes back whatever is sent.
@@ -158,7 +164,7 @@ If the it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 - Roulettes some points.
 - > Usage: `$roulette <amount|percent%|all>`
-- > Per-channel cooldown: `5s`
+- > Per-user cooldown: `5s`
 - > Alternate commands: `$r`
 
 ## Moderation

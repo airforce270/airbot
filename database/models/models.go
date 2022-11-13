@@ -15,6 +15,7 @@ var AllModels = []any{
 	JoinedChannel{},
 	Message{},
 	User{},
+	UserCommandCooldown{},
 }
 
 // BotBan represents a bot being banned from a channel.
@@ -94,4 +95,18 @@ type User struct {
 	TwitchID string
 	// TwitchName is the user's username on Twitch, if known
 	TwitchName string
+}
+
+// UserCommandCooldown contains a record of a command cooldown for a user.
+type UserCommandCooldown struct {
+	gorm.Model
+
+	// UserID is the ID of the user with the cooldown.
+	UserID uint
+	// User is the user with the cooldown.
+	User User
+	// Command is the name of the command with a cooldown.
+	Command string
+	// LastRun is when the command was last run in the channel.
+	LastRun time.Time
 }

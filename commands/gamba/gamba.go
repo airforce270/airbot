@@ -44,15 +44,15 @@ var (
 
 	rouletteCommandPattern = basecommand.PrefixPattern("(?:r(?: |$)|roulette)")
 	rouletteCommand        = basecommand.Command{
-		Name:            "roulette",
-		AlternateNames:  []string{"r"},
-		Help:            "Roulettes some points.",
-		Usage:           "$roulette <amount|percent%|all>",
-		Permission:      permission.Normal,
-		ChannelCooldown: time.Duration(5) * time.Second,
-		PrefixOnly:      true,
-		Pattern:         rouletteCommandPattern,
-		Handler:         roulette,
+		Name:           "roulette",
+		AlternateNames: []string{"r"},
+		Help:           "Roulettes some points.",
+		Usage:          "$roulette <amount|percent%|all>",
+		Permission:     permission.Normal,
+		UserCooldown:   time.Duration(5) * time.Second,
+		PrefixOnly:     true,
+		Pattern:        rouletteCommandPattern,
+		Handler:        roulette,
 	}
 	roulettePattern = regexp.MustCompile(rouletteCommandPattern.String() + `(all|\d+%|\d+).*`)
 )

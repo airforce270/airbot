@@ -76,13 +76,35 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.Message, error) {
 			log.Printf("Permission denied: command %s, user %s, channel %s; has permission %s, required: %s", command.Name, msg.Message.User, msg.Message.Channel, msg.PermissionLevel.Name(), command.Permission.Name())
 			continue
 		}
+
 		channelCooldown := models.ChannelCommandCooldown{}
-		h.db.FirstOrCreate(&channelCooldown, models.ChannelCommandCooldown{
+		dbResult := h.db.FirstOrCreate(&channelCooldown, models.ChannelCommandCooldown{
 			Channel: msg.Message.Channel,
 			Command: command.Name,
 		})
+		if dbResult.Error != nil {
+			return nil, fmt.Errorf("[%s] failed to get/create channel cooldown for channel %q, command %q", msg.Platform.Name(), msg.Message.Channel, command.Name)
+		}
 		if command.ChannelCooldown > time.Since(channelCooldown.LastRun) {
-			log.Printf("Skipping %s%s: cooldown is %s but it has only been %s", msg.Prefix, command.Name, command.ChannelCooldown, time.Since(channelCooldown.LastRun))
+			log.Printf("Skipping %s%s: channel cooldown is %s but it has only been %s", msg.Prefix, command.Name, command.ChannelCooldown, time.Since(channelCooldown.LastRun))
+			continue
+		}
+
+		user, err := msg.Platform.User(msg.Message.User)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch user %q: %v", msg.Message.User, err)
+		}
+		userCooldown := models.UserCommandCooldown{}
+		dbResult = h.db.FirstOrCreate(&userCooldown, models.UserCommandCooldown{
+			UserID:  user.ID,
+			User:    user,
+			Command: command.Name,
+		})
+		if dbResult.Error != nil {
+			return nil, fmt.Errorf("[%s] failed to get/create user cooldown for user %q, command %q", msg.Platform.Name(), msg.Message.User, command.Name)
+		}
+		if command.UserCooldown > time.Since(userCooldown.LastRun) {
+			log.Printf("Skipping %s%s: user cooldown is %s but it has only been %s", msg.Prefix, command.Name, command.UserCooldown, time.Since(userCooldown.LastRun))
 			continue
 		}
 
@@ -95,6 +117,8 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.Message, error) {
 
 		channelCooldown.LastRun = time.Now()
 		h.db.Save(&channelCooldown)
+		userCooldown.LastRun = time.Now()
+		h.db.Save(&userCooldown)
 	}
 	return outMsgs, nil
 }
