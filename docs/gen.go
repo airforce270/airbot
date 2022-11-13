@@ -19,7 +19,9 @@ import (
 const (
 	directory = "docs"
 
-	generatedFileMessage = "[//]: # ( !!! DO NOT EDIT MANUALLY !!!  This is a generated file, any changes will be overwritten! )\n\n"
+	generatedFileWarning       = "[//]: # ( !!! DO NOT EDIT MANUALLY !!!  This is a generated file, any changes will be overwritten! )"
+	disableMarkdownLintMessage = "<!-- markdownlint-disable line-length -->"
+	generatedFileMessage       = generatedFileWarning + "\n\n" + disableMarkdownLintMessage + "\n\n"
 )
 
 var (

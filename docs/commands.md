@@ -1,5 +1,7 @@
 [//]: # ( !!! DO NOT EDIT MANUALLY !!!  This is a generated file, any changes will be overwritten! )
 
+<!-- markdownlint-disable line-length -->
+
 # Commands
 
 All commands assume the `$` prefix, but note that the prefix is configurable
@@ -189,8 +191,8 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 ### $founders
 
-- Replies with a channel's founders.
-- > Usage: `$founders <channel>`
+- Replies with a channel's founders. If no channel is provided, the current channel will be used.
+- > Usage: `$founders [channel]`
 
 ### $logs
 
@@ -199,8 +201,8 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 ### $mods
 
-- Replies with a channel's mods.
-- > Usage: `$mods [user]`
+- Replies with a channel's mods. If no channel is provided, the current channel will be used.
+- > Usage: `$mods [channel]`
 
 ### $namecolor
 
@@ -209,8 +211,8 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 ### $title
 
-- Replies with a channel's title.
-- > Usage: `$title [user]`
+- Replies with a channel's title. If no channel is provided, the current channel will be used.
+- > Usage: `$title [channel]`
 
 ### $verifiedbot
 
@@ -226,5 +228,5 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 ### $vips
 
-- Replies with a channel's VIPs.
-- > Usage: `$vips [user]`
+- Replies with a channel's VIPs. If no channel is provided, the current channel will be used.
+- > Usage: `$vips [channel]`

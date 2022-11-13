@@ -59,8 +59,8 @@ var (
 	foundersCommandPattern = basecommand.PrefixPattern("founders")
 	foundersCommand        = basecommand.Command{
 		Name:       "founders",
-		Help:       "Replies with a channel's founders.",
-		Usage:      "$founders <channel>",
+		Help:       "Replies with a channel's founders. If no channel is provided, the current channel will be used.",
+		Usage:      "$founders [channel]",
 		PrefixOnly: true,
 		Permission: permission.Normal,
 		Pattern:    foundersCommandPattern,
@@ -221,7 +221,7 @@ func currentGame(msg *base.IncomingMessage) ([]*base.Message, error) {
 }
 
 func founders(msg *base.IncomingMessage) ([]*base.Message, error) {
-	targetChannel := basecommand.ParseTarget(msg, foundersPattern)
+	targetChannel := basecommand.ParseTargetWithDefault(msg, foundersPattern, msg.Message.Channel)
 
 	founders, err := ivr.FetchFounders(targetChannel)
 	if err != nil {
