@@ -17,11 +17,11 @@ import (
 )
 
 // Build builds connections to enabled platforms based on the config.
-func Build(cfg *config.Config, db *gorm.DB) (map[string]base.Platform, error) {
+func Build(cfg *config.Config, db *gorm.DB, cdb *redis.Client) (map[string]base.Platform, error) {
 	p := map[string]base.Platform{}
 	if twc := cfg.Platforms.Twitch; twc.Enabled {
 		log.Printf("Building Twitch platform...")
-		tw := twitch.New(twc.Username, twc.Owners, twc.ClientID, twc.AccessToken, db)
+		tw := twitch.New(twc.Username, twc.Owners, twc.ClientID, twc.AccessToken, db, cdb)
 		twitch.Instance = tw
 		p[tw.Name()] = tw
 	}

@@ -77,7 +77,7 @@ func main() {
 	}
 
 	log.Printf("Preparing chat connections...")
-	ps, err := platforms.Build(cfg, db)
+	ps, err := platforms.Build(cfg, db, cdb)
 	if err != nil {
 		log.Fatalf("Failed to build platforms: %v", err)
 	}

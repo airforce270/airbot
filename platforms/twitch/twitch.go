@@ -11,11 +11,13 @@ import (
 	"github.com/airforce270/airbot/apiclients/ivr"
 	"github.com/airforce270/airbot/apiclients/twitchtmi"
 	"github.com/airforce270/airbot/base"
+	"github.com/airforce270/airbot/cache"
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
 
 	twitchirc "github.com/gempir/go-twitch-irc/v3"
+	"github.com/go-redis/redis/v9"
 	"github.com/nicklaw5/helix/v2"
 	"golang.org/x/exp/slices"
 	"gorm.io/gorm"
@@ -46,8 +48,10 @@ type Twitch struct {
 	i *twitchirc.Client
 	// h is the Twitch API client.
 	h *helix.Client
-	// db is a a reference to the database connection.
+	// db is a reference to the database connection.
 	db *gorm.DB
+	// cdb is a reference to the cache.
+	cdb *redis.Client
 }
 
 func (t *Twitch) Name() string { return "Twitch" }
@@ -74,8 +78,21 @@ func (t *Twitch) Send(msg base.Message) error {
 	// Any newlines in the message causes Twitch to drop the rest of the message.
 	text := strings.ReplaceAll(msg.Text, "\n", " ")
 
+	// Bypass 30-second same message detection.
+	lastSentMsg, err := cache.FetchLastSentTwitchMessage(t.cdb)
+	if err != nil {
+		log.Printf("Failed to check if message (%q/%q) is in cache: %v", msg.Channel, text, err)
+	} else if lastSentMsg == text {
+		text = bypassSameMessageDetection(text)
+	}
+
 	go t.persistUserAndMessage(t.id, t.username, text, msg.Channel, msg.Time)
+
 	t.i.Say(msg.Channel, text)
+
+	if err := cache.StoreLastSentTwitchMessage(t.cdb, text); err != nil {
+		log.Printf("[Twitch.persistUserAndMessage]: Failed to persist message in cache, %q: %v", text, err)
+	}
 	return nil
 }
 
@@ -406,14 +423,23 @@ func (t *Twitch) setUpIRCHandlers() {
 
 func (t *Twitch) persistUserAndMessage(twitchID, twitchName, message, channel string, sentTime time.Time) {
 	var user models.User
-	t.db.FirstOrCreate(&user, models.User{TwitchID: twitchID})
-	t.db.Model(&user).Updates(models.User{TwitchName: twitchName})
-	t.db.Create(&models.Message{
+	result := t.db.FirstOrCreate(&user, models.User{TwitchID: twitchID})
+	if result.Error != nil {
+		log.Printf("[Twitch.persistUserAndMessage]: Failed to find/create user, twitchName:%q %v", twitchName, result.Error)
+	}
+	result = t.db.Model(&user).Updates(models.User{TwitchName: twitchName})
+	if result.Error != nil {
+		log.Printf("[Twitch.persistUserAndMessage]: Failed to update user, twitchName:%q %v", twitchName, result.Error)
+	}
+	result = t.db.Create(&models.Message{
 		Text:    message,
 		Channel: channel,
 		User:    user,
 		Time:    sentTime,
 	})
+	if result.Error != nil {
+		log.Printf("[Twitch.persistUserAndMessage]: Failed to persist message in database, %q/%q: %v", channel, message, result.Error)
+	}
 }
 
 func (t *Twitch) listenForModAndVIPChanges() {
@@ -476,13 +502,14 @@ func (t *Twitch) handleBannedFromChannel(channel string) {
 const defaultBotPrefix = "$"
 
 // New creates a new Twitch connection.
-func New(username string, owners []string, clientID, accessToken string, db *gorm.DB) *Twitch {
+func New(username string, owners []string, clientID, accessToken string, db *gorm.DB, cdb *redis.Client) *Twitch {
 	return &Twitch{
 		username:    username,
 		owners:      lowercaseAll(owners),
 		clientID:    clientID,
 		accessToken: accessToken,
 		db:          db,
+		cdb:         cdb,
 	}
 }
 
@@ -507,6 +534,7 @@ func NewForTesting(url string, db *gorm.DB) *Twitch {
 		i:             nil,
 		h:             helixClient,
 		db:            db,
+		cdb:           nil,
 	}
 }
 
@@ -523,4 +551,21 @@ func lowercaseAll(strs []string) []string {
 		lower[i] = strings.ToLower(str)
 	}
 	return lower
+}
+
+const messageSpaceSuffix = " \U000E0000"
+
+// bypassSameMessageDetection manipulates the whitespace in a message
+// in such a way to bypass Twitch's 30-second same message detection/blocking.
+func bypassSameMessageDetection(message string) string {
+	spaceIndex := strings.Index(message, " ")
+	if ignoreFirstSpace := strings.HasPrefix(message, "/") || strings.HasPrefix(message, "."); ignoreFirstSpace {
+		spaceIndex = strings.Index(message[spaceIndex+1:], " ")
+	}
+
+	if spaceIndex == -1 {
+		return message + messageSpaceSuffix
+	}
+
+	return strings.Replace(message, " ", "  ", 1)
 }
