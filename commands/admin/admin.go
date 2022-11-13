@@ -146,16 +146,33 @@ var (
 )
 
 func botSlowmode(msg *base.IncomingMessage) ([]*base.Message, error) {
-	matches := botSlowmodePattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-	if len(matches) < 2 || (matches[1] != "on" && matches[1] != "off") {
-		return nil, nil
-	}
-	enable := matches[1] == "on"
-
 	cdb := cache.Instance
 	if cdb == nil {
 		return nil, fmt.Errorf("cache instance not initialized")
 	}
+
+	matches := botSlowmodePattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
+	if len(matches) < 2 {
+		enabled, err := cache.FetchSlowmode(msg.Platform, cdb)
+		if err != nil {
+			return nil, err
+		}
+		enabledMsg := "enabled"
+		if !enabled {
+			enabledMsg = "disabled"
+		}
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("Bot slowmode is currently %s on %s", enabledMsg, msg.Platform.Name()),
+			},
+		}, nil
+	}
+	if matches[1] != "on" && matches[1] != "off" {
+		return nil, nil
+	}
+	enable := matches[1] == "on"
+
 	err := cache.SetSlowmode(msg.Platform, cdb, enable)
 	if err != nil {
 		failureMsgStart := "Failed to enable"
