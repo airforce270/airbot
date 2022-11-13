@@ -27,6 +27,8 @@ func TestGrantPoints(t *testing.T) {
 	setFakes(server.URL)
 	defer resetFakes()
 
+	db.Where("1 = 1").Delete(&models.User{})
+
 	user1 := models.User{TwitchID: "user1", TwitchName: "user1"}
 	result := db.Create(&user1)
 	if result.Error != nil {
@@ -66,7 +68,10 @@ func TestGrantPoints(t *testing.T) {
 	grantPoints(ps, db)
 
 	var transactions []models.GambaTransaction
-	db.Find(&transactions)
+	result = db.Find(&transactions)
+	if result.Error != nil {
+		panic(result.Error)
+	}
 	if len(transactions) != 2 {
 		t.Fatalf("expected 2 gamba transactions, found %d: %v", len(transactions), transactions)
 	}
@@ -91,6 +96,8 @@ func TestGetInactiveUsers(t *testing.T) {
 	setFakes(server.URL)
 	defer resetFakes()
 
+	db.Where("1 = 1").Delete(&models.User{})
+
 	user1 := models.User{TwitchID: "user1", TwitchName: "user1"}
 	result := db.Create(&user1)
 	if result.Error != nil {
@@ -109,8 +116,12 @@ func TestGetInactiveUsers(t *testing.T) {
 	got := getInactiveUsers(ps, db)
 	want := []models.User{user2}
 
-	if diff := cmp.Diff(want, got); diff != "" {
-		t.Errorf("getInactiveUsers() diff (-want +got):\n%s", diff)
+	if len(got) != len(want) {
+		t.Fatalf("getInactiveUsers() got %d users, want %d", len(got), len(want))
+	}
+
+	if got[0].ID != want[0].ID {
+		t.Fatalf("getInactiveUsers()[0].ID = %d want %d", got[0].ID, want[0].ID)
 	}
 }
 

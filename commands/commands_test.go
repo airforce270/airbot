@@ -33,6 +33,7 @@ type testCase struct {
 	input     *base.IncomingMessage
 	apiResp   string
 	runBefore []func() error
+	runAfter  []func() error
 	want      []*base.Message
 }
 
@@ -1022,8 +1023,12 @@ func TestCommands(t *testing.T) {
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			runBefore: []func() error{
+				deleteAllGambaTransactions,
 				setRandValueTo1,
 				add50PointsToUser1,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
 			},
 			want: []*base.Message{
 				{
@@ -1050,8 +1055,12 @@ func TestCommands(t *testing.T) {
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			runBefore: []func() error{
+				deleteAllGambaTransactions,
 				setRandValueTo0,
 				add50PointsToUser1,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
 			},
 			want: []*base.Message{
 				{
@@ -1076,8 +1085,12 @@ func TestCommands(t *testing.T) {
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			runBefore: []func() error{
+				deleteAllGambaTransactions,
 				setRandValueTo1,
 				add50PointsToUser1,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
 			},
 			want: []*base.Message{
 				{
@@ -1102,6 +1115,7 @@ func TestCommands(t *testing.T) {
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			runBefore: []func() error{
+				deleteAllGambaTransactions,
 				setRandValueTo0,
 				add50PointsToUser1,
 			},
@@ -1598,6 +1612,12 @@ func TestCommands(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
+			for i, f := range tc.runAfter {
+				if err := f(); err != nil {
+					t.Fatalf("runAfter[%d] func failed: %v", i, err)
+				}
+			}
+
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Errorf("Handle() diff (-want +got):\n%s", diff)
 			}
@@ -1757,10 +1777,21 @@ func setRandValueTo1() error {
 	return nil
 }
 
+func waitForTransactionsToSettle() error {
+	time.Sleep(time.Duration(50) * time.Millisecond)
+	return nil
+}
+
+func deleteAllGambaTransactions() error {
+	db := databasetest.NewFakeDBConn()
+	result := db.Where("1=1").Delete(&models.GambaTransaction{})
+	return result.Error
+}
+
 func add50PointsToUser1() error {
 	db := databasetest.NewFakeDBConn()
 	var user models.User
-	result := db.FirstOrCreate(&user, models.User{
+	result := db.First(&user, models.User{
 		TwitchID:   "user1",
 		TwitchName: "user1",
 	})
