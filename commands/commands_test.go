@@ -58,6 +58,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -91,7 +92,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			apiResp: twitchtest.GetChannelInformationResp,
 			want: []*base.Message{
@@ -116,7 +117,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			apiResp:   twitchtest.GetChannelInformationResp,
 			runBefore: []func() error{joinOtherUser1},
@@ -151,7 +152,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
-				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			apiResp: twitchtest.GetChannelInformationResp,
 			want: []*base.Message{
@@ -176,7 +177,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
-				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			apiResp:   twitchtest.GetChannelInformationResp,
 			runBefore: []func() error{joinOtherUser1},
@@ -198,7 +199,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
-				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			runBefore: []func() error{joinOtherUser1},
 			want: []*base.Message{
@@ -233,7 +234,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Admin,
-				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			apiResp:   twitchtest.GetChannelInformationResp,
 			runBefore: []func() error{joinOtherUser1},
@@ -269,7 +270,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
-				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			apiResp:   twitchtest.GetChannelInformationResp,
 			runBefore: []func() error{joinOtherUser1},
@@ -291,7 +292,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
-				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -325,7 +326,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
-				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -365,7 +366,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -385,6 +386,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -404,6 +406,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -439,6 +442,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "??",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -477,6 +481,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -499,6 +504,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Mod,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			apiResp: pastebintest.MultiLineFetchPasteResp,
 			want: []*base.Message{
@@ -542,6 +548,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Mod,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			apiResp: pastebintest.MultiLineFetchPasteResp,
 			want: []*base.Message{
@@ -564,6 +571,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -583,6 +591,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -602,6 +611,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Mod,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -643,6 +653,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Mod,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -694,6 +705,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Mod,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -727,6 +739,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -746,6 +759,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			want: nil,
 		}),
@@ -760,6 +774,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -783,6 +798,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			apiResp: bibletest.LookupVerseSingleVerse1Resp,
 			want: []*base.Message{
@@ -805,6 +821,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			apiResp: bibletest.LookupVerseSingleVerse2Resp,
 			want: []*base.Message{
@@ -827,6 +844,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			want: nil,
 		}),
@@ -841,7 +859,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -861,7 +879,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -881,7 +899,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -901,7 +919,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -927,7 +945,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			runBefore: []func() error{
 				add50PointsToUser1,
@@ -952,7 +970,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			runBefore: []func() error{
 				add50PointsToUser1,
@@ -977,7 +995,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -1001,7 +1019,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			runBefore: []func() error{
 				setRandValueTo1,
@@ -1029,7 +1047,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			runBefore: []func() error{
 				setRandValueTo0,
@@ -1055,7 +1073,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			runBefore: []func() error{
 				setRandValueTo1,
@@ -1081,7 +1099,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			runBefore: []func() error{
 				setRandValueTo0,
@@ -1107,7 +1125,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDB()),
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -1132,6 +1150,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			apiResp: ivrtest.TwitchUsersBannedResp,
 			want: []*base.Message{
@@ -1152,6 +1171,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			apiResp: ivrtest.TwitchUsersNotStreamingResp,
 			want: []*base.Message{
@@ -1172,6 +1192,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			apiResp: twitchtest.GetChannelInformationResp,
 			want: []*base.Message{
@@ -1192,11 +1213,12 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			apiResp: ivrtest.FoundersNormalResp,
 			want: []*base.Message{
 				{
-					Text:    "user1's founders are: FishyyKingyy, eljulidi1337, SamMist, Leochansz, lexieuzumaki7, ContraVz, rott______, DankJuicer, kronikZ____, blemplob",
+					Text:    "user2's founders are: FishyyKingyy, eljulidi1337, SamMist, Leochansz, lexieuzumaki7, ContraVz, rott______, DankJuicer, kronikZ____, blemplob",
 					Channel: "user2",
 				},
 			},
@@ -1212,6 +1234,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			apiResp: ivrtest.FoundersNormalResp,
 			want: []*base.Message{
@@ -1232,6 +1255,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			apiResp: ivrtest.FoundersNoneResp,
 			want: []*base.Message{
@@ -1252,6 +1276,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			apiResp: ivrtest.FoundersNone404Resp,
 			want: []*base.Message{
@@ -1272,6 +1297,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -1291,6 +1317,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			want: []*base.Message{
 				{
@@ -1310,11 +1337,12 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			apiResp: ivrtest.ModsAndVIPsModsAndVIPsResp,
 			want: []*base.Message{
 				{
-					Text:    "user1's mods are: StreamElements, Fossabot, spintto, HNoAce",
+					Text:    "user2's mods are: StreamElements, Fossabot, spintto, HNoAce",
 					Channel: "user2",
 				},
 			},
@@ -1330,6 +1358,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			apiResp: ivrtest.ModsAndVIPsModsAndVIPsResp,
 			want: []*base.Message{
@@ -1350,6 +1379,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			apiResp: ivrtest.ModsAndVIPsNoneResp,
 			want: []*base.Message{
@@ -1361,23 +1391,24 @@ func TestCommands(t *testing.T) {
 		}),
 		testCasesWithSameOutput([]string{
 			"$title",
-			"$title otherchannel",
+			"$title user1",
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
-					UserID:  "user1",
-					User:    "user1",
-					Channel: "user2",
+					UserID:  "user2",
+					User:    "user2",
+					Channel: "user1",
 					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			apiResp: twitchtest.GetChannelInformationResp,
 			want: []*base.Message{
 				{
 					Text:    "user1's title: TwitchDevMonthlyUpdate//May6,2021",
-					Channel: "user2",
+					Channel: "user1",
 				},
 			},
 		}),
@@ -1396,6 +1427,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			apiResp: ivrtest.TwitchUsersVerifiedBotResp,
 			want: []*base.Message{
@@ -1418,6 +1450,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			apiResp: ivrtest.TwitchUsersNotVerifiedBotResp,
 			want: []*base.Message{
@@ -1446,6 +1479,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			apiResp: ivrtest.TwitchUsersVerifiedBotResp,
 			want: []*base.Message{
@@ -1470,6 +1504,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			apiResp: ivrtest.TwitchUsersNotVerifiedBotResp,
 			want: []*base.Message{
@@ -1490,11 +1525,12 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			apiResp: ivrtest.ModsAndVIPsModsAndVIPsResp,
 			want: []*base.Message{
 				{
-					Text:    "user1's VIPs are: bakonsword, alyjiahT_T, AVBest, Zaintew_, captkayy, seagrad, Dafkeee",
+					Text:    "user2's VIPs are: bakonsword, alyjiahT_T, AVBest, Zaintew_, captkayy, seagrad, Dafkeee",
 					Channel: "user2",
 				},
 			},
@@ -1510,6 +1546,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			apiResp: ivrtest.ModsAndVIPsModsAndVIPsResp,
 			want: []*base.Message{
@@ -1530,6 +1567,7 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
 			apiResp: ivrtest.ModsAndVIPsNoneResp,
 			want: []*base.Message{
@@ -1588,6 +1626,7 @@ func TestCommands_EnableNonPrefixCommands(t *testing.T) {
 				},
 				Prefix:          "??",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			enableNonPrefixCommands: true,
 			want: []*base.Message{
@@ -1608,6 +1647,7 @@ func TestCommands_EnableNonPrefixCommands(t *testing.T) {
 				},
 				Prefix:          "??",
 				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			enableNonPrefixCommands: false,
 			want:                    nil,
@@ -1690,7 +1730,7 @@ func resetFakes() {
 }
 
 func joinOtherUser1() error {
-	db := databasetest.NewFakeDB()
+	db := databasetest.NewFakeDBConn()
 	handler := Handler{db: db}
 	_, err := handler.Handle(&base.IncomingMessage{
 		Message: base.Message{
@@ -1718,7 +1758,7 @@ func setRandValueTo1() error {
 }
 
 func add50PointsToUser1() error {
-	db := databasetest.NewFakeDB()
+	db := databasetest.NewFakeDBConn()
 	var user models.User
 	result := db.FirstOrCreate(&user, models.User{
 		TwitchID:   "user1",

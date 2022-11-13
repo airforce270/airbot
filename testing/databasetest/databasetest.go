@@ -10,14 +10,36 @@ import (
 )
 
 // NewFakeDB creates a new connection to the in-memory database for testing.
-func NewFakeDB() *gorm.DB {
+func NewFakeDBConn() *gorm.DB {
 	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"))
 	if err != nil {
 		panic(err)
 	}
-	for _, m := range models.AllModels {
-		db.Migrator().DropTable(&m)
-	}
-	database.Migrate(db)
 	return db
+}
+
+// NewFakeDB creates a new connection to the in-memory database for testing.
+func NewFakeDB() *gorm.DB {
+	db := NewFakeDBConn()
+
+	for _, m := range models.AllModels {
+		if err := db.Migrator().DropTable(&m); err != nil {
+			panic(err)
+		}
+	}
+
+	database.Migrate(db)
+
+	for _, user := range []string{"user1", "user2", "user3"} {
+		if err := seedTwitchUser(db, user); err != nil {
+			panic(err)
+		}
+	}
+
+	return db
+}
+
+func seedTwitchUser(db *gorm.DB, user string) error {
+	result := db.Create(&models.User{TwitchID: user, TwitchName: user})
+	return result.Error
 }

@@ -2,6 +2,7 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -91,21 +92,25 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.Message, error) {
 		}
 
 		user, err := msg.Platform.User(msg.Message.User)
-		if err != nil {
+		if err != nil && !errors.Is(err, base.ErrUserUnknown) {
 			return nil, fmt.Errorf("failed to fetch user %q: %v", msg.Message.User, err)
 		}
 		userCooldown := models.UserCommandCooldown{}
-		dbResult = h.db.FirstOrCreate(&userCooldown, models.UserCommandCooldown{
-			UserID:  user.ID,
-			User:    user,
-			Command: command.Name,
-		})
-		if dbResult.Error != nil {
-			return nil, fmt.Errorf("[%s] failed to get/create user cooldown for user %q, command %q", msg.Platform.Name(), msg.Message.User, command.Name)
-		}
-		if command.UserCooldown > time.Since(userCooldown.LastRun) {
-			log.Printf("Skipping %s%s: user cooldown is %s but it has only been %s", msg.Prefix, command.Name, command.UserCooldown, time.Since(userCooldown.LastRun))
-			continue
+		shouldSetUserCooldown := false
+		if err == nil && errors.Is(err, base.ErrUserUnknown) {
+			shouldSetUserCooldown = true
+			dbResult = h.db.FirstOrCreate(&userCooldown, models.UserCommandCooldown{
+				UserID:  user.ID,
+				User:    user,
+				Command: command.Name,
+			})
+			if dbResult.Error != nil {
+				return nil, fmt.Errorf("[%s] failed to get/create user cooldown for user %q, command %q", msg.Platform.Name(), msg.Message.User, command.Name)
+			}
+			if command.UserCooldown > time.Since(userCooldown.LastRun) {
+				log.Printf("Skipping %s%s: user cooldown is %s but it has only been %s", msg.Prefix, command.Name, command.UserCooldown, time.Since(userCooldown.LastRun))
+				continue
+			}
 		}
 
 		respMsgs, err := command.Handler(msg)
@@ -117,8 +122,10 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.Message, error) {
 
 		channelCooldown.LastRun = time.Now()
 		h.db.Save(&channelCooldown)
-		userCooldown.LastRun = time.Now()
-		h.db.Save(&userCooldown)
+		if shouldSetUserCooldown {
+			userCooldown.LastRun = time.Now()
+			h.db.Save(&userCooldown)
+		}
 	}
 	return outMsgs, nil
 }
