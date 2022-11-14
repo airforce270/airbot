@@ -28,12 +28,6 @@ jobs:
       - name: Run coverage
         run: go test -race -coverprofile=coverage.txt -covermode=atomic ./... -coverpkg ./...
 
-      - name: Upload to codecov
-        uses: codecov/codecov-action@v3.1.1
-        with:
-          fail_ci_if_error: false
-          verbose: true
-
   build-docker:
     runs-on: ubuntu-latest
     steps:
