@@ -156,6 +156,22 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 ## Gamba
 
+### $accept
+
+- Accepts a duel.
+- > Usage: `$accept`
+
+### $decline
+
+- Declines a duel.
+- > Usage: `$decline`
+
+### $duel
+
+- Duels another chatter. They have 30 seconds to accept or decline.
+- > Usage: `$points <user>`
+- > Per-user cooldown: `5s`
+
 ### $points
 
 - Checks how many points you have.

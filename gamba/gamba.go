@@ -3,6 +3,7 @@ package gamba
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"golang.org/x/exp/slices"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var (
@@ -51,6 +53,26 @@ func (g grant) Persist(db *gorm.DB) error {
 		return result.Error
 	}
 	return nil
+}
+
+// HasOutboundPendingDuels returns the user's outbound pending duels.
+func HasOutboundPendingDuels(user *models.User, db *gorm.DB) (bool, error) {
+	var duels []models.Duel
+	result := db.Where(models.Duel{UserID: user.ID}).Find(&duels)
+	if result.Error != nil {
+		return false, fmt.Errorf("failed to retrieve pending outbound duels for user %d: %w", user.ID, result.Error)
+	}
+	return len(duels) != 0, nil
+}
+
+// InboundPendingDuels returns the user's inbound pending duels.
+func InboundPendingDuels(user *models.User, expire time.Duration, db *gorm.DB) ([]models.Duel, error) {
+	var duels []models.Duel
+	result := db.Where("target_id = ? AND created_at >= ?", user.ID, time.Now().Add(-expire)).Preload(clause.Associations).Find(&duels)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to retrieve pending inbound duels for user %d: %w", user.ID, result.Error)
+	}
+	return duels, nil
 }
 
 // grantPoints performs a single point grant to all active and inactive users.

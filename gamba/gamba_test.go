@@ -21,6 +21,112 @@ import (
 	"gorm.io/gorm"
 )
 
+func TestHasOutboundPendingDuels(t *testing.T) {
+	db := databasetest.NewFakeDB()
+	db.Where("1 = 1").Delete(&models.Duel{})
+
+	var user1 models.User
+	result := db.First(&user1, models.User{
+		TwitchID:   "user1",
+		TwitchName: "user1",
+	})
+	if result.Error != nil {
+		t.Fatalf("failed to find user1: %v", result.Error)
+	}
+
+	tests := []struct {
+		desc      string
+		runBefore []func() error
+		want      bool
+	}{
+		{
+			desc:      "no outbound pending duels",
+			runBefore: nil,
+			want:      false,
+		},
+		{
+			desc: "has outbound pending duels",
+			runBefore: []func() error{
+				add50PointsToUser1,
+				add50PointsToUser2,
+				startDuel,
+			},
+			want: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.desc, func(t *testing.T) {
+			for i, f := range tc.runBefore {
+				if err := f(); err != nil {
+					t.Fatalf("runBefore[%d] failed: %v", i, err)
+				}
+			}
+
+			got, err := HasOutboundPendingDuels(&user1, db)
+			if err != nil {
+				t.Fatalf("HasOutboundPendingDuels() unexpected err: %v", err)
+			}
+			if got != tc.want {
+				t.Errorf("HasOutboundPendingDuels() = %t, want %t", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestInboundPendingDuels(t *testing.T) {
+	db := databasetest.NewFakeDB()
+	db.Where("1 = 1").Delete(&models.Duel{})
+
+	var user2 models.User
+	result := db.First(&user2, models.User{
+		TwitchID:   "user2",
+		TwitchName: "user2",
+	})
+	if result.Error != nil {
+		t.Fatalf("failed to find user2: %v", result.Error)
+	}
+
+	tests := []struct {
+		desc      string
+		runBefore []func() error
+		want      int
+	}{
+		{
+			desc:      "no inbound pending duels",
+			runBefore: nil,
+			want:      0,
+		},
+		{
+			desc: "has inbound pending duels",
+			runBefore: []func() error{
+				add50PointsToUser1,
+				add50PointsToUser2,
+				startDuel,
+			},
+			want: 1,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.desc, func(t *testing.T) {
+			for i, f := range tc.runBefore {
+				if err := f(); err != nil {
+					t.Fatalf("runBefore[%d] failed: %v", i, err)
+				}
+			}
+
+			got, err := InboundPendingDuels(&user2, time.Duration(30)*time.Second, db)
+			if err != nil {
+				t.Fatalf("InboundPendingDuels() unexpected err: %v", err)
+			}
+			if len(got) != tc.want {
+				t.Errorf("InboundPendingDuels() len = %d, want %d", len(got), tc.want)
+			}
+		})
+	}
+}
+
 func TestGrantPoints(t *testing.T) {
 	db := databasetest.NewFakeDB()
 	server := newTestServer()
@@ -304,6 +410,74 @@ func TestDeduplicateByUser(t *testing.T) {
 			}
 		})
 	}
+}
+
+func startDuel() error {
+	db := databasetest.NewFakeDBConn()
+	var user1, user2 models.User
+	result := db.First(&user1, models.User{
+		TwitchID:   "user1",
+		TwitchName: "user1",
+	})
+	if result.Error != nil {
+		return fmt.Errorf("failed to find user1: %v", result.Error)
+	}
+	result = db.First(&user2, models.User{
+		TwitchID:   "user2",
+		TwitchName: "user2",
+	})
+	if result.Error != nil {
+		return fmt.Errorf("failed to find user2: %v", result.Error)
+	}
+	result = db.Create(&models.Duel{
+		UserID:   user1.ID,
+		User:     user1,
+		TargetID: user2.ID,
+		Target:   user2,
+		Amount:   25,
+		Pending:  true,
+		Accepted: false,
+	})
+	return result.Error
+}
+
+func add50PointsToUser1() error {
+	db := databasetest.NewFakeDBConn()
+	var user models.User
+	result := db.First(&user, models.User{
+		TwitchID:   "user1",
+		TwitchName: "user1",
+	})
+	if result.Error != nil {
+		return fmt.Errorf("failed to find user1: %v", result.Error)
+	}
+	return add50PointsToUser(user, db)
+}
+
+func add50PointsToUser2() error {
+	db := databasetest.NewFakeDBConn()
+	var user models.User
+	result := db.First(&user, models.User{
+		TwitchID:   "user2",
+		TwitchName: "user2",
+	})
+	if result.Error != nil {
+		return fmt.Errorf("failed to find/create user2: %v", result.Error)
+	}
+	return add50PointsToUser(user, db)
+}
+
+func add50PointsToUser(user models.User, db *gorm.DB) error {
+	txn := models.GambaTransaction{
+		Game:  "FAKE - TEST",
+		User:  user,
+		Delta: 50,
+	}
+	result := db.Create(&txn)
+	if result.Error != nil {
+		return fmt.Errorf("failed to insert gamba transaction: %v", result.Error)
+	}
+	return nil
 }
 
 func newTestServer() *httptest.Server {

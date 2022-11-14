@@ -931,6 +931,399 @@ func TestCommands(t *testing.T) {
 		}),
 
 		// gamba.go commands
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$accept",
+					UserID:  "user2",
+					User:    "user2",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+				setRandValueTo1,
+				add50PointsToUser1,
+				add50PointsToUser2,
+				startDuel,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "user1 won the duel with user2 and wins 25 points!",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$accept",
+					UserID:  "user2",
+					User:    "user2",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+				setRandValueTo0,
+				add50PointsToUser1,
+				add50PointsToUser2,
+				startDuel,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "user2 won the duel with user1 and wins 25 points!",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$accept",
+					UserID:  "user2",
+					User:    "user2",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+				setRandValueTo1,
+				add50PointsToUser1,
+				add50PointsToUser2,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "There are no duels pending against you.",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$decline",
+					UserID:  "user2",
+					User:    "user2",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+				setRandValueTo1,
+				add50PointsToUser1,
+				add50PointsToUser2,
+				startDuel,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "Declined duel.",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$decline",
+					UserID:  "user2",
+					User:    "user2",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+				setRandValueTo1,
+				add50PointsToUser1,
+				add50PointsToUser2,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "There are no duels pending against you.",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$duel user2 25",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+				add50PointsToUser1,
+				add50PointsToUser2,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "@user2, user1 has started a duel for 25 points! Type $accept or $decline in the next 30 seconds!",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$duel user2 25",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+				add50PointsToUser2,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "You don't have enough points for that duel (you have 0 points)",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$duel user2 25",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+				add50PointsToUser1,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "user2 don't have enough points for that duel (they have 0 points)",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$duel user2 25",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+				add50PointsToUser1,
+				add50PointsToUser2,
+				startDuel,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "You already have a duel pending.",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$duel user2 25",
+					UserID:  "user3",
+					User:    "user3",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+				add50PointsToUser1,
+				add50PointsToUser2,
+				add50PointsToUser3,
+				startDuel,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "That chatter already has a duel pending.",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$duel",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "Usage: $points <user>",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$duel user2",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "Usage: $points <user>",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$duel user1 10",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "You can't duel yourself Pepega",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$duel user2 0",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "You must duel at least 1 point.",
+					Channel: "user2",
+				},
+			},
+		}),
 		testCasesWithSameOutput([]string{
 			"$points",
 			"$points user1",
@@ -1788,6 +2181,35 @@ func deleteAllGambaTransactions() error {
 	return result.Error
 }
 
+func startDuel() error {
+	db := databasetest.NewFakeDBConn()
+	var user1, user2 models.User
+	result := db.First(&user1, models.User{
+		TwitchID:   "user1",
+		TwitchName: "user1",
+	})
+	if result.Error != nil {
+		return fmt.Errorf("failed to find user1: %v", result.Error)
+	}
+	result = db.First(&user2, models.User{
+		TwitchID:   "user2",
+		TwitchName: "user2",
+	})
+	if result.Error != nil {
+		return fmt.Errorf("failed to find user2: %v", result.Error)
+	}
+	result = db.Create(&models.Duel{
+		UserID:   user1.ID,
+		User:     user1,
+		TargetID: user2.ID,
+		Target:   user2,
+		Amount:   25,
+		Pending:  true,
+		Accepted: false,
+	})
+	return result.Error
+}
+
 func add50PointsToUser1() error {
 	db := databasetest.NewFakeDBConn()
 	var user models.User
@@ -1796,14 +2218,44 @@ func add50PointsToUser1() error {
 		TwitchName: "user1",
 	})
 	if result.Error != nil {
-		return fmt.Errorf("failed to find/create user: %v", result.Error)
+		return fmt.Errorf("failed to find user1: %v", result.Error)
 	}
+	return add50PointsToUser(user, db)
+}
+
+func add50PointsToUser2() error {
+	db := databasetest.NewFakeDBConn()
+	var user models.User
+	result := db.First(&user, models.User{
+		TwitchID:   "user2",
+		TwitchName: "user2",
+	})
+	if result.Error != nil {
+		return fmt.Errorf("failed to find/create user2: %v", result.Error)
+	}
+	return add50PointsToUser(user, db)
+}
+
+func add50PointsToUser3() error {
+	db := databasetest.NewFakeDBConn()
+	var user models.User
+	result := db.First(&user, models.User{
+		TwitchID:   "user3",
+		TwitchName: "user3",
+	})
+	if result.Error != nil {
+		return fmt.Errorf("failed to find/create user3: %v", result.Error)
+	}
+	return add50PointsToUser(user, db)
+}
+
+func add50PointsToUser(user models.User, db *gorm.DB) error {
 	txn := models.GambaTransaction{
 		Game:  "FAKE - TEST",
 		User:  user,
 		Delta: 50,
 	}
-	result = db.Create(&txn)
+	result := db.Create(&txn)
 	if result.Error != nil {
 		return fmt.Errorf("failed to insert gamba transaction: %v", result.Error)
 	}

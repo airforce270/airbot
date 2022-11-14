@@ -11,6 +11,7 @@ import (
 var AllModels = []any{
 	BotBan{},
 	ChannelCommandCooldown{},
+	Duel{},
 	GambaTransaction{},
 	JoinedChannel{},
 	Message{},
@@ -40,6 +41,28 @@ type ChannelCommandCooldown struct {
 	Command string
 	// LastRun is when the command was last run in the channel.
 	LastRun time.Time
+}
+
+// Duel represents a gamba duel.
+type Duel struct {
+	gorm.Model
+
+	// UserID is the ID of the user that initiated the duel.
+	UserID uint
+	// User is the user that initiated the duel.
+	User User
+	// TargetID is the ID of the target of the duel.
+	TargetID uint
+	// Target is the target of the duel.
+	Target User
+	// Amount is the amount duelled.
+	Amount int64
+	// Pending is whether the duel is pending.
+	Pending bool
+	// Accepted is whether the target user has accepted the duel.
+	Accepted bool
+	// Won is whether the user won the duel.
+	Won bool
 }
 
 // GambaTransaction represents a single gamba transaction.
