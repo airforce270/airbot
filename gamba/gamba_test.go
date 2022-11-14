@@ -37,12 +37,12 @@ func TestHasOutboundPendingDuels(t *testing.T) {
 	tests := []struct {
 		desc      string
 		runBefore []func() error
-		want      bool
+		want      int
 	}{
 		{
 			desc:      "no outbound pending duels",
 			runBefore: nil,
-			want:      false,
+			want:      0,
 		},
 		{
 			desc: "has outbound pending duels",
@@ -51,7 +51,7 @@ func TestHasOutboundPendingDuels(t *testing.T) {
 				add50PointsToUser2,
 				startDuel,
 			},
-			want: true,
+			want: 1,
 		},
 	}
 
@@ -63,12 +63,12 @@ func TestHasOutboundPendingDuels(t *testing.T) {
 				}
 			}
 
-			got, err := HasOutboundPendingDuels(&user1, db)
+			got, err := OutboundPendingDuels(&user1, time.Duration(30)*time.Second, db)
 			if err != nil {
-				t.Fatalf("HasOutboundPendingDuels() unexpected err: %v", err)
+				t.Fatalf("OutboundPendingDuels() unexpected err: %v", err)
 			}
-			if got != tc.want {
-				t.Errorf("HasOutboundPendingDuels() = %t, want %t", got, tc.want)
+			if len(got) != tc.want {
+				t.Errorf("OutboundPendingDuels() len = %d, want %d", len(got), tc.want)
 			}
 		})
 	}

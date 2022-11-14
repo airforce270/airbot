@@ -55,14 +55,14 @@ func (g grant) Persist(db *gorm.DB) error {
 	return nil
 }
 
-// HasOutboundPendingDuels returns the user's outbound pending duels.
-func HasOutboundPendingDuels(user *models.User, db *gorm.DB) (bool, error) {
+// OutbboundPendingDuels returns the user's inbound pending duels.
+func OutboundPendingDuels(user *models.User, expire time.Duration, db *gorm.DB) ([]models.Duel, error) {
 	var duels []models.Duel
-	result := db.Where(models.Duel{UserID: user.ID}).Find(&duels)
+	result := db.Where("user_id = ? AND created_at >= ?", user.ID, time.Now().Add(-expire)).Preload(clause.Associations).Find(&duels)
 	if result.Error != nil {
-		return false, fmt.Errorf("failed to retrieve pending outbound duels for user %d: %w", user.ID, result.Error)
+		return nil, fmt.Errorf("failed to retrieve pending outbound duels for user %d: %w", user.ID, result.Error)
 	}
-	return len(duels) != 0, nil
+	return duels, nil
 }
 
 // InboundPendingDuels returns the user's inbound pending duels.

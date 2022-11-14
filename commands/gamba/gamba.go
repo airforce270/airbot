@@ -53,11 +53,9 @@ var (
 		Handler:    decline,
 	}
 
-	duelPendingSecs     = 30
-	duelPendingDuration = time.Duration(duelPendingSecs) * time.Second
-	duelCommandPattern  = basecommand.PrefixPattern("duel")
-	duelCommandUsage    = "$points <user>"
-	duelCommand         = basecommand.Command{
+	duelCommandPattern = basecommand.PrefixPattern("duel")
+	duelCommandUsage   = "$points <user>"
+	duelCommand        = basecommand.Command{
 		Name:         "duel",
 		Help:         fmt.Sprintf("Duels another chatter. They have %d seconds to accept or decline.", duelPendingSecs),
 		Usage:        duelCommandUsage,
@@ -95,6 +93,11 @@ var (
 		Handler:        roulette,
 	}
 	roulettePattern = regexp.MustCompile(rouletteCommandPattern.String() + `(all|\d+%|\d+).*`)
+)
+
+const (
+	duelPendingSecs     = 30
+	duelPendingDuration = time.Duration(duelPendingSecs) * time.Second
 )
 
 func accept(msg *base.IncomingMessage) ([]*base.Message, error) {
@@ -312,31 +315,33 @@ func duel(msg *base.IncomingMessage) ([]*base.Message, error) {
 		}, nil
 	}
 
-	var currentPendingDuels []models.Duel
-	result := db.Where(models.Duel{Pending: true}).Find(&currentPendingDuels)
-	if result.Error != nil {
-		return nil, fmt.Errorf("failed to retrieve current pending duels: %w", result.Error)
+	outboundPendingDuels, err := gamba.OutboundPendingDuels(&user, duelPendingDuration, db)
+	if err != nil {
+		return nil, err
 	}
-	for _, currentPendingDuel := range currentPendingDuels {
-		if currentPendingDuel.UserID == user.ID {
-			return []*base.Message{
-				{
-					Channel: msg.Message.Channel,
-					Text:    "You already have a duel pending.",
-				},
-			}, nil
-		}
-		if currentPendingDuel.TargetID == targetUser.ID {
-			return []*base.Message{
-				{
-					Channel: msg.Message.Channel,
-					Text:    "That chatter already has a duel pending.",
-				},
-			}, nil
-		}
+	if len(outboundPendingDuels) > 0 {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "You already have a duel pending.",
+			},
+		}, nil
 	}
 
-	result = db.Create(&models.Duel{
+	inboundPendingDuels, err := gamba.InboundPendingDuels(&targetUser, duelPendingDuration, db)
+	if err != nil {
+		return nil, err
+	}
+	if len(inboundPendingDuels) > 0 {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "That chatter already has a duel pending.",
+			},
+		}, nil
+	}
+
+	result := db.Create(&models.Duel{
 		UserID:   user.ID,
 		User:     user,
 		TargetID: targetUser.ID,
