@@ -69,28 +69,28 @@ var (
 
 	pointsCommandPattern = basecommand.PrefixPattern("(?:p(?: |$)|points)")
 	pointsCommand        = basecommand.Command{
-		Name:           "points",
-		AlternateNames: []string{"p"},
-		Help:           "Checks how many points you have.",
-		Usage:          "$points [user]",
-		Permission:     permission.Normal,
-		PrefixOnly:     true,
-		Pattern:        pointsCommandPattern,
-		Handler:        points,
+		Name:       "points",
+		Aliases:    []string{"p"},
+		Help:       "Checks how many points you have.",
+		Usage:      "$points [user]",
+		Permission: permission.Normal,
+		PrefixOnly: true,
+		Pattern:    pointsCommandPattern,
+		Handler:    points,
 	}
 	pointsPattern = regexp.MustCompile(pointsCommandPattern.String() + `@?(\w+).*`)
 
 	rouletteCommandPattern = basecommand.PrefixPattern("(?:r(?: |$)|roulette)")
 	rouletteCommand        = basecommand.Command{
-		Name:           "roulette",
-		AlternateNames: []string{"r"},
-		Help:           "Roulettes some points.",
-		Usage:          "$roulette <amount|percent%|all>",
-		Permission:     permission.Normal,
-		UserCooldown:   time.Duration(5) * time.Second,
-		PrefixOnly:     true,
-		Pattern:        rouletteCommandPattern,
-		Handler:        roulette,
+		Name:         "roulette",
+		Aliases:      []string{"r"},
+		Help:         "Roulettes some points.",
+		Usage:        "$roulette <amount|percent%|all>",
+		Permission:   permission.Normal,
+		UserCooldown: time.Duration(5) * time.Second,
+		PrefixOnly:   true,
+		Pattern:      rouletteCommandPattern,
+		Handler:      roulette,
 	}
 	roulettePattern = regexp.MustCompile(rouletteCommandPattern.String() + `(all|\d+%|\d+).*`)
 )

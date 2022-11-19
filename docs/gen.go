@@ -38,7 +38,7 @@ var (
 	}
 
 	funcs = map[string]any{
-		"formatAlternateNames": func(strs []string) string {
+		"formatAliases": func(strs []string) string {
 			var joined []string
 			for _, str := range strs {
 				joined = append(joined, fmt.Sprintf("`$%s`", str))

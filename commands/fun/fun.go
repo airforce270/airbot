@@ -27,14 +27,14 @@ var Commands = [...]basecommand.Command{
 var (
 	bibleVerseCommandPattern = basecommand.PrefixPattern(`(?:bibleverse|bv)`)
 	bibleVerseCommand        = basecommand.Command{
-		Name:           "bibleverse",
-		AlternateNames: []string{"bv"},
-		Help:           "Looks up a bible verse.",
-		Usage:          "$bibleverse <book> <chapter:verse>",
-		Permission:     permission.Normal,
-		PrefixOnly:     true,
-		Pattern:        bibleVerseCommandPattern,
-		Handler:        bibleVerse,
+		Name:       "bibleverse",
+		Aliases:    []string{"bv"},
+		Help:       "Looks up a bible verse.",
+		Usage:      "$bibleverse <book> <chapter:verse>",
+		Permission: permission.Normal,
+		PrefixOnly: true,
+		Pattern:    bibleVerseCommandPattern,
+		Handler:    bibleVerse,
 	}
 	bibleVersePattern = regexp.MustCompile(bibleVerseCommandPattern.String() + `(.*)`)
 

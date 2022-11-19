@@ -33,14 +33,14 @@ const maxUsersPerMessage = 15
 var (
 	banReasonCommandPattern = basecommand.PrefixPattern("(?:banreason|br)")
 	banReasonCommand        = basecommand.Command{
-		Name:           "banreason",
-		AlternateNames: []string{"br"},
-		Help:           "Replies with the reason someone was banned on Twitch.",
-		Usage:          "$banreason <user>",
-		PrefixOnly:     true,
-		Permission:     permission.Normal,
-		Pattern:        banReasonCommandPattern,
-		Handler:        banReason,
+		Name:       "banreason",
+		Aliases:    []string{"br"},
+		Help:       "Replies with the reason someone was banned on Twitch.",
+		Usage:      "$banreason <user>",
+		PrefixOnly: true,
+		Permission: permission.Normal,
+		Pattern:    banReasonCommandPattern,
+		Handler:    banReason,
 	}
 	banReasonPattern = regexp.MustCompile(banReasonCommandPattern.String() + `@?(\w+).*`)
 
@@ -118,27 +118,27 @@ var (
 
 	verifiedBotCommandPattern = regexp.MustCompile(`\s*(?:verifiedbot|vb)(?:\s+|$)`)
 	verifiedBotCommand        = basecommand.Command{
-		Name:           "verifiedbot",
-		AlternateNames: []string{"vb"},
-		Help:           "Replies whether a user is a verified bot.",
-		Usage:          "$verifiedbot [user]",
-		Permission:     permission.Normal,
-		PrefixOnly:     true,
-		Pattern:        verifiedBotCommandPattern,
-		Handler:        verifiedBot,
+		Name:       "verifiedbot",
+		Aliases:    []string{"vb"},
+		Help:       "Replies whether a user is a verified bot.",
+		Usage:      "$verifiedbot [user]",
+		Permission: permission.Normal,
+		PrefixOnly: true,
+		Pattern:    verifiedBotCommandPattern,
+		Handler:    verifiedBot,
 	}
 	verifiedBotPattern = regexp.MustCompile(verifiedBotCommandPattern.String() + `@?(\w+).*`)
 
 	verifiedBotQuietCommandPattern = basecommand.PrefixPattern(`(?:verifiedbot|vb)(?:q(?:uiet)?)`)
 	verifiedBotQuietCommand        = basecommand.Command{
-		Name:           "verifiedbotquiet",
-		AlternateNames: []string{"vbq"},
-		Help:           "Replies whether a user is a verified bot, but responds quietly.",
-		Usage:          "$verifiedbotquiet [user]",
-		Permission:     permission.Normal,
-		PrefixOnly:     true,
-		Pattern:        verifiedBotQuietCommandPattern,
-		Handler:        verifiedBotQuiet,
+		Name:       "verifiedbotquiet",
+		Aliases:    []string{"vbq"},
+		Help:       "Replies whether a user is a verified bot, but responds quietly.",
+		Usage:      "$verifiedbotquiet [user]",
+		Permission: permission.Normal,
+		PrefixOnly: true,
+		Pattern:    verifiedBotQuietCommandPattern,
+		Handler:    verifiedBotQuiet,
 	}
 	verifiedBotQuietPattern = regexp.MustCompile(verifiedBotQuietCommandPattern.String() + `@?(\w+).*`)
 

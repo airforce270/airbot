@@ -24,14 +24,14 @@ import (
 // Commands contains this package's commands.
 var Commands = [...]basecommand.Command{
 	{
-		Name:           "botinfo",
-		AlternateNames: []string{"bot", "info", "about"},
-		Help:           "Replies with info about the bot.",
-		Usage:          "$botinfo",
-		Permission:     permission.Normal,
-		PrefixOnly:     false,
-		Pattern:        basecommand.PrefixPattern("bot$|info$|botinfo$|about$"),
-		Handler:        botinfo,
+		Name:       "botinfo",
+		Aliases:    []string{"bot", "info", "about"},
+		Help:       "Replies with info about the bot.",
+		Usage:      "$botinfo",
+		Permission: permission.Normal,
+		PrefixOnly: false,
+		Pattern:    basecommand.PrefixPattern("bot$|info$|botinfo$|about$"),
+		Handler:    botinfo,
 	},
 	{
 		Name:       "prefix",

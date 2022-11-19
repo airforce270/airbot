@@ -75,7 +75,7 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 - Replies with info about the bot.
 - > Usage: `$botinfo`
-- > Alternate commands: `$bot`, `$info`, `$about`
+- > Aliases: `$bot`, `$info`, `$about`
 
 ### $prefix
 
@@ -142,7 +142,7 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 - Looks up a bible verse.
 - > Usage: `$bibleverse <book> <chapter:verse>`
-- > Alternate commands: `$bv`
+- > Aliases: `$bv`
 
 ### $cock
 
@@ -176,14 +176,14 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 - Checks how many points you have.
 - > Usage: `$points [user]`
-- > Alternate commands: `$p`
+- > Aliases: `$p`
 
 ### $roulette
 
 - Roulettes some points.
 - > Usage: `$roulette <amount|percent%|all>`
 - > Per-user cooldown: `5s`
-- > Alternate commands: `$r`
+- > Aliases: `$r`
 
 ## Moderation
 
@@ -198,7 +198,7 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 - Replies with the reason someone was banned on Twitch.
 - > Usage: `$banreason <user>`
-- > Alternate commands: `$br`
+- > Aliases: `$br`
 
 ### $currentgame
 
@@ -234,13 +234,13 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 - Replies whether a user is a verified bot.
 - > Usage: `$verifiedbot [user]`
-- > Alternate commands: `$vb`
+- > Aliases: `$vb`
 
 ### $verifiedbotquiet
 
 - Replies whether a user is a verified bot, but responds quietly.
 - > Usage: `$verifiedbotquiet [user]`
-- > Alternate commands: `$vbq`
+- > Aliases: `$vbq`
 
 ### $vips
 

@@ -33,8 +33,8 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 {{- if .UserCooldown }}
 - > Per-user cooldown: `{{ .UserCooldown }}`
 {{- end }}
-{{- if .AlternateNames }}
-- > Alternate commands: {{ formatAlternateNames .AlternateNames }}
+{{- if .Aliases }}
+- > Aliases: {{ formatAliases .Aliases }}
 {{- end }}
 
 {{- end }}{{/* command */}}

@@ -15,8 +15,8 @@ import (
 type Command struct {
 	// Name is the name of the command.
 	Name string
-	// AlternateNames are the alternate names for this command, if any.
-	AlternateNames []string
+	// Aliases are the aliases/alternate names for this command, if any.
+	Aliases []string
 	// Help is the help information for this command.
 	Help string
 	// Usage is the usage information for this command.
