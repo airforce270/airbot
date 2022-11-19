@@ -42,8 +42,8 @@ sudo usermod -aG docker $USER
 
 echo '[Airbot Setup] Creating config files...'
 cp ../.example.env ../.env
-cp ../config/config_example.json ../config.json
+cp ../config/config_example.toml ../config.toml
 
 echo '[Airbot Setup] Setup complete.'
-echo '[Airbot Setup] Fill in the necessary values in config.json and .env, then reboot.'
+echo '[Airbot Setup] Fill in the necessary values in config.toml and .env, then reboot.'
 echo '[Airbot Setup] Then run ./start-prod.sh to start up the bot.'

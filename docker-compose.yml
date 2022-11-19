@@ -33,7 +33,7 @@ services:
       database:
         condition: service_healthy
     volumes:
-      - ./config.json:/go/src/github.com/airforce270/airbot/config.json
+      - ./config.toml:/go/src/github.com/airforce270/airbot/config.toml
 volumes:
   postgres-data:
     name: airbot_postgres-15-data

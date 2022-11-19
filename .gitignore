@@ -16,9 +16,12 @@ __debug_*
 coverage.txt
 
 # Config
-config.json
-.config.json.swp
+config.toml
 .env
 
 # IDEs
 .vscode/
+
+# Legacy
+config.json
+.config.json.swp

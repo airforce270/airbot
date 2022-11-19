@@ -10,4 +10,4 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - ./config.json:/go/src/github.com/airforce270/airbot/config.json
+      - ./config.toml:/go/src/github.com/airforce270/airbot/config.toml

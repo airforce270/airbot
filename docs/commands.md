@@ -5,7 +5,7 @@
 # Commands
 
 All commands assume the `$` prefix, but note that the prefix is configurable
-per-channel (in `config.json`).
+per-channel (in `config.toml`).
 To find out what the prefix is in a channel, ask `what's airbot's prefix?`
 in a chat.
 

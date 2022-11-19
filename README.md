@@ -34,8 +34,8 @@ To run the bot locally:
 
 1. [Install Docker](https://docs.docker.com/get-docker/)
 1. Clone the repository and change into it
-1. Copy `config/config_example.json` to `config.json` in the main directory
-1. Fill in the empty fields in `config.json`, notably API keys and usernames
+1. Copy `config/config_example.toml` to `config.toml` in the main directory
+1. Fill in the empty fields in `config.toml`, notably API keys and usernames
 1. Copy `.example.env` to `.env` in the main directory
 1. Set a value for `POSTGRES_PASSWORD` in `.env`
 1. Run `./start.sh`
@@ -54,7 +54,7 @@ To run in production (on a debian machine):
 1. Clone the repository and change into it
 1. Run `cd scripts`
 1. Run `./setup-vm-debian.sh` to set up the environment
-1. Fill in the empty fields in `config.json`, notably API keys and usernames
+1. Fill in the empty fields in `config.toml`, notably API keys and usernames
 1. Set a value for `POSTGRES_PASSWORD` in `.env`
 1. Reboot the machine
 1. Run `./start-prod.sh` to start the bot

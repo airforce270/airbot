@@ -54,10 +54,10 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 	startListeningForSigterm()
 
-	log.Printf("Reading config from %s...", config.Path)
-	cfg, err := config.Read(config.Path)
+	log.Printf("Reading config from %s...", config.Name)
+	cfg, err := config.Read(config.Name)
 	if err != nil {
-		log.Fatalf("failed to read config from %s: %v", config.Path, err)
+		log.Fatalf("failed to read config from %s: %v", config.Name, err)
 	}
 
 	log.Printf("Connecting to database...")
