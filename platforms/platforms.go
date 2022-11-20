@@ -30,8 +30,8 @@ func Build(cfg *config.Config, db *gorm.DB, cdb *redis.Client) (map[string]base.
 
 // StartHandling starts handling commands coming from the given platform.
 // This function blocks and should be run within a goroutine.
-func StartHandling(p base.Platform, db *gorm.DB, cdb *redis.Client, logIncoming, logOutgoing, enableNonPrefixCommands bool) {
-	handler := commands.NewHandler(db, enableNonPrefixCommands)
+func StartHandling(p base.Platform, db *gorm.DB, cdb *redis.Client, logIncoming, logOutgoing bool) {
+	handler := commands.NewHandler(db)
 	inC := p.Listen()
 
 	outC := make(chan base.Message)

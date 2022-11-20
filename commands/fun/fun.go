@@ -7,7 +7,7 @@ import (
 	"log"
 	"math"
 	"math/big"
-	"regexp"
+	"strings"
 
 	"github.com/airforce270/airbot/apiclients/bible"
 	"github.com/airforce270/airbot/base"
@@ -25,56 +25,41 @@ var Commands = [...]basecommand.Command{
 }
 
 var (
-	bibleVerseCommandPattern = basecommand.PrefixPattern(`(?:bibleverse|bv)`)
-	bibleVerseCommand        = basecommand.Command{
-		Name:       "bibleverse",
-		Aliases:    []string{"bv"},
-		Help:       "Looks up a bible verse.",
-		Usage:      "$bibleverse <book> <chapter:verse>",
+	bibleVerseCommand = basecommand.Command{
+		Name:    "bibleverse",
+		Aliases: []string{"bv"},
+		Help:    "Looks up a bible verse.",
+		Args: []basecommand.Argument{
+			{Name: "book", Required: true},
+			{Name: "chapter:verse", Required: true},
+		},
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    bibleVerseCommandPattern,
 		Handler:    bibleVerse,
 	}
-	bibleVersePattern = regexp.MustCompile(bibleVerseCommandPattern.String() + `(.*)`)
 
-	cockCommandPattern = basecommand.PrefixPattern("cock")
-	cockCommand        = basecommand.Command{
+	cockCommand = basecommand.Command{
 		Name:       "cock",
 		Help:       "Tells you the length :)",
-		Usage:      "$cock [user]",
+		Args:       []basecommand.Argument{{Name: "user", Required: false}},
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    cockCommandPattern,
 		Handler:    cock,
 	}
-	cockPattern = regexp.MustCompile(cockCommandPattern.String() + `(\w+)`)
 
-	iqCommandPattern = basecommand.PrefixPattern("iq")
-	iqCommand        = basecommand.Command{
+	iqCommand = basecommand.Command{
 		Name:       "iq",
 		Help:       "Tells you someone's IQ",
-		Usage:      "$iq [user]",
+		Args:       []basecommand.Argument{{Name: "user", Required: false}},
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    iqCommandPattern,
 		Handler:    iq,
 	}
-	iqPattern = regexp.MustCompile(iqCommandPattern.String() + `(\w+)`)
 )
 
-func bibleVerse(msg *base.IncomingMessage) ([]*base.Message, error) {
-	matches := bibleVersePattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-	if len(matches) < 2 {
-		return nil, nil
+func bibleVerse(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	if len(args) < 2 {
+		return nil, basecommand.ErrReturnUsage
 	}
 
-	verseQuery := matches[1]
-	if verseQuery == "" {
-		return nil, nil
-	}
-
-	verses, err := bible.FetchVerses(verseQuery)
+	verses, err := bible.FetchVerses(strings.Join(args, " "))
 	if err != nil {
 		log.Printf("Failed to look up Bible verses: %v", err)
 		return nil, nil
@@ -90,8 +75,8 @@ func bibleVerse(msg *base.IncomingMessage) ([]*base.Message, error) {
 
 const cockMaxLength = 14
 
-func cock(msg *base.IncomingMessage) ([]*base.Message, error) {
-	target := basecommand.ParseTarget(msg, cockPattern)
+func cock(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	target := basecommand.FirstArgOrUsername(args, msg)
 
 	length, err := rand.Int(base.RandReader, big.NewInt(cockMaxLength+1))
 	if err != nil {
@@ -106,8 +91,8 @@ func cock(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}, nil
 }
 
-func iq(msg *base.IncomingMessage) ([]*base.Message, error) {
-	target := basecommand.ParseTarget(msg, iqPattern)
+func iq(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	target := basecommand.FirstArgOrUsername(args, msg)
 
 	userIqFloat := distuv.Normal{Mu: 100, Sigma: 15, Src: base.RandSource}.Rand()
 	userIq := int64(math.Round(userIqFloat))

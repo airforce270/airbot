@@ -4,7 +4,6 @@ package cache
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/airforce270/airbot/base"
@@ -46,13 +45,11 @@ const (
 // FetchLastSentTwitchMessage retrieves the last sent message on Twitch.
 func FetchLastSentTwitchMessage(cdb *redis.Client) (string, error) {
 	val, err := cdb.Get(context.Background(), lastSentTwitchMessageKey).Result()
-	log.Printf("fetched %s", val)
 	return val, err
 }
 
 // StoreLastSentTwitchMessage stores the last sent message on Twitch.
 func StoreLastSentTwitchMessage(cdb *redis.Client, message string) error {
-	log.Printf("storing %s", message)
 	return cdb.Set(context.Background(), lastSentTwitchMessageKey, message, lastSentTwitchMessageExpiration).Err()
 }
 

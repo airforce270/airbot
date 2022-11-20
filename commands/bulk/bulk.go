@@ -2,9 +2,6 @@
 package bulk
 
 import (
-	"fmt"
-	"regexp"
-
 	"github.com/airforce270/airbot/apiclients/pastebin"
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/commands/basecommand"
@@ -17,30 +14,20 @@ var Commands = [...]basecommand.Command{
 }
 
 var (
-	filesayCommandPattern = basecommand.PrefixPattern("filesay")
-	filesayCommand        = basecommand.Command{
+	filesayCommand = basecommand.Command{
 		Name:       "filesay",
 		Help:       "Runs all commands in a given pastebin file.",
-		Usage:      "$filesay <pastebin raw url>",
-		Pattern:    filesayCommandPattern,
-		Handler:    filesay,
-		PrefixOnly: true,
+		Args:       []basecommand.Argument{{Name: "pastebin raw URL", Required: true}},
 		Permission: permission.Mod,
+		Handler:    filesay,
 	}
-	filesayPattern = regexp.MustCompile(filesayCommandPattern.String() + `(.+)`)
 )
 
-func filesay(msg *base.IncomingMessage) ([]*base.Message, error) {
-	matches := filesayPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-	if len(matches) != 2 {
-		return []*base.Message{
-			{
-				Channel: msg.Message.Channel,
-				Text:    fmt.Sprintf("usage: %sfilesay <pastebin raw url>", msg.Prefix),
-			},
-		}, nil
+func filesay(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	if len(args) == 0 {
+		return nil, basecommand.ErrReturnUsage
 	}
-	pastebinURL := matches[1]
+	pastebinURL := args[0]
 
 	paste, err := pastebin.FetchPaste(pastebinURL)
 	if err != nil {

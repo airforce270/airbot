@@ -4,7 +4,6 @@ package echo
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -19,11 +18,8 @@ var Commands = [...]basecommand.Command{
 	{
 		Name:       "commands",
 		Help:       "Replies with a link to the commands.",
-		Usage:      "$commands",
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    basecommand.PrefixPattern("commands"),
-		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
+		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
@@ -35,11 +31,8 @@ var Commands = [...]basecommand.Command{
 	{
 		Name:       "gn",
 		Help:       "Says good night.",
-		Usage:      "$gn",
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    basecommand.PrefixPattern("gn"),
-		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
+		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
@@ -53,11 +46,8 @@ var Commands = [...]basecommand.Command{
 	{
 		Name:       "TriHard",
 		Help:       "Replies with TriHard 7.",
-		Usage:      "$TriHard",
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    basecommand.PrefixPattern("TriHard"),
-		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
+		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
@@ -76,65 +66,48 @@ const (
 )
 
 var (
-	pyramidCommandPattern = basecommand.PrefixPattern("pyramid")
-	pyramidCommand        = basecommand.Command{
-		Name:            "pyramid",
-		Help:            fmt.Sprintf("Makes a pyramid in chat. Max width %d.", maxPyramidWidth),
-		Usage:           "$pyramid <width> <text>",
+	pyramidCommand = basecommand.Command{
+		Name: "pyramid",
+		Help: fmt.Sprintf("Makes a pyramid in chat. Max width %d.", maxPyramidWidth),
+		Args: []basecommand.Argument{
+			{Name: "width", Required: true},
+			{Name: "text", Required: true},
+		},
 		Permission:      permission.Mod,
 		ChannelCooldown: time.Duration(30) * time.Second,
-		PrefixOnly:      true,
-		Pattern:         pyramidCommandPattern,
 		Handler:         pyramid,
 	}
-	pyramidPattern = regexp.MustCompile(pyramidCommandPattern.String() + `(\d+)\s+(.*)`)
 
-	spamCommandPattern = basecommand.PrefixPattern("spam")
-	spamCommand        = basecommand.Command{
-		Name:            "spam",
-		Help:            fmt.Sprintf("Sends a message many times. Max amount %d.", maxSpamAmount),
-		Usage:           "$spam <count> <text>",
+	spamCommand = basecommand.Command{
+		Name: "spam",
+		Help: fmt.Sprintf("Sends a message many times. Max amount %d.", maxSpamAmount),
+		Args: []basecommand.Argument{
+			{Name: "count", Required: true},
+			{Name: "text", Required: true},
+		},
 		Permission:      permission.Mod,
 		ChannelCooldown: time.Duration(30) * time.Second,
-		PrefixOnly:      true,
-		Pattern:         spamCommandPattern,
 		Handler:         spam,
 	}
-	spamPattern = regexp.MustCompile(spamCommandPattern.String() + `(\d+)\s+(.*)`)
 
-	tuckCommandPattern = basecommand.PrefixPattern("tuck")
-	tuckCommand        = basecommand.Command{
+	tuckCommand = basecommand.Command{
 		Name:       "tuck",
 		Help:       "Tuck someone to bed.",
-		Usage:      "$tuck <user>",
+		Args:       []basecommand.Argument{{Name: "user", Required: true}},
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    tuckCommandPattern,
 		Handler:    tuck,
 	}
-	tuckPattern = regexp.MustCompile(tuckCommandPattern.String() + `(\w+).*`)
 )
 
-func spam(msg *base.IncomingMessage) ([]*base.Message, error) {
-	matches := spamPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-	if len(matches) != 3 {
-		return []*base.Message{
-			{
-				Channel: msg.Message.Channel,
-				Text:    "Usage: $spam <count> <text>",
-			},
-		}, nil
+func spam(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	if len(args) < 2 {
+		return nil, basecommand.ErrReturnUsage
 	}
 
-	count64, err := strconv.ParseInt(matches[1], 10, 32)
+	count64, err := strconv.ParseInt(args[0], 10, 32)
 	if err != nil {
-		log.Printf("Failed to parse %q as int", matches[1])
-		return []*base.Message{
-			{
-				Channel: msg.Message.Channel,
-				Text:    "Usage: $spam <count> <text>",
-			},
-		}, nil
+		log.Printf("Failed to parse %q as int", args[0])
+		return nil, basecommand.ErrReturnUsage
 	}
 	count := int(count64)
 
@@ -147,7 +120,7 @@ func spam(msg *base.IncomingMessage) ([]*base.Message, error) {
 		}, nil
 	}
 
-	text := matches[2]
+	text := strings.Join(args[1:], " ")
 
 	msgsCount := count
 	msgs := make([]*base.Message, msgsCount)
@@ -160,26 +133,15 @@ func spam(msg *base.IncomingMessage) ([]*base.Message, error) {
 	return msgs, nil
 }
 
-func pyramid(msg *base.IncomingMessage) ([]*base.Message, error) {
-	matches := pyramidPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-	if len(matches) != 3 {
-		return []*base.Message{
-			{
-				Channel: msg.Message.Channel,
-				Text:    "Usage: $pyramid <width> <text>",
-			},
-		}, nil
+func pyramid(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	if len(args) < 2 {
+		return nil, basecommand.ErrReturnUsage
 	}
 
-	width64, err := strconv.ParseInt(matches[1], 10, 32)
+	width64, err := strconv.ParseInt(args[0], 10, 32)
 	if err != nil {
-		log.Printf("Failed to parse %q as int", matches[1])
-		return []*base.Message{
-			{
-				Channel: msg.Message.Channel,
-				Text:    "Usage: $pyramid <width> <text>",
-			},
-		}, nil
+		log.Printf("Failed to parse %q as int", args[0])
+		return nil, basecommand.ErrReturnUsage
 	}
 	width := int(width64)
 
@@ -192,7 +154,7 @@ func pyramid(msg *base.IncomingMessage) ([]*base.Message, error) {
 		}, nil
 	}
 
-	text := matches[2]
+	text := strings.Join(args[1:], " ")
 
 	msgsCount := width + width - 1
 	msgs := make([]*base.Message, msgsCount)
@@ -210,16 +172,15 @@ func pyramid(msg *base.IncomingMessage) ([]*base.Message, error) {
 	return msgs, nil
 }
 
-func tuck(msg *base.IncomingMessage) ([]*base.Message, error) {
-	target := basecommand.ParseTarget(msg, tuckPattern)
-	if strings.EqualFold(target, msg.Message.User) {
-		return nil, nil
+func tuck(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	if len(args) == 0 {
+		return nil, basecommand.ErrReturnUsage
 	}
 
 	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
-			Text:    fmt.Sprintf("Bedge %s tucks %s into bed.", msg.Message.User, target),
+			Text:    fmt.Sprintf("Bedge %s tucks %s into bed.", msg.Message.User, args[0]),
 		},
 	}, nil
 }

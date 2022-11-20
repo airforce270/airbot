@@ -19,14 +19,14 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 ### $botslowmode
 
-- Sets the bot to follow a global (per-platform) 1 second slowmode.
-- > Usage: `$botslowmode <on|off>`
+- Sets the bot to follow a global (per-platform) 1 second slowmode. If no argument is provided, checks if slowmode is enabled.
+- > Usage: `$botslowmode [on|off]`
 - > Minimum permission level: `Owner`
 
 ### $echo
 
 - Echoes back whatever is sent.
-- > Usage: `$echo`
+- > Usage: `$echo <anything>`
 - > Minimum permission level: `Owner`
 
 ### $join
@@ -61,7 +61,7 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 ### $setprefix
 
 - Sets the bot's prefix in the channel.
-- > Usage: `$setprefix`
+- > Usage: `$setprefix <prefix>`
 - > Minimum permission level: `Admin`
 
 ## Bot info
@@ -69,13 +69,13 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 ### $help
 
 - Displays help for a command.
-- > Usage: `$help <command>`
+- > Usage: `$help [command]`
 
 ### $botinfo
 
 - Replies with info about the bot.
 - > Usage: `$botinfo`
-- > Aliases: `$bot`, `$info`, `$about`
+- > Aliases: `$bot`, `$info`, `$botinfo`, `$about`, `$ping`
 
 ### $prefix
 
@@ -97,7 +97,7 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 ### $filesay
 
 - Runs all commands in a given pastebin file.
-- > Usage: `$filesay <pastebin raw url>`
+- > Usage: `$filesay <pastebin raw URL>`
 - > Minimum permission level: `Mod`
 
 ## Echo
@@ -169,12 +169,12 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 ### $duel
 
 - Duels another chatter. They have 30 seconds to accept or decline.
-- > Usage: `$points <user>`
+- > Usage: `$duel <user> <amount>`
 - > Per-user cooldown: `5s`
 
 ### $points
 
-- Checks how many points you have.
+- Checks how many points someone has.
 - > Usage: `$points [user]`
 - > Aliases: `$p`
 
@@ -240,7 +240,7 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 - Replies whether a user is a verified bot, but responds quietly.
 - > Usage: `$verifiedbotquiet [user]`
-- > Aliases: `$vbq`
+- > Aliases: `$verifiedbotq`, `$vbquiet`, `$vbq`
 
 ### $vips
 

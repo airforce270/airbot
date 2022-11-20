@@ -34,7 +34,6 @@ func TestParse(t *testing.T) {
 			APIKey:        "you-can-safely-leave-this-as-is",
 			ShouldPingAPI: false,
 		},
-		EnableNonPrefixCommands: true,
 	}
 
 	if diff := cmp.Diff(want, got); diff != "" {

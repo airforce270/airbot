@@ -2,8 +2,6 @@
 log_incoming_messages = true
 # Whether the bot should log outgoing messages.
 log_outgoing_messages = true
-# Whether non-prefix commands should be enabled.
-enable_non_prefix_commands = true
 
 
 # Platform-specific config data.

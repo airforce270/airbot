@@ -418,21 +418,6 @@ func TestCommands(t *testing.T) {
 		}),
 		testCasesWithSameOutput([]string{
 			"??prefix",
-			"prefix",
-			"wats the prefix",
-			"wats the prefix?",
-			"whats the prefix",
-			"what's the prefix",
-			"whats airbot's prefix",
-			"whats af2bot's prefix",
-			"whats the bots prefix",
-			"whats the bot's prefix",
-			"what's the bots prefix",
-			"what's the bot's prefix",
-			"what's the bot's prefix?",
-			"what is the bots prefix",
-			"what is the bot's prefix",
-			"yo what is the bot's prefix bro",
 		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
@@ -554,7 +539,7 @@ func TestCommands(t *testing.T) {
 			apiResp: pastebintest.MultiLineFetchPasteResp,
 			want: []*base.Message{
 				{
-					Text:    "usage: $filesay <pastebin raw url>",
+					Text:    "Usage: $filesay <pastebin raw URL>",
 					Channel: "user2",
 				},
 			},
@@ -762,7 +747,12 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
-			want: nil,
+			want: []*base.Message{
+				{
+					Text:    "Usage: $tuck <user>",
+					Channel: "user2",
+				},
+			},
 		}),
 		singleTestCase(testCase{
 			input: &base.IncomingMessage{
@@ -847,7 +837,12 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
-			want: nil,
+			want: []*base.Message{
+				{
+					Text:    "Usage: $bibleverse <book> <chapter:verse>",
+					Channel: "user2",
+				},
+			},
 		}),
 		singleTestCase(testCase{
 			input: &base.IncomingMessage{
@@ -1241,7 +1236,7 @@ func TestCommands(t *testing.T) {
 			},
 			want: []*base.Message{
 				{
-					Text:    "Usage: $points <user>",
+					Text:    "Usage: $duel <user> <amount>",
 					Channel: "user2",
 				},
 			},
@@ -1267,7 +1262,7 @@ func TestCommands(t *testing.T) {
 			},
 			want: []*base.Message{
 				{
-					Text:    "Usage: $points <user>",
+					Text:    "Usage: $duel <user> <amount>",
 					Channel: "user2",
 				},
 			},
@@ -1546,6 +1541,28 @@ func TestCommands(t *testing.T) {
 		testCasesWithSameOutput([]string{
 			"$br",
 			"$banreason",
+		}, testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			apiResp: ivrtest.TwitchUsersBannedResp,
+			want: []*base.Message{
+				{
+					Text:    "Usage: $banreason <user>",
+					Channel: "user2",
+				},
+			},
+		}),
+		testCasesWithSameOutput([]string{
+			"$br banneduser",
 			"$banreason banneduser",
 		}, testCase{
 			input: &base.IncomingMessage{
@@ -1567,10 +1584,12 @@ func TestCommands(t *testing.T) {
 				},
 			},
 		}),
-		singleTestCase(testCase{
+		testCasesWithSameOutput([]string{
+			"$br nonbanneduser",
+			"$banreason nonbanneduser",
+		}, testCase{
 			input: &base.IncomingMessage{
 				Message: base.Message{
-					Text:    "$banreason nonbanneduser",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -1998,7 +2017,7 @@ func TestCommands(t *testing.T) {
 				}
 			}
 
-			handler := Handler{db: db, nonPrefixCommandsEnabled: true}
+			handler := Handler{db: db}
 			got, err := handler.Handle(tc.input)
 			if err != nil {
 				fmt.Printf("unexpected error: %v\n", err)
@@ -2020,67 +2039,6 @@ func TestCommands(t *testing.T) {
 	}
 
 	config.OSReadFile = os.ReadFile
-}
-
-func TestCommands_EnableNonPrefixCommands(t *testing.T) {
-	tests := []struct {
-		input                   *base.IncomingMessage
-		enableNonPrefixCommands bool
-		want                    []*base.Message
-	}{
-		{
-			input: &base.IncomingMessage{
-				Message: base.Message{
-					Text:    "whats the bots prefix",
-					UserID:  "user1",
-					User:    "user1",
-					Channel: "user2",
-					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
-				},
-				Prefix:          "??",
-				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
-			},
-			enableNonPrefixCommands: true,
-			want: []*base.Message{
-				{
-					Text:    "This channel's prefix is ??",
-					Channel: "user2",
-				},
-			},
-		},
-		{
-			input: &base.IncomingMessage{
-				Message: base.Message{
-					Text:    "whats the bots prefix",
-					UserID:  "user1",
-					User:    "user1",
-					Channel: "user2",
-					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
-				},
-				Prefix:          "??",
-				PermissionLevel: permission.Normal,
-				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
-			},
-			enableNonPrefixCommands: false,
-			want:                    nil,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(fmt.Sprintf("[%s]: %s", tc.input.PermissionLevel.Name(), tc.input.Message.Text), func(t *testing.T) {
-			db := databasetest.NewFakeDB()
-			handler := Handler{db: db, nonPrefixCommandsEnabled: tc.enableNonPrefixCommands}
-			got, err := handler.Handle(tc.input)
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
-
-			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Errorf("Handle() diff (-want +got):\n%s", diff)
-			}
-		})
-	}
 }
 
 func flatten[T any](itemGroups ...[]T) []T {

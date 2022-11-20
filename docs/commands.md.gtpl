@@ -21,9 +21,7 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 {{ if .Help }}
 - {{ .Help }}
 {{- end }}
-{{- if .Usage }}
-- > Usage: `{{ .Usage }}`
-{{- end }}
+- > Usage: `{{ formatUsage . }}`
 {{- if and .Permission .Permission.IsElevated }}
 - > Minimum permission level: `{{ .Permission.Name }}`
 {{- end }}

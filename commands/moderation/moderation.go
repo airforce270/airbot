@@ -15,15 +15,11 @@ var Commands = [...]basecommand.Command{
 }
 
 var (
-	vanishCommandPattern = basecommand.PrefixPattern(`vanish`)
-	vanishCommand        = basecommand.Command{
+	vanishCommand = basecommand.Command{
 		Name:       "vanish",
 		Help:       "Times you out for 1 second.",
-		Usage:      "$vanish",
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    vanishCommandPattern,
-		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
+		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,

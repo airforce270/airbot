@@ -21,8 +21,6 @@ type Config struct {
 	LogOutgoing bool `toml:"log_outgoing_messages"`
 	// Platforms contains platform-specific config data.
 	Platforms PlatformConfig
-	// EnableNonPrefixCommands is whether non-prefix commands should be enabled.
-	EnableNonPrefixCommands bool `toml:"enable_non_prefix_commands"`
 	// Supinic contains config for talking to the Supinic API.
 	Supinic SupinicConfig
 }

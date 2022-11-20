@@ -3,7 +3,6 @@ package twitch
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/airforce270/airbot/apiclients/ivr"
@@ -31,132 +30,98 @@ var Commands = [...]basecommand.Command{
 const maxUsersPerMessage = 15
 
 var (
-	banReasonCommandPattern = basecommand.PrefixPattern("(?:banreason|br)")
-	banReasonCommand        = basecommand.Command{
+	banReasonCommand = basecommand.Command{
 		Name:       "banreason",
 		Aliases:    []string{"br"},
 		Help:       "Replies with the reason someone was banned on Twitch.",
-		Usage:      "$banreason <user>",
-		PrefixOnly: true,
+		Args:       []basecommand.Argument{{Name: "user", Required: true}},
 		Permission: permission.Normal,
-		Pattern:    banReasonCommandPattern,
 		Handler:    banReason,
 	}
-	banReasonPattern = regexp.MustCompile(banReasonCommandPattern.String() + `@?(\w+).*`)
 
-	currentGameCommandPattern = basecommand.PrefixPattern("currentgame")
-	currentGameCommand        = basecommand.Command{
+	currentGameCommand = basecommand.Command{
 		Name:       "currentgame",
 		Help:       "Replies with the game that's currently being streamed on a channel.",
-		Usage:      "$currentgame <channel>",
-		PrefixOnly: true,
+		Args:       []basecommand.Argument{{Name: "channel", Required: true}},
 		Permission: permission.Normal,
-		Pattern:    currentGameCommandPattern,
 		Handler:    currentGame,
 	}
-	currentGamePattern = regexp.MustCompile(currentGameCommandPattern.String() + `@?(\w+).*`)
 
-	foundersCommandPattern = basecommand.PrefixPattern("founders")
-	foundersCommand        = basecommand.Command{
+	foundersCommand = basecommand.Command{
 		Name:       "founders",
 		Help:       "Replies with a channel's founders. If no channel is provided, the current channel will be used.",
-		Usage:      "$founders [channel]",
-		PrefixOnly: true,
+		Args:       []basecommand.Argument{{Name: "channel", Required: false}},
 		Permission: permission.Normal,
-		Pattern:    foundersCommandPattern,
 		Handler:    founders,
 	}
-	foundersPattern = regexp.MustCompile(foundersCommandPattern.String() + `@?(\w+).*`)
 
-	logsCommandPattern = basecommand.PrefixPattern("logs")
-	logsCommand        = basecommand.Command{
-		Name:       "logs",
-		Help:       "Replies with a link to a Twitch user's logs in a channel.",
-		Usage:      "$logs <channel> <user>",
+	logsCommand = basecommand.Command{
+		Name: "logs",
+		Help: "Replies with a link to a Twitch user's logs in a channel.",
+		Args: []basecommand.Argument{
+			{Name: "channel", Required: true},
+			{Name: "user", Required: true},
+		},
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    logsCommandPattern,
 		Handler:    logs,
 	}
-	logsPattern = regexp.MustCompile(logsCommandPattern.String() + `@?(\w+)\s+@?(\w+).*`)
 
-	modsCommandPattern = basecommand.PrefixPattern("mods")
-	modsCommand        = basecommand.Command{
+	modsCommand = basecommand.Command{
 		Name:       "mods",
 		Help:       "Replies with a channel's mods. If no channel is provided, the current channel will be used.",
-		Usage:      "$mods [channel]",
+		Args:       []basecommand.Argument{{Name: "channel", Required: false}},
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    modsCommandPattern,
 		Handler:    mods,
 	}
-	modsPattern = regexp.MustCompile(modsCommandPattern.String() + `@?(\w+).*`)
 
-	nameColorCommandPattern = basecommand.PrefixPattern("namecolor")
-	nameColorCommand        = basecommand.Command{
+	nameColorCommand = basecommand.Command{
 		Name:       "namecolor",
 		Help:       "Replies with a user's name color.",
-		Usage:      "$namecolor [user]",
+		Args:       []basecommand.Argument{{Name: "user", Required: false}},
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    nameColorCommandPattern,
 		Handler:    nameColor,
 	}
-	nameColorPattern = regexp.MustCompile(nameColorCommandPattern.String() + `@?(\w+).*`)
 
-	titleCommandPattern = basecommand.PrefixPattern("title")
-	titleCommand        = basecommand.Command{
+	titleCommand = basecommand.Command{
 		Name:       "title",
 		Help:       "Replies with a channel's title. If no channel is provided, the current channel will be used.",
-		Usage:      "$title [channel]",
+		Args:       []basecommand.Argument{{Name: "channel", Required: false}},
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    titleCommandPattern,
 		Handler:    title,
 	}
-	titlePattern = regexp.MustCompile(titleCommandPattern.String() + `@?(\w+).*`)
 
-	verifiedBotCommandPattern = regexp.MustCompile(`\s*(?:verifiedbot|vb)(?:\s+|$)`)
-	verifiedBotCommand        = basecommand.Command{
+	verifiedBotCommand = basecommand.Command{
 		Name:       "verifiedbot",
 		Aliases:    []string{"vb"},
 		Help:       "Replies whether a user is a verified bot.",
-		Usage:      "$verifiedbot [user]",
+		Args:       []basecommand.Argument{{Name: "user", Required: false}},
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    verifiedBotCommandPattern,
 		Handler:    verifiedBot,
 	}
-	verifiedBotPattern = regexp.MustCompile(verifiedBotCommandPattern.String() + `@?(\w+).*`)
 
-	verifiedBotQuietCommandPattern = basecommand.PrefixPattern(`(?:verifiedbot|vb)(?:q(?:uiet)?)`)
-	verifiedBotQuietCommand        = basecommand.Command{
+	verifiedBotQuietCommand = basecommand.Command{
 		Name:       "verifiedbotquiet",
-		Aliases:    []string{"vbq"},
+		Aliases:    []string{"verifiedbotq", "vbquiet", "vbq"},
 		Help:       "Replies whether a user is a verified bot, but responds quietly.",
-		Usage:      "$verifiedbotquiet [user]",
+		Args:       []basecommand.Argument{{Name: "user", Required: false}},
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    verifiedBotQuietCommandPattern,
 		Handler:    verifiedBotQuiet,
 	}
-	verifiedBotQuietPattern = regexp.MustCompile(verifiedBotQuietCommandPattern.String() + `@?(\w+).*`)
 
-	vipsCommandPattern = basecommand.PrefixPattern("vips")
-	vipsCommand        = basecommand.Command{
+	vipsCommand = basecommand.Command{
 		Name:       "vips",
 		Help:       "Replies with a channel's VIPs. If no channel is provided, the current channel will be used.",
-		Usage:      "$vips [channel]",
+		Args:       []basecommand.Argument{{Name: "channel", Required: false}},
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    vipsCommandPattern,
 		Handler:    vips,
 	}
-	vipsPattern = regexp.MustCompile(vipsCommandPattern.String() + `@?(\w+).*`)
 )
 
-func banReason(msg *base.IncomingMessage) ([]*base.Message, error) {
-	targetUser := basecommand.ParseTarget(msg, banReasonPattern)
+func banReason(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	if len(args) == 0 {
+		return nil, basecommand.ErrReturnUsage
+	}
+	targetUser := args[0]
 
 	users, err := ivr.FetchUsers(targetUser)
 	if err != nil {
@@ -190,8 +155,8 @@ func banReason(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}, nil
 }
 
-func currentGame(msg *base.IncomingMessage) ([]*base.Message, error) {
-	targetChannel := basecommand.ParseTarget(msg, currentGamePattern)
+func currentGame(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
 	tw := twitchplatform.Instance
 	if tw == nil {
@@ -220,8 +185,8 @@ func currentGame(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}, nil
 }
 
-func founders(msg *base.IncomingMessage) ([]*base.Message, error) {
-	targetChannel := basecommand.ParseTargetWithDefault(msg, foundersPattern, msg.Message.Channel)
+func founders(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
 	founders, err := ivr.FetchFounders(targetChannel)
 	if err != nil {
@@ -266,18 +231,12 @@ func founders(msg *base.IncomingMessage) ([]*base.Message, error) {
 	return messages, nil
 }
 
-func logs(msg *base.IncomingMessage) ([]*base.Message, error) {
-	matches := logsPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-	if len(matches) != 3 {
-		return []*base.Message{
-			{
-				Channel: msg.Message.Channel,
-				Text:    fmt.Sprintf("Usage: %slogs <channel> <user>", msg.Prefix),
-			},
-		}, nil
+func logs(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	if len(args) < 2 {
+		return nil, basecommand.ErrReturnUsage
 	}
-	targetChannel := strings.ToLower(matches[1])
-	targetUser := strings.ToLower(matches[2])
+	targetChannel := strings.ToLower(args[0])
+	targetUser := strings.ToLower(args[1])
 
 	return []*base.Message{
 		{
@@ -287,8 +246,8 @@ func logs(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}, nil
 }
 
-func mods(msg *base.IncomingMessage) ([]*base.Message, error) {
-	targetChannel := basecommand.ParseTargetWithDefault(msg, modsPattern, msg.Message.Channel)
+func mods(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
 	modsAndVIPs, err := ivr.FetchModsAndVIPs(targetChannel)
 	if err != nil {
@@ -324,8 +283,8 @@ func mods(msg *base.IncomingMessage) ([]*base.Message, error) {
 	return messages, nil
 }
 
-func nameColor(msg *base.IncomingMessage) ([]*base.Message, error) {
-	targetUser := basecommand.ParseTarget(msg, nameColorPattern)
+func nameColor(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	targetUser := basecommand.FirstArgOrUsername(args, msg)
 
 	users, err := ivr.FetchUsers(targetUser)
 	if err != nil {
@@ -352,8 +311,8 @@ func nameColor(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}, nil
 }
 
-func title(msg *base.IncomingMessage) ([]*base.Message, error) {
-	targetChannel := basecommand.ParseTargetWithDefault(msg, titlePattern, msg.Message.Channel)
+func title(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
 	tw := twitchplatform.Instance
 	if tw == nil {
@@ -373,8 +332,8 @@ func title(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}, nil
 }
 
-func verifiedBot(msg *base.IncomingMessage) ([]*base.Message, error) {
-	targetUser := basecommand.ParseTarget(msg, verifiedBotPattern)
+func verifiedBot(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	targetUser := basecommand.FirstArgOrUsername(args, msg)
 
 	users, err := ivr.FetchUsers(targetUser)
 	if err != nil {
@@ -408,8 +367,8 @@ func verifiedBot(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}, nil
 }
 
-func verifiedBotQuiet(msg *base.IncomingMessage) ([]*base.Message, error) {
-	targetUser := basecommand.ParseTarget(msg, verifiedBotQuietPattern)
+func verifiedBotQuiet(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	targetUser := basecommand.FirstArgOrUsername(args, msg)
 
 	users, err := ivr.FetchUsers(targetUser)
 	if err != nil {
@@ -443,8 +402,8 @@ func verifiedBotQuiet(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}, nil
 }
 
-func vips(msg *base.IncomingMessage) ([]*base.Message, error) {
-	targetChannel := basecommand.ParseTargetWithDefault(msg, vipsPattern, msg.Message.Channel)
+func vips(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
 	modsAndVIPs, err := ivr.FetchModsAndVIPs(targetChannel)
 	if err != nil {

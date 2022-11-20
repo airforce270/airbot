@@ -37,40 +37,45 @@ var CommandGroups = map[string][]basecommand.Command{
 	"Twitch":     twitch.Commands[:],
 }
 
-// allCommands contains all all commands that can be run.
-var allCommands []basecommand.Command
+var (
+	// allCommands contains all commands that can be run.
+	allCommands []basecommand.Command
+	// commandPatterns contains a map of patterns to trigger a command to that command.
+	commandPatterns = map[*regexp.Regexp]basecommand.Command{}
+)
 
 func init() {
 	for _, group := range CommandGroups {
 		allCommands = append(allCommands, group...)
 	}
+	for _, command := range allCommands {
+		pattern, err := command.Compile()
+		if err != nil {
+			panic(fmt.Sprintf("failed to compile pattern for %s: %v", command.Name, err))
+		}
+		commandPatterns[pattern] = command
+	}
 }
 
 // NewHandler creates a new Handler.
-func NewHandler(db *gorm.DB, enableNonPrefixCommands bool) Handler {
-	return Handler{
-		db:                       db,
-		nonPrefixCommandsEnabled: enableNonPrefixCommands,
-	}
+func NewHandler(db *gorm.DB) Handler {
+	return Handler{db: db}
 }
 
 // Handler handles messages.
 type Handler struct {
 	// db is a connection to the database.
 	db *gorm.DB
-	// nonPrefixCommandsEnabled is whether non-prefix commands should be enabled.
-	nonPrefixCommandsEnabled bool
 }
 
 // Handle handles incoming messages, possibly returning messages to be sent in response.
 func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.Message, error) {
 	var outMsgs []*base.Message
-	for _, command := range allCommands {
-		messageHasPrefix := strings.HasPrefix(msg.Message.Text, msg.Prefix)
-		if !messageHasPrefix && (command.PrefixOnly || !h.nonPrefixCommandsEnabled) {
+	for pattern, command := range commandPatterns {
+		if !strings.HasPrefix(strings.TrimSpace(msg.Message.Text), msg.Prefix) {
 			continue
 		}
-		if !command.Pattern.MatchString(msg.MessageTextWithoutPrefix()) {
+		if !pattern.MatchString(msg.MessageTextWithoutPrefix()) {
 			continue
 		}
 		if !permission.Authorized(msg.PermissionLevel, command.Permission) {
@@ -113,12 +118,20 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.Message, error) {
 			}
 		}
 
-		respMsgs, err := command.Handler(msg)
-		if err != nil {
-			return nil, err
-		}
+		args := parseArgs(pattern, msg)
 
-		outMsgs = append(outMsgs, respMsgs...)
+		respMsgs, err := command.Handler(msg, args)
+		if err != nil {
+			if !errors.Is(err, basecommand.ErrReturnUsage) {
+				return nil, err
+			}
+			outMsgs = append(outMsgs, &base.Message{
+				Channel: msg.Message.Channel,
+				Text:    "Usage: " + command.Usage(msg.Prefix),
+			})
+		} else {
+			outMsgs = append(outMsgs, respMsgs...)
+		}
 
 		channelCooldown.LastRun = time.Now()
 		h.db.Save(&channelCooldown)
@@ -130,24 +143,28 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.Message, error) {
 	return outMsgs, nil
 }
 
-var (
-	helpCommandPattern = basecommand.PrefixPattern("help")
-	helpCommand        = basecommand.Command{
-		Name:       "help",
-		Help:       "Displays help for a command.",
-		Usage:      "$help <command>",
-		Pattern:    helpCommandPattern,
-		Handler:    help,
-		PrefixOnly: true,
+func parseArgs(pattern *regexp.Regexp, msg *base.IncomingMessage) []string {
+	var args []string
+	for _, arg := range pattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())[1:] {
+		if arg == "" {
+			continue
+		}
+		args = append(args, arg)
 	}
-	helpPattern = regexp.MustCompile(helpCommandPattern.String() + `(\w+).*`)
+	return args
+}
+
+var (
+	helpCommand = basecommand.Command{
+		Name:    "help",
+		Help:    "Displays help for a command.",
+		Args:    []basecommand.Argument{{Name: "command", Required: false}},
+		Handler: help,
+	}
 )
 
-func help(msg *base.IncomingMessage) ([]*base.Message, error) {
-	targetCommand := basecommand.ParseTarget(msg, helpPattern)
-
-	// No command provided
-	if targetCommand == msg.Message.User {
+func help(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	if len(args) == 0 {
 		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
@@ -155,6 +172,7 @@ func help(msg *base.IncomingMessage) ([]*base.Message, error) {
 			},
 		}, nil
 	}
+	targetCommand := args[0]
 
 	for _, cmd := range allCommands {
 		if !strings.EqualFold(cmd.Name, targetCommand) {

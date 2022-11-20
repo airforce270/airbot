@@ -8,7 +8,6 @@ import (
 	"log"
 	"math"
 	"math/big"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -36,63 +35,47 @@ var (
 	acceptCommand = basecommand.Command{
 		Name:       "accept",
 		Help:       "Accepts a duel.",
-		Usage:      "$accept",
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    basecommand.PrefixPattern("accept"),
 		Handler:    accept,
 	}
 
 	declineCommand = basecommand.Command{
 		Name:       "decline",
 		Help:       "Declines a duel.",
-		Usage:      "$decline",
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    basecommand.PrefixPattern("decline"),
 		Handler:    decline,
 	}
 
-	duelCommandPattern = basecommand.PrefixPattern("duel")
-	duelCommandUsage   = "$points <user>"
-	duelCommand        = basecommand.Command{
-		Name:         "duel",
-		Help:         fmt.Sprintf("Duels another chatter. They have %d seconds to accept or decline.", duelPendingSecs),
-		Usage:        duelCommandUsage,
+	duelCommand = basecommand.Command{
+		Name: "duel",
+		Help: fmt.Sprintf("Duels another chatter. They have %d seconds to accept or decline.", duelPendingSecs),
+		Args: []basecommand.Argument{
+			{Name: "user", Required: true},
+			{Name: "amount", Required: true},
+		},
 		Permission:   permission.Normal,
 		UserCooldown: time.Duration(5) * time.Second,
-		PrefixOnly:   true,
-		Pattern:      duelCommandPattern,
 		Handler:      duel,
 	}
-	duelPattern = regexp.MustCompile(duelCommandPattern.String() + `@?(\w+)\s+(\d+).*`)
 
-	pointsCommandPattern = basecommand.PrefixPattern("(?:p(?: |$)|points)")
-	pointsCommand        = basecommand.Command{
+	pointsCommand = basecommand.Command{
 		Name:       "points",
 		Aliases:    []string{"p"},
-		Help:       "Checks how many points you have.",
-		Usage:      "$points [user]",
+		Help:       "Checks how many points someone has.",
+		Args:       []basecommand.Argument{{Name: "user", Required: false}},
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    pointsCommandPattern,
 		Handler:    points,
 	}
-	pointsPattern = regexp.MustCompile(pointsCommandPattern.String() + `@?(\w+).*`)
 
-	rouletteCommandPattern = basecommand.PrefixPattern("(?:r(?: |$)|roulette)")
-	rouletteCommand        = basecommand.Command{
+	rouletteCommand = basecommand.Command{
 		Name:         "roulette",
 		Aliases:      []string{"r"},
 		Help:         "Roulettes some points.",
-		Usage:        "$roulette <amount|percent%|all>",
+		Args:         []basecommand.Argument{{Name: "amount", Required: true, Usage: "amount|percent%|all"}},
 		Permission:   permission.Normal,
 		UserCooldown: time.Duration(5) * time.Second,
-		PrefixOnly:   true,
-		Pattern:      rouletteCommandPattern,
 		Handler:      roulette,
 	}
-	roulettePattern = regexp.MustCompile(rouletteCommandPattern.String() + `(all|\d+%|\d+).*`)
 )
 
 const (
@@ -100,7 +83,7 @@ const (
 	duelPendingDuration = time.Duration(duelPendingSecs) * time.Second
 )
 
-func accept(msg *base.IncomingMessage) ([]*base.Message, error) {
+func accept(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	db := database.Instance
 	if db == nil {
 		return nil, fmt.Errorf("database connection not initialized")
@@ -176,7 +159,7 @@ func accept(msg *base.IncomingMessage) ([]*base.Message, error) {
 	return outMsgs, nil
 }
 
-func decline(msg *base.IncomingMessage) ([]*base.Message, error) {
+func decline(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	db := database.Instance
 	if db == nil {
 		return nil, fmt.Errorf("database connection not initialized")
@@ -217,23 +200,17 @@ func decline(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}, nil
 }
 
-func duel(msg *base.IncomingMessage) ([]*base.Message, error) {
+func duel(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	db := database.Instance
 	if db == nil {
 		return nil, fmt.Errorf("database connection not initialized")
 	}
 
-	matches := duelPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-	if len(matches) < 3 {
-		return []*base.Message{
-			{
-				Channel: msg.Message.Channel,
-				Text:    "Usage: " + duelCommandUsage,
-			},
-		}, nil
+	if len(args) < 2 {
+		return nil, basecommand.ErrReturnUsage
 	}
 
-	target := matches[1]
+	target := args[0]
 	if target == msg.Message.User {
 		return []*base.Message{
 			{
@@ -243,7 +220,7 @@ func duel(msg *base.IncomingMessage) ([]*base.Message, error) {
 		}, nil
 	}
 
-	pointsStr := matches[2]
+	pointsStr := args[1]
 	points, err := strconv.ParseInt(pointsStr, 10, 64)
 	if err != nil {
 		return []*base.Message{
@@ -363,13 +340,13 @@ func duel(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}, nil
 }
 
-func points(msg *base.IncomingMessage) ([]*base.Message, error) {
+func points(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	db := database.Instance
 	if db == nil {
 		return nil, fmt.Errorf("database connection not initialized")
 	}
 
-	target := basecommand.ParseTarget(msg, pointsPattern)
+	target := basecommand.FirstArgOrUsername(args, msg)
 	user, err := msg.Platform.User(target)
 	if err != nil {
 		if errors.Is(err, base.ErrUserUnknown) {
@@ -393,7 +370,11 @@ func points(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}, nil
 }
 
-func roulette(msg *base.IncomingMessage) ([]*base.Message, error) {
+func roulette(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	if len(args) == 0 {
+		return nil, basecommand.ErrReturnUsage
+	}
+
 	db := database.Instance
 	if db == nil {
 		return nil, fmt.Errorf("database connection not initialized")
@@ -416,7 +397,7 @@ func roulette(msg *base.IncomingMessage) ([]*base.Message, error) {
 	points := fetchUserPoints(db, user)
 
 	var amount int64
-	amountStr := basecommand.ParseTarget(msg, roulettePattern)
+	amountStr := args[0]
 	if amountStr == "all" {
 		amount = points
 	} else if strings.HasSuffix(amountStr, "%") {

@@ -12,6 +12,7 @@ import (
 	"text/template"
 
 	"github.com/airforce270/airbot/commands"
+	"github.com/airforce270/airbot/commands/basecommand"
 
 	"github.com/hashicorp/go-multierror"
 )
@@ -44,6 +45,9 @@ var (
 				joined = append(joined, fmt.Sprintf("`$%s`", str))
 			}
 			return strings.Join(joined, ", ")
+		},
+		"formatUsage": func(command basecommand.Command) string {
+			return command.Usage("$")
 		},
 	}
 )

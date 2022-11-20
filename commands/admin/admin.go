@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
@@ -32,127 +31,100 @@ var Commands = [...]basecommand.Command{
 }
 
 var (
-	botSlowmodeCommandPattern = basecommand.PrefixPattern("botslowmode")
-	botSlowmodeCommand        = basecommand.Command{
+	botSlowmodeCommand = basecommand.Command{
 		Name:       "botslowmode",
-		Help:       "Sets the bot to follow a global (per-platform) 1 second slowmode.",
-		Usage:      "$botslowmode <on|off>",
+		Help:       "Sets the bot to follow a global (per-platform) 1 second slowmode. If no argument is provided, checks if slowmode is enabled.",
+		Args:       []basecommand.Argument{{Name: "enable", Required: false, Usage: "on|off"}},
 		Permission: permission.Owner,
-		PrefixOnly: true,
-		Pattern:    botSlowmodeCommandPattern,
 		Handler:    botSlowmode,
 	}
-	botSlowmodePattern = regexp.MustCompile(botSlowmodeCommandPattern.String() + `(on|off).*`)
 
-	echoCommandPattern = basecommand.PrefixPattern("echo")
-	echoCommand        = basecommand.Command{
+	echoCommand = basecommand.Command{
 		Name:       "echo",
 		Help:       "Echoes back whatever is sent.",
-		Usage:      "$echo",
+		Args:       generateEchoArgs(),
 		Permission: permission.Owner,
-		PrefixOnly: true,
-		Pattern:    echoCommandPattern,
-		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
-			matches := echoPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-			if len(matches) < 2 {
-				return nil, nil
+		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+			if len(args) == 0 {
+				return nil, basecommand.ErrReturnUsage
 			}
 			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
-					Text:    matches[1],
+					Text:    strings.Join(args, " "),
 				},
 			}, nil
 		},
 	}
-	echoPattern = regexp.MustCompile(echoCommandPattern.String() + `(.+)`)
 
-	joinCommandPattern = basecommand.PrefixPattern("join$")
-	joinCommand        = basecommand.Command{
+	joinCommand = basecommand.Command{
 		Name:       "join",
 		Help:       "Tells the bot to join your chat.",
-		Usage:      "$join",
 		Permission: permission.Normal,
-		PrefixOnly: true,
-		Pattern:    joinCommandPattern,
-		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
+		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 			return joinChannel(msg, msg.Message.User)
 		},
 	}
 
-	joinedCommandPattern = basecommand.PrefixPattern("joined$")
-	joinedCommand        = basecommand.Command{
+	joinedCommand = basecommand.Command{
 		Name:       "joined",
 		Help:       "Lists the channels the bot is currently in.",
-		Usage:      "$joined",
 		Permission: permission.Owner,
-		PrefixOnly: true,
-		Pattern:    joinedCommandPattern,
 		Handler:    joined,
 	}
 
-	joinOtherCommandPattern = basecommand.PrefixPattern("joinother")
-	joinOtherCommand        = basecommand.Command{
+	joinOtherCommand = basecommand.Command{
 		Name:       "joinother",
 		Help:       "Tells the bot to join a chat.",
-		Usage:      "$joinother <channel>",
+		Args:       []basecommand.Argument{{Name: "channel", Required: true}},
 		Permission: permission.Owner,
-		PrefixOnly: true,
-		Pattern:    joinOtherCommandPattern,
-		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
-			return joinChannel(msg, basecommand.ParseTarget(msg, joinOtherPattern))
+		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+			channel := msg.Message.Channel
+			if len(args) > 0 {
+				channel = args[0]
+			}
+			return joinChannel(msg, channel)
 		},
 	}
-	joinOtherPattern = regexp.MustCompile(joinOtherCommandPattern.String() + `(\w+).*`)
 
-	leaveCommandPattern = basecommand.PrefixPattern("leave$")
-	leaveCommand        = basecommand.Command{
+	leaveCommand = basecommand.Command{
 		Name:       "leave",
 		Help:       "Tells the bot to leave your chat.",
-		Usage:      "$leave",
 		Permission: permission.Admin,
-		PrefixOnly: true,
-		Pattern:    leaveCommandPattern,
-		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
+		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 			return leaveChannel(msg, msg.Message.Channel)
 		},
 	}
 
-	leaveOtherCommandPattern = basecommand.PrefixPattern("leaveother")
-	leaveOtherCommand        = basecommand.Command{
+	leaveOtherCommand = basecommand.Command{
 		Name:       "leaveother",
 		Help:       "Tells the bot to leave a chat.",
-		Usage:      "$leaveother <channel>",
+		Args:       []basecommand.Argument{{Name: "channel", Required: true}},
 		Permission: permission.Owner,
-		PrefixOnly: true,
-		Pattern:    leaveOtherCommandPattern,
-		Handler: func(msg *base.IncomingMessage) ([]*base.Message, error) {
-			return leaveChannel(msg, basecommand.ParseTarget(msg, leaveOtherPattern))
+		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+			if len(args) == 0 {
+				return nil, basecommand.ErrReturnUsage
+			}
+			return leaveChannel(msg, args[0])
 		},
 	}
-	leaveOtherPattern = regexp.MustCompile(leaveOtherCommandPattern.String() + `(\w+).*`)
 
-	setPrefixCommandPattern = basecommand.PrefixPattern("setprefix")
-	setPrefixCommand        = basecommand.Command{
+	setPrefixCommand = basecommand.Command{
 		Name:       "setprefix",
 		Help:       "Sets the bot's prefix in the channel.",
-		Usage:      "$setprefix",
+		Args:       []basecommand.Argument{{Name: "prefix", Required: true}},
 		Permission: permission.Admin,
-		PrefixOnly: true,
-		Pattern:    setPrefixCommandPattern,
 		Handler:    setPrefix,
 	}
-	setPrefixPattern = regexp.MustCompile(setPrefixCommandPattern.String() + `(\S+).*`)
 )
 
-func botSlowmode(msg *base.IncomingMessage) ([]*base.Message, error) {
+func botSlowmode(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	cdb := cache.Instance
 	if cdb == nil {
 		return nil, fmt.Errorf("cache instance not initialized")
 	}
 
-	matches := botSlowmodePattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-	if len(matches) < 2 {
+	if len(args) == 0 {
 		enabled, err := cache.FetchSlowmode(msg.Platform, cdb)
 		if err != nil {
 			return nil, err
@@ -168,10 +140,10 @@ func botSlowmode(msg *base.IncomingMessage) ([]*base.Message, error) {
 			},
 		}, nil
 	}
-	if matches[1] != "on" && matches[1] != "off" {
+	if args[0] != "on" && args[0] != "off" {
 		return nil, nil
 	}
-	enable := matches[1] == "on"
+	enable := args[0] == "on"
 
 	err := cache.SetSlowmode(msg.Platform, cdb, enable)
 	if err != nil {
@@ -271,7 +243,7 @@ func joinChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Messa
 
 const maxUsersPerMessage = 15
 
-func joined(msg *base.IncomingMessage) ([]*base.Message, error) {
+func joined(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	db := database.Instance
 	if db == nil {
 		return nil, fmt.Errorf("database instance not initialized")
@@ -346,17 +318,11 @@ func leaveChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Mess
 	return msgs, nil
 }
 
-func setPrefix(msg *base.IncomingMessage) ([]*base.Message, error) {
-	matches := setPrefixPattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())
-	if len(matches) < 2 {
-		return []*base.Message{
-			{
-				Channel: msg.Message.Channel,
-				Text:    "No new prefix provided",
-			},
-		}, nil
+func setPrefix(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	if len(args) == 0 {
+		return nil, basecommand.ErrReturnUsage
 	}
-	newPrefix := matches[1]
+	newPrefix := args[0]
 
 	db := database.Instance
 	if db == nil {
@@ -390,4 +356,21 @@ func setPrefix(msg *base.IncomingMessage) ([]*base.Message, error) {
 			Text:    fmt.Sprintf("Prefix set to %s", newPrefix),
 		},
 	}, nil
+}
+
+// Generate args for echo command, which is special as the number of args isn't limited.
+func generateEchoArgs() []basecommand.Argument {
+	var args [1000]basecommand.Argument
+	args[0] = basecommand.Argument{
+		Name:     "arg-0",
+		Required: true,
+		Usage:    "anything",
+	}
+	for i := 1; i < 1000; i++ {
+		args[i] = basecommand.Argument{
+			Name:             fmt.Sprintf("arg-%d", i),
+			ExcludeFromUsage: true,
+		}
+	}
+	return args[:]
 }

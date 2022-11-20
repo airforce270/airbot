@@ -4,7 +4,6 @@ package botinfo
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 
@@ -25,44 +24,32 @@ import (
 var Commands = [...]basecommand.Command{
 	{
 		Name:       "botinfo",
-		Aliases:    []string{"bot", "info", "about"},
+		Aliases:    []string{"bot", "info", "botinfo", "about", "ping"},
 		Help:       "Replies with info about the bot.",
-		Usage:      "$botinfo",
 		Permission: permission.Normal,
-		PrefixOnly: false,
-		Pattern:    basecommand.PrefixPattern("bot$|info$|botinfo$|about$"),
 		Handler:    botinfo,
 	},
 	{
 		Name:       "prefix",
 		Help:       "Replies with the prefix in this channel.",
-		Usage:      "$prefix",
 		Permission: permission.Normal,
-		PrefixOnly: false,
-		Pattern:    regexp.MustCompile(`\s*(^|(wh?at( i|')?s (the |air|af2)(bot('?s)?)? ?))prefix\??\s*`),
 		Handler:    prefix,
 	},
 	{
 		Name:       "source",
 		Help:       "Replies a link to the bot's source code.",
-		Usage:      "$source",
 		Permission: permission.Normal,
-		PrefixOnly: false,
-		Pattern:    basecommand.PrefixPattern("source"),
 		Handler:    source,
 	},
 	{
 		Name:       "stats",
 		Help:       "Replies with stats about the bot.",
-		Usage:      "$stats",
 		Permission: permission.Normal,
-		PrefixOnly: false,
-		Pattern:    basecommand.PrefixPattern("stats"),
 		Handler:    stats,
 	},
 }
 
-func botinfo(msg *base.IncomingMessage) ([]*base.Message, error) {
+func botinfo(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
@@ -71,7 +58,7 @@ func botinfo(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}, nil
 }
 
-func prefix(msg *base.IncomingMessage) ([]*base.Message, error) {
+func prefix(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
@@ -80,7 +67,7 @@ func prefix(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}, nil
 }
 
-func source(msg *base.IncomingMessage) ([]*base.Message, error) {
+func source(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
@@ -89,7 +76,7 @@ func source(msg *base.IncomingMessage) ([]*base.Message, error) {
 	}, nil
 }
 
-func stats(msg *base.IncomingMessage) ([]*base.Message, error) {
+func stats(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	db := database.Instance
 	if db == nil {
 		return nil, fmt.Errorf("database instance not initialized")
