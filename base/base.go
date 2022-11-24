@@ -46,6 +46,9 @@ type Platform interface {
 	User(username string) (models.User, error)
 	// CurrentUsers returns the names of the current users in all channels the bot has joined.
 	CurrentUsers() ([]string, error)
+
+	// Timeout times out a user in a channel.
+	Timeout(username, channel string, duration time.Duration) error
 }
 
 // Message represents a chat message.

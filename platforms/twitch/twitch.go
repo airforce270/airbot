@@ -276,6 +276,13 @@ func (t *Twitch) CurrentUsers() ([]string, error) {
 	return allChatters, nil
 }
 
+func (t *Twitch) Timeout(username, channel string, duration time.Duration) error {
+	return t.Send(base.Message{
+		Channel: channel,
+		Text:    fmt.Sprintf("/timeout %s %.f", username, duration.Seconds()),
+	})
+}
+
 func (t *Twitch) FetchUser(channel string) (*helix.User, error) {
 	users, err := t.h.GetUsers(&helix.UsersParams{Logins: []string{channel}})
 	if err != nil {

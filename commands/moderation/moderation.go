@@ -2,7 +2,7 @@
 package moderation
 
 import (
-	"fmt"
+	"time"
 
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/commands/basecommand"
@@ -20,12 +20,8 @@ var (
 		Help:       "Times you out for 1 second.",
 		Permission: permission.Normal,
 		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-			return []*base.Message{
-				{
-					Channel: msg.Message.Channel,
-					Text:    fmt.Sprintf("/timeout %s 1", msg.Message.User),
-				},
-			}, nil
+			err := msg.Platform.Timeout(msg.Message.User, msg.Message.Channel, time.Duration(1)*time.Second)
+			return nil, err
 		},
 	}
 )
