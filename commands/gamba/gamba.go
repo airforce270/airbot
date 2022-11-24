@@ -27,6 +27,7 @@ var Commands = [...]basecommand.Command{
 	acceptCommand,
 	declineCommand,
 	duelCommand,
+	givePointsCommand,
 	pointsCommand,
 	rouletteCommand,
 }
@@ -56,6 +57,18 @@ var (
 		Permission:   permission.Normal,
 		UserCooldown: time.Duration(5) * time.Second,
 		Handler:      duel,
+	}
+
+	givePointsCommand = basecommand.Command{
+		Name:    "givepoints",
+		Aliases: []string{"gp"},
+		Help:    "Give points to another chatter.",
+		Args: []basecommand.Argument{
+			{Name: "user", Required: true},
+			{Name: "amount", Required: true},
+		},
+		Permission: permission.Normal,
+		Handler:    givePoints,
 	}
 
 	pointsCommand = basecommand.Command{
@@ -133,21 +146,20 @@ func accept(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 			log.Printf("failed to persist duel acceptance: %v", result.Error)
 		}
 
-		result = db.Create(&models.GambaTransaction{
-			Game:  "Duel",
-			User:  *winner,
-			Delta: pendingDuel.Amount,
+		result = db.Create(&[]models.GambaTransaction{
+			{
+				Game:  "Duel",
+				User:  *winner,
+				Delta: pendingDuel.Amount,
+			},
+			{
+				Game:  "Duel",
+				User:  *loser,
+				Delta: -pendingDuel.Amount,
+			},
 		})
 		if result.Error != nil {
-			log.Printf("failed to insert gamba transaction: %v", result.Error)
-		}
-		result = db.Create(&models.GambaTransaction{
-			Game:  "Duel",
-			User:  *loser,
-			Delta: -pendingDuel.Amount,
-		})
-		if result.Error != nil {
-			log.Printf("failed to insert gamba transaction: %v", result.Error)
+			log.Printf("failed to insert gamba transactions: %v", result.Error)
 		}
 
 		outMsgs = append(outMsgs, &base.Message{
@@ -223,12 +235,8 @@ func duel(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	pointsStr := args[1]
 	points, err := strconv.ParseInt(pointsStr, 10, 64)
 	if err != nil {
-		return []*base.Message{
-			{
-				Channel: msg.Message.Channel,
-				Text:    "Couldn't parse duel amount.",
-			},
-		}, nil
+		log.Printf("failed to parse points amount %q: %v", pointsStr, err)
+		return nil, basecommand.ErrReturnUsage
 	}
 	if points == 0 {
 		return []*base.Message{
@@ -336,6 +344,108 @@ func duel(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 		{
 			Channel: msg.Message.Channel,
 			Text:    fmt.Sprintf("@%s, %s has started a duel for %d points! Type %saccept or %sdecline in the next %d seconds!", target, msg.Message.User, points, msg.Prefix, msg.Prefix, duelPendingSecs),
+		},
+	}, nil
+}
+
+func givePoints(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	db := database.Instance
+	if db == nil {
+		return nil, fmt.Errorf("database connection not initialized")
+	}
+
+	if len(args) < 2 {
+		return nil, basecommand.ErrReturnUsage
+	}
+
+	target := args[0]
+	if target == msg.Message.User {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "You can't give points to yourself Pepega",
+			},
+		}, nil
+	}
+
+	pointsStr := args[1]
+	points, err := strconv.ParseInt(pointsStr, 10, 64)
+	if err != nil {
+		log.Printf("failed to parse points amount %q: %v", pointsStr, err)
+		return nil, basecommand.ErrReturnUsage
+	}
+	if points == 0 {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "You must give at least 1 point.",
+			},
+		}, nil
+	}
+	if points < 1 {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "nice try forsenCD",
+			},
+		}, nil
+	}
+
+	targetUser, err := msg.Platform.User(target)
+	if err != nil {
+		if errors.Is(err, base.ErrUserUnknown) {
+			return []*base.Message{
+				{
+					Channel: msg.Message.Channel,
+					Text:    fmt.Sprintf("%s has never been seen by %s", target, msg.Platform.Username()),
+				},
+			}, nil
+		}
+		return nil, err
+	}
+	user, err := msg.Platform.User(msg.Message.User)
+	if err != nil {
+		if errors.Is(err, base.ErrUserUnknown) {
+			return []*base.Message{
+				{
+					Channel: msg.Message.Channel,
+					Text:    fmt.Sprintf("%s has never been seen by %s", target, msg.Platform.Username()),
+				},
+			}, nil
+		}
+		return nil, err
+	}
+
+	userPoints := fetchUserPoints(db, user)
+	if points > userPoints {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("You can't give more points than you have (you have %d points)", userPoints),
+			},
+		}, nil
+	}
+
+	result := db.Create(&[]models.GambaTransaction{
+		{
+			Game:  "GivePoints",
+			User:  user,
+			Delta: -points,
+		},
+		{
+			Game:  "GivePoints",
+			User:  targetUser,
+			Delta: points,
+		},
+	})
+	if result.Error != nil {
+		log.Printf("failed to insert gamba transactions: %v", result.Error)
+	}
+
+	return []*base.Message{
+		{
+			Channel: msg.Message.Channel,
+			Text:    fmt.Sprintf("%s gave %d points to %s FeelsOkayMan <3", user.TwitchName, points, targetUser.TwitchName),
 		},
 	}, nil
 }

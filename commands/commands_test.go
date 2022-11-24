@@ -1319,6 +1319,192 @@ func TestCommands(t *testing.T) {
 				},
 			},
 		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$duel user2 xx",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "Usage: $duel <user> <amount>",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$givepoints user2 10",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+				add50PointsToUser1,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "user1 gave 10 points to user2 FeelsOkayMan <3",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$givepoints user2 100",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+				add50PointsToUser1,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "You can't give more points than you have (you have 50 points)",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$givepoints user2 0",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+				add50PointsToUser1,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "You must give at least 1 point.",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$givepoints user2 xx",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+				add50PointsToUser1,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "Usage: $givepoints <user> <amount>",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$givepoints user2",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "Usage: $givepoints <user> <amount>",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$givepoints",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				deleteAllGambaTransactions,
+			},
+			runAfter: []func() error{
+				waitForTransactionsToSettle,
+			},
+			want: []*base.Message{
+				{
+					Text:    "Usage: $givepoints <user> <amount>",
+					Channel: "user2",
+				},
+			},
+		}),
 		testCasesWithSameOutput([]string{
 			"$points",
 			"$points user1",

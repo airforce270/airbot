@@ -172,6 +172,12 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - > Usage: `$duel <user> <amount>`
 - > Per-user cooldown: `5s`
 
+### $givepoints
+
+- Give points to another chatter.
+- > Usage: `$givepoints <user> <amount>`
+- > Aliases: `$gp`
+
 ### $points
 
 - Checks how many points someone has.
