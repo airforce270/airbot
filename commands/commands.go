@@ -102,7 +102,7 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.Message, error) {
 		}
 		userCooldown := models.UserCommandCooldown{}
 		shouldSetUserCooldown := false
-		if err == nil && errors.Is(err, base.ErrUserUnknown) {
+		if err == nil || errors.Is(err, base.ErrUserUnknown) {
 			shouldSetUserCooldown = true
 			dbResult = h.db.FirstOrCreate(&userCooldown, models.UserCommandCooldown{
 				UserID:  user.ID,
