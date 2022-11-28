@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/gempir/go-twitch-irc/v3 v3.2.0
-	github.com/go-redis/redis/v9 v9.0.0-rc.1
+	github.com/go-redis/redis/v9 v9.0.0-rc.2
 	github.com/google/go-cmp v0.5.9
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jinzhu/copier v0.3.5
