@@ -15,6 +15,8 @@ import (
 	"github.com/airforce270/airbot/apiclients/pastebintest"
 	"github.com/airforce270/airbot/apiclients/twitchtest"
 	"github.com/airforce270/airbot/base"
+	"github.com/airforce270/airbot/cache"
+	"github.com/airforce270/airbot/cache/cachetest"
 	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/models"
@@ -1715,12 +1717,10 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
-			want: []*base.Message{
-				{
-					Text:    "/timeout user1 1",
-					Channel: "user2",
-				},
+			runAfter: []func() error{
+				waitForMessagesToSend,
 			},
+			want: nil,
 		}),
 
 		// twitch.go commands
@@ -2273,6 +2273,7 @@ func (s fakeExpRandSource) Seed(val uint64) {}
 func setFakes(url string, db *gorm.DB) {
 	base.RandReader = bytes.NewBuffer([]byte{3})
 	base.RandSource = fakeExpRandSource{Value: uint64(150)}
+	cache.Instance = cachetest.NewInMemoryCache()
 	ivr.BaseURL = url
 	pastebin.FetchPasteURLOverride = url
 	twitch.Instance = twitch.NewForTesting(url, db)
@@ -2281,6 +2282,7 @@ func setFakes(url string, db *gorm.DB) {
 func resetFakes() {
 	base.RandReader = rand.Reader
 	base.RandSource = nil
+	cache.Instance = nil
 	ivr.BaseURL = savedIVRURL
 	pastebin.FetchPasteURLOverride = ""
 	twitch.Instance = twitch.NewForTesting(helix.DefaultAPIBaseURL, nil)
@@ -2314,8 +2316,13 @@ func setRandValueTo1() error {
 	return nil
 }
 
+func waitForMessagesToSend() error {
+	time.Sleep(time.Duration(20) * time.Millisecond)
+	return nil
+}
+
 func waitForTransactionsToSettle() error {
-	time.Sleep(time.Duration(50) * time.Millisecond)
+	time.Sleep(time.Duration(20) * time.Millisecond)
 	return nil
 }
 

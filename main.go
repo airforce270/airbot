@@ -68,8 +68,8 @@ func main() {
 	database.Instance = db
 
 	log.Printf("Connecting to cache...")
-	cdb := cache.NewClient()
-	cache.Instance = cdb
+	cdb := cache.NewRedisCache()
+	cache.Instance = &cdb
 
 	log.Printf("Performing database migrations...")
 	if database.Migrate(db); err != nil {
@@ -77,7 +77,7 @@ func main() {
 	}
 
 	log.Printf("Preparing chat connections...")
-	ps, err := platforms.Build(cfg, db, cdb)
+	ps, err := platforms.Build(cfg, db, &cdb)
 	if err != nil {
 		log.Fatalf("Failed to build platforms: %v", err)
 	}
@@ -89,7 +89,7 @@ func main() {
 		}
 
 		log.Printf("Starting to handle messages on %s...", p.Name())
-		go platforms.StartHandling(p, db, cdb, cfg.LogIncoming, cfg.LogOutgoing)
+		go platforms.StartHandling(p, db, &cdb, cfg.LogIncoming, cfg.LogOutgoing)
 		cleanupFuncs = append(cleanupFuncs, cleanupFunc{name: p.Name(), f: p.Disconnect})
 	}
 

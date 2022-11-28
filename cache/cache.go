@@ -7,52 +7,73 @@ import (
 	"time"
 
 	"github.com/airforce270/airbot/base"
+
 	"github.com/go-redis/redis/v9"
 )
 
-// Instance is an instance of the Redis client.
-var Instance *redis.Client = nil
+// Instance is an instance of the cache.
+var Instance Cache = nil
 
-// NewClient creates a new Redis client.
-func NewClient() *redis.Client {
-	return redis.NewClient(&redis.Options{Addr: "cache:6379"})
+// A Cache stores and retrieves simple key-value data quickly.
+type Cache interface {
+	// StoreBool stores a bool value with no expiration.
+	StoreBool(key string, value bool) error
+	// StoreExpiringBool stores a bool value with an expiration.
+	StoreExpiringBool(key string, value bool, expiration time.Duration) error
+	// FetchBool fetches a bool value.
+	FetchBool(key string) (bool, error)
+
+	// StoreString stores a string value with no expiration.
+	StoreString(key, value string) error
+	// StoreExpiringString stores a string value with an expiration.
+	StoreExpiringString(key, value string, expiration time.Duration) error
+	// FetchString fetches a string value.
+	FetchString(key string) (string, error)
 }
 
-// FetchSlowmode returns whether a platform is following a global 1-second slowmode.
-func FetchSlowmode(p base.Platform, cdb *redis.Client) (bool, error) {
-	slowmodeResp, err := cdb.Get(context.Background(), slowmodeKey(p)).Bool()
+const (
+	// Cache key for the last sent Twitch message.
+	KeyLastSentTwitchMessage = "twitch_last_twitch_message"
+)
+
+// KeyGlobalSlowmode returns the global slowmode cache key for a platform.
+func KeyGlobalSlowmode(p base.Platform) string {
+	return fmt.Sprintf("global_slowmode_%s", p.Name())
+}
+
+// RedisCache implements Cache for a real Redis database.
+type RedisCache struct {
+	r *redis.Client
+}
+
+func (c *RedisCache) StoreBool(key string, value bool) error {
+	return c.StoreExpiringBool(key, value, 0)
+}
+func (c *RedisCache) StoreExpiringBool(key string, value bool, expiration time.Duration) error {
+	return c.r.Set(context.Background(), key, value, expiration).Err()
+}
+func (c *RedisCache) FetchBool(key string) (bool, error) {
+	resp, err := c.r.Get(context.Background(), key).Bool()
 	if err == redis.Nil {
 		return false, nil
 	}
 	if err != nil {
 		return false, err
 	}
-	return slowmodeResp, nil
+	return resp, nil
 }
-
-// FetchSlowmode sets whether a platform should follow a global 1-second slowmode.
-func SetSlowmode(p base.Platform, cdb *redis.Client, value bool) error {
-	return cdb.Set(context.Background(), slowmodeKey(p), value, 0).Err()
+func (c *RedisCache) StoreString(key, value string) error {
+	return c.StoreExpiringString(key, value, 0)
 }
-
-const (
-	// lastSentTwitchMessageExpiration is the duration the last sent message should remain in the cache.
-	// (Twitch blocks messages that are twice in a row in a 30-second period of time)
-	lastSentTwitchMessageExpiration = time.Duration(30) * time.Second
-	lastSentTwitchMessageKey        = "twitch_last_twitch_message"
-)
-
-// FetchLastSentTwitchMessage retrieves the last sent message on Twitch.
-func FetchLastSentTwitchMessage(cdb *redis.Client) (string, error) {
-	val, err := cdb.Get(context.Background(), lastSentTwitchMessageKey).Result()
+func (c *RedisCache) StoreExpiringString(key, value string, expiration time.Duration) error {
+	return c.r.Set(context.Background(), key, value, expiration).Err()
+}
+func (c *RedisCache) FetchString(key string) (string, error) {
+	val, err := c.r.Get(context.Background(), key).Result()
 	return val, err
 }
 
-// StoreLastSentTwitchMessage stores the last sent message on Twitch.
-func StoreLastSentTwitchMessage(cdb *redis.Client, message string) error {
-	return cdb.Set(context.Background(), lastSentTwitchMessageKey, message, lastSentTwitchMessageExpiration).Err()
-}
-
-func slowmodeKey(p base.Platform) string {
-	return fmt.Sprintf("global_slowmode_%s", p.Name())
+// NewRedisCache creates a new Redis-backed Cache.
+func NewRedisCache() RedisCache {
+	return RedisCache{r: redis.NewClient(&redis.Options{Addr: "cache:6379"})}
 }

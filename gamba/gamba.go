@@ -9,8 +9,8 @@ import (
 
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/database/models"
-	"golang.org/x/exp/slices"
 
+	"golang.org/x/exp/slices"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )

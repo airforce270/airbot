@@ -12,12 +12,11 @@ import (
 	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/platforms/twitch"
 
-	"github.com/go-redis/redis/v9"
 	"gorm.io/gorm"
 )
 
 // Build builds connections to enabled platforms based on the config.
-func Build(cfg *config.Config, db *gorm.DB, cdb *redis.Client) (map[string]base.Platform, error) {
+func Build(cfg *config.Config, db *gorm.DB, cdb cache.Cache) (map[string]base.Platform, error) {
 	p := map[string]base.Platform{}
 	if twc := cfg.Platforms.Twitch; twc.Enabled {
 		log.Printf("Building Twitch platform...")
@@ -30,7 +29,7 @@ func Build(cfg *config.Config, db *gorm.DB, cdb *redis.Client) (map[string]base.
 
 // StartHandling starts handling commands coming from the given platform.
 // This function blocks and should be run within a goroutine.
-func StartHandling(p base.Platform, db *gorm.DB, cdb *redis.Client, logIncoming, logOutgoing bool) {
+func StartHandling(p base.Platform, db *gorm.DB, cdb cache.Cache, logIncoming, logOutgoing bool) {
 	handler := commands.NewHandler(db)
 	inC := p.Listen()
 
@@ -70,7 +69,7 @@ func processMessage(handler *commands.Handler, db *gorm.DB, p base.Platform, out
 }
 
 // startSending sends messages from the queue.
-func startSending(p base.Platform, outC <-chan base.Message, cdb *redis.Client, logOutgoing bool) {
+func startSending(p base.Platform, outC <-chan base.Message, cdb cache.Cache, logOutgoing bool) {
 	for {
 		out := <-outC
 
@@ -82,7 +81,7 @@ func startSending(p base.Platform, outC <-chan base.Message, cdb *redis.Client, 
 			log.Printf("Failed to send message %v: %v", out, err)
 		}
 
-		slowmode, err := cache.FetchSlowmode(p, cdb)
+		slowmode, err := cdb.FetchBool(cache.KeyGlobalSlowmode(p))
 		if err != nil {
 			log.Printf("Failed to fetch slowmode status for %s: %v", p.Name(), err)
 		}

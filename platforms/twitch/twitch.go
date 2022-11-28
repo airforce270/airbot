@@ -12,12 +12,12 @@ import (
 	"github.com/airforce270/airbot/apiclients/twitchtmi"
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/cache"
+	"github.com/airforce270/airbot/cache/cachetest"
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
 
 	twitchirc "github.com/gempir/go-twitch-irc/v3"
-	"github.com/go-redis/redis/v9"
 	"github.com/nicklaw5/helix/v2"
 	"golang.org/x/exp/slices"
 	"gorm.io/gorm"
@@ -51,7 +51,7 @@ type Twitch struct {
 	// db is a reference to the database connection.
 	db *gorm.DB
 	// cdb is a reference to the cache.
-	cdb *redis.Client
+	cdb cache.Cache
 }
 
 func (t *Twitch) Name() string { return "Twitch" }
@@ -79,7 +79,7 @@ func (t *Twitch) Send(msg base.Message) error {
 	text := strings.ReplaceAll(msg.Text, "\n", " ")
 
 	// Bypass 30-second same message detection.
-	lastSentMsg, err := cache.FetchLastSentTwitchMessage(t.cdb)
+	lastSentMsg, err := t.cdb.FetchString(cache.KeyLastSentTwitchMessage)
 	if err != nil {
 		log.Printf("Failed to check if message (%q/%q) is in cache: %v", msg.Channel, text, err)
 	} else if lastSentMsg == text {
@@ -88,9 +88,13 @@ func (t *Twitch) Send(msg base.Message) error {
 
 	go t.persistUserAndMessage(t.id, t.username, text, msg.Channel, msg.Time)
 
-	t.i.Say(msg.Channel, text)
+	if t.i != nil {
+		t.i.Say(msg.Channel, text)
+	} else {
+		log.Print("Didn't actually send message - IRC client is nil. This is expected in test, but if you see this in production, something's broken!")
+	}
 
-	if err := cache.StoreLastSentTwitchMessage(t.cdb, text); err != nil {
+	if err := t.cdb.StoreExpiringString(cache.KeyLastSentTwitchMessage, text, lastSentTwitchMessageExpiration); err != nil {
 		log.Printf("[Twitch.persistUserAndMessage]: Failed to persist message in cache, %q: %v", text, err)
 	}
 	return nil
@@ -271,7 +275,12 @@ func (t *Twitch) CurrentUsers() ([]string, error) {
 		if err != nil {
 			return nil, fmt.Errorf("[%s] failed to fetch chatters for %s: %w", t.Name(), c.Name, err)
 		}
-		allChatters = append(allChatters, chatters.AllChatters()...)
+		for _, chatter := range chatters.AllChatters() {
+			if slices.Contains(allChatters, chatter) {
+				continue
+			}
+			allChatters = append(allChatters, chatter)
+		}
 	}
 	return allChatters, nil
 }
@@ -509,7 +518,7 @@ func (t *Twitch) handleBannedFromChannel(channel string) {
 const defaultBotPrefix = "$"
 
 // New creates a new Twitch connection.
-func New(username string, owners []string, clientID, accessToken string, db *gorm.DB, cdb *redis.Client) *Twitch {
+func New(username string, owners []string, clientID, accessToken string, db *gorm.DB, cdb cache.Cache) *Twitch {
 	return &Twitch{
 		username:    username,
 		owners:      lowercaseAll(owners),
@@ -533,15 +542,18 @@ func NewForTesting(url string, db *gorm.DB) *Twitch {
 	return &Twitch{
 		username:      "fake-username",
 		id:            "",
-		isVerifiedBot: false,
-		channels:      []*twitchChannel{{Name: "user1"}},
-		owners:        nil,
-		clientID:      "fake-client-id",
-		accessToken:   "fake-access-token",
-		i:             nil,
-		h:             helixClient,
-		db:            db,
-		cdb:           nil,
+		isVerifiedBot: true,
+		channels: []*twitchChannel{
+			{Name: "user1"},
+			{Name: "user2"},
+		},
+		owners:      nil,
+		clientID:    "fake-client-id",
+		accessToken: "fake-access-token",
+		i:           nil,
+		h:           helixClient,
+		db:          db,
+		cdb:         cachetest.NewInMemoryCache(),
 	}
 }
 
@@ -561,6 +573,10 @@ func lowercaseAll(strs []string) []string {
 }
 
 const messageSpaceSuffix = " \U000E0000"
+
+// lastSentTwitchMessageExpiration is the duration the last sent message should remain in the cache.
+// (Twitch blocks messages that are twice in a row in a 30-second period of time)
+const lastSentTwitchMessageExpiration = time.Duration(30) * time.Second
 
 // bypassSameMessageDetection manipulates the whitespace in a message
 // in such a way to bypass Twitch's 30-second same message detection/blocking.

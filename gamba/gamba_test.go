@@ -223,11 +223,11 @@ func TestGetInactiveUsers(t *testing.T) {
 	want := []models.User{user2}
 
 	if len(got) != len(want) {
-		t.Fatalf("getInactiveUsers() got %d users, want %d", len(got), len(want))
+		t.Fatalf("getInactiveUsers() got %d users, want %d: got: %v, want: %v", len(got), len(want), got, want)
 	}
 
 	if got[0].ID != want[0].ID {
-		t.Fatalf("getInactiveUsers()[0].ID = %d want %d", got[0].ID, want[0].ID)
+		t.Errorf("getInactiveUsers()[0].ID = %d want %d", got[0].ID, want[0].ID)
 	}
 }
 
@@ -483,6 +483,8 @@ func add50PointsToUser(user models.User, db *gorm.DB) error {
 func newTestServer() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "/group/user/user1/chatters") {
+			fmt.Fprint(w, twitchtmitest.FetchChattersSingleChatterResp)
+		} else if strings.Contains(r.URL.Path, "/group/user/user2/chatters") {
 			fmt.Fprint(w, twitchtmitest.FetchChattersSingleChatterResp)
 		} else if strings.Contains(r.URL.Path, "/users") {
 			fmt.Fprint(w, twitchtest.GetUsersResp)
