@@ -3,7 +3,7 @@ package pastebin
 import (
 	"testing"
 
-	"github.com/airforce270/airbot/apiclients/pastebintest"
+	"github.com/airforce270/airbot/apiclients/pastebin/pastebintest"
 	"github.com/airforce270/airbot/testing/fakeserver"
 
 	"github.com/google/go-cmp/cmp"

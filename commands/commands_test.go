@@ -8,21 +8,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/airforce270/airbot/apiclients/bibletest"
+	"github.com/airforce270/airbot/apiclients/bible"
+	"github.com/airforce270/airbot/apiclients/bible/bibletest"
 	"github.com/airforce270/airbot/apiclients/ivr"
-	"github.com/airforce270/airbot/apiclients/ivrtest"
+	"github.com/airforce270/airbot/apiclients/ivr/ivrtest"
 	"github.com/airforce270/airbot/apiclients/pastebin"
-	"github.com/airforce270/airbot/apiclients/pastebintest"
+	"github.com/airforce270/airbot/apiclients/pastebin/pastebintest"
 	"github.com/airforce270/airbot/apiclients/twitchtest"
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/cache"
 	"github.com/airforce270/airbot/cache/cachetest"
 	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/database"
+	"github.com/airforce270/airbot/database/databasetest"
 	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
 	"github.com/airforce270/airbot/platforms/twitch"
-	"github.com/airforce270/airbot/testing/databasetest"
 	"github.com/airforce270/airbot/testing/fakeserver"
 
 	"github.com/google/go-cmp/cmp"
@@ -2260,7 +2261,8 @@ func testCasesWithSameOutput(msgs []string, tc testCase) []testCase {
 }
 
 var (
-	savedIVRURL = ivr.BaseURL
+	savedIVRURL   = ivr.BaseURL
+	savedBibleURL = bible.BaseURL
 )
 
 type fakeExpRandSource struct {
@@ -2273,6 +2275,7 @@ func (s fakeExpRandSource) Seed(val uint64) {}
 func setFakes(url string, db *gorm.DB) {
 	base.RandReader = bytes.NewBuffer([]byte{3})
 	base.RandSource = fakeExpRandSource{Value: uint64(150)}
+	bible.BaseURL = url
 	cache.Instance = cachetest.NewInMemoryCache()
 	ivr.BaseURL = url
 	pastebin.FetchPasteURLOverride = url
@@ -2282,6 +2285,7 @@ func setFakes(url string, db *gorm.DB) {
 func resetFakes() {
 	base.RandReader = rand.Reader
 	base.RandSource = nil
+	bible.BaseURL = savedBibleURL
 	cache.Instance = nil
 	ivr.BaseURL = savedIVRURL
 	pastebin.FetchPasteURLOverride = ""

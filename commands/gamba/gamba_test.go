@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/airforce270/airbot/database"
+	"github.com/airforce270/airbot/database/databasetest"
 	"github.com/airforce270/airbot/database/models"
-	"github.com/airforce270/airbot/testing/databasetest"
 )
 
 func TestFetchUserPoints(t *testing.T) {

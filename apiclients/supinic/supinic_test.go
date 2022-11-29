@@ -3,7 +3,7 @@ package supinic
 import (
 	"testing"
 
-	"github.com/airforce270/airbot/apiclients/supinictest"
+	"github.com/airforce270/airbot/apiclients/supinic/supinictest"
 	"github.com/airforce270/airbot/testing/fakeserver"
 )
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/airforce270/airbot/apiclients/twitchtmitest"
+	"github.com/airforce270/airbot/apiclients/twitchtmi/twitchtmitest"
 	"github.com/airforce270/airbot/testing/fakeserver"
 
 	"github.com/google/go-cmp/cmp"

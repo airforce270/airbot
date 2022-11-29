@@ -11,11 +11,11 @@ import (
 
 	"github.com/airforce270/airbot/apiclients/twitchtest"
 	"github.com/airforce270/airbot/apiclients/twitchtmi"
-	"github.com/airforce270/airbot/apiclients/twitchtmitest"
+	"github.com/airforce270/airbot/apiclients/twitchtmi/twitchtmitest"
 	"github.com/airforce270/airbot/base"
+	"github.com/airforce270/airbot/database/databasetest"
 	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/platforms/twitch"
-	"github.com/airforce270/airbot/testing/databasetest"
 
 	"github.com/google/go-cmp/cmp"
 	"gorm.io/gorm"

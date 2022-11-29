@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/airforce270/airbot/apiclients/ivrtest"
+	"github.com/airforce270/airbot/apiclients/ivr/ivrtest"
 	"github.com/airforce270/airbot/testing/fakeserver"
 
 	"github.com/google/go-cmp/cmp"

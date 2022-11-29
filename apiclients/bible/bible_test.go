@@ -3,7 +3,7 @@ package bible
 import (
 	"testing"
 
-	"github.com/airforce270/airbot/apiclients/bibletest"
+	"github.com/airforce270/airbot/apiclients/bible/bibletest"
 	"github.com/airforce270/airbot/testing/fakeserver"
 
 	"github.com/google/go-cmp/cmp"
