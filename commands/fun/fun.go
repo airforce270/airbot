@@ -22,6 +22,7 @@ var Commands = [...]basecommand.Command{
 	bibleVerseCommand,
 	cockCommand,
 	iqCommand,
+	shipCommand,
 }
 
 var (
@@ -52,11 +53,22 @@ var (
 		Permission: permission.Normal,
 		Handler:    iq,
 	}
+
+	shipCommand = basecommand.Command{
+		Name: "ship",
+		Help: "Tells you the compatibility of two people.",
+		Args: []basecommand.Argument{
+			{Name: "first-person", Required: true},
+			{Name: "second-person", Required: true},
+		},
+		Permission: permission.Normal,
+		Handler:    ship,
+	}
 )
 
 func bibleVerse(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	if len(args) < 2 {
-		return nil, basecommand.ErrReturnUsage
+		return nil, basecommand.ErrBadUsage
 	}
 
 	verses, err := bible.FetchVerses(strings.Join(args, " "))
@@ -101,6 +113,45 @@ func iq(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 		{
 			Channel: msg.Message.Channel,
 			Text:    fmt.Sprintf("%s's IQ is %d", target, userIq),
+		},
+	}, nil
+}
+
+func ship(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+	if len(args) < 2 {
+		return nil, basecommand.ErrBadUsage
+	}
+	person1, person2 := args[0], args[1]
+
+	percentBigInt, err := rand.Int(base.RandReader, big.NewInt(101))
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate random number: %w", err)
+	}
+	percent := percentBigInt.Int64()
+
+	var suffix string
+	if percent >= 90 {
+		suffix = "invite me to the wedding please 😍"
+	} else if percent >= 80 {
+		suffix = "oh 😳"
+	} else if percent >= 60 {
+		suffix = "worth a shot ;)"
+	} else if percent >= 40 {
+		suffix = "it's a toss-up :/"
+	} else if percent >= 20 {
+		suffix = "not sure about this one... :("
+	} else {
+		suffix = "don't even think about it DansGame"
+	}
+
+	return []*base.Message{
+		{
+			Channel: msg.Message.Channel,
+			Text: strings.Join([]string{
+				fmt.Sprintf("%s and %s have a %d", person1, person2, percent),
+				"% ",
+				fmt.Sprintf("compatibility, %s", suffix),
+			}, ""),
 		},
 	}, nil
 }

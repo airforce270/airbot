@@ -219,7 +219,7 @@ func duel(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	}
 
 	if len(args) < 2 {
-		return nil, basecommand.ErrReturnUsage
+		return nil, basecommand.ErrBadUsage
 	}
 
 	target := args[0]
@@ -236,7 +236,7 @@ func duel(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	points, err := strconv.ParseInt(pointsStr, 10, 64)
 	if err != nil {
 		log.Printf("failed to parse points amount %q: %v", pointsStr, err)
-		return nil, basecommand.ErrReturnUsage
+		return nil, basecommand.ErrBadUsage
 	}
 	if points == 0 {
 		return []*base.Message{
@@ -355,7 +355,7 @@ func givePoints(msg *base.IncomingMessage, args []string) ([]*base.Message, erro
 	}
 
 	if len(args) < 2 {
-		return nil, basecommand.ErrReturnUsage
+		return nil, basecommand.ErrBadUsage
 	}
 
 	target := args[0]
@@ -372,7 +372,7 @@ func givePoints(msg *base.IncomingMessage, args []string) ([]*base.Message, erro
 	points, err := strconv.ParseInt(pointsStr, 10, 64)
 	if err != nil {
 		log.Printf("failed to parse points amount %q: %v", pointsStr, err)
-		return nil, basecommand.ErrReturnUsage
+		return nil, basecommand.ErrBadUsage
 	}
 	if points == 0 {
 		return []*base.Message{
@@ -482,7 +482,7 @@ func points(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 
 func roulette(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	if len(args) == 0 {
-		return nil, basecommand.ErrReturnUsage
+		return nil, basecommand.ErrBadUsage
 	}
 
 	db := database.Instance

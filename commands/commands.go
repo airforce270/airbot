@@ -122,7 +122,7 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.Message, error) {
 
 		respMsgs, err := command.Handler(msg, args)
 		if err != nil {
-			if !errors.Is(err, basecommand.ErrReturnUsage) {
+			if !errors.Is(err, basecommand.ErrBadUsage) {
 				return nil, err
 			}
 			outMsgs = append(outMsgs, &base.Message{

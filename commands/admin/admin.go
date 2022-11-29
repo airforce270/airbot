@@ -46,7 +46,7 @@ var (
 		Permission: permission.Owner,
 		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 			if len(args) == 0 {
-				return nil, basecommand.ErrReturnUsage
+				return nil, basecommand.ErrBadUsage
 			}
 			return []*base.Message{
 				{
@@ -103,7 +103,7 @@ var (
 		Permission: permission.Owner,
 		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 			if len(args) == 0 {
-				return nil, basecommand.ErrReturnUsage
+				return nil, basecommand.ErrBadUsage
 			}
 			return leaveChannel(msg, args[0])
 		},
@@ -320,7 +320,7 @@ func leaveChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Mess
 
 func setPrefix(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	if len(args) == 0 {
-		return nil, basecommand.ErrReturnUsage
+		return nil, basecommand.ErrBadUsage
 	}
 	newPrefix := args[0]
 

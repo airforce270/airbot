@@ -25,7 +25,7 @@ var (
 
 func filesay(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	if len(args) == 0 {
-		return nil, basecommand.ErrReturnUsage
+		return nil, basecommand.ErrBadUsage
 	}
 	pastebinURL := args[0]
 

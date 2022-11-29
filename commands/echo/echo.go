@@ -101,13 +101,13 @@ var (
 
 func spam(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	if len(args) < 2 {
-		return nil, basecommand.ErrReturnUsage
+		return nil, basecommand.ErrBadUsage
 	}
 
 	count64, err := strconv.ParseInt(args[0], 10, 32)
 	if err != nil {
 		log.Printf("Failed to parse %q as int", args[0])
-		return nil, basecommand.ErrReturnUsage
+		return nil, basecommand.ErrBadUsage
 	}
 	count := int(count64)
 
@@ -135,13 +135,13 @@ func spam(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 
 func pyramid(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	if len(args) < 2 {
-		return nil, basecommand.ErrReturnUsage
+		return nil, basecommand.ErrBadUsage
 	}
 
 	width64, err := strconv.ParseInt(args[0], 10, 32)
 	if err != nil {
 		log.Printf("Failed to parse %q as int", args[0])
-		return nil, basecommand.ErrReturnUsage
+		return nil, basecommand.ErrBadUsage
 	}
 	width := int(width64)
 
@@ -174,7 +174,7 @@ func pyramid(msg *base.IncomingMessage, args []string) ([]*base.Message, error) 
 
 func tuck(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	if len(args) == 0 {
-		return nil, basecommand.ErrReturnUsage
+		return nil, basecommand.ErrBadUsage
 	}
 
 	return []*base.Message{

@@ -927,6 +927,182 @@ func TestCommands(t *testing.T) {
 				},
 			},
 		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$ship person1 person2",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				func() error {
+					base.RandReader = bytes.NewBuffer([]byte{95})
+					return nil
+				},
+			},
+			want: []*base.Message{
+				{
+					Text:    "person1 and person2 have a 95% compatibility, invite me to the wedding please 😍",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$ship person1 person2",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				func() error {
+					base.RandReader = bytes.NewBuffer([]byte{85})
+					return nil
+				},
+			},
+			want: []*base.Message{
+				{
+					Text:    "person1 and person2 have a 85% compatibility, oh 😳",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$ship person1 person2",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				func() error {
+					base.RandReader = bytes.NewBuffer([]byte{70})
+					return nil
+				},
+			},
+			want: []*base.Message{
+				{
+					Text:    "person1 and person2 have a 70% compatibility, worth a shot ;)",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$ship person1 person2",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				func() error {
+					base.RandReader = bytes.NewBuffer([]byte{50})
+					return nil
+				},
+			},
+			want: []*base.Message{
+				{
+					Text:    "person1 and person2 have a 50% compatibility, it's a toss-up :/",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$ship person1 person2",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				func() error {
+					base.RandReader = bytes.NewBuffer([]byte{30})
+					return nil
+				},
+			},
+			want: []*base.Message{
+				{
+					Text:    "person1 and person2 have a 30% compatibility, not sure about this one... :(",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$ship person1 person2",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				func() error {
+					base.RandReader = bytes.NewBuffer([]byte{5})
+					return nil
+				},
+			},
+			want: []*base.Message{
+				{
+					Text:    "person1 and person2 have a 5% compatibility, don't even think about it DansGame",
+					Channel: "user2",
+				},
+			},
+		}),
+		singleTestCase(testCase{
+			input: &base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$ship person1",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			want: []*base.Message{
+				{
+					Text:    "Usage: $ship <first-person> <second-person>",
+					Channel: "user2",
+				},
+			},
+		}),
 
 		// gamba.go commands
 		singleTestCase(testCase{

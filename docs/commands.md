@@ -154,6 +154,11 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - Tells you someone's IQ
 - > Usage: `$iq [user]`
 
+### $ship
+
+- Tells you the compatibility of two people.
+- > Usage: `$ship <first-person> <second-person>`
+
 ## Gamba
 
 ### $accept

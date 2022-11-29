@@ -119,7 +119,7 @@ var (
 
 func banReason(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	if len(args) == 0 {
-		return nil, basecommand.ErrReturnUsage
+		return nil, basecommand.ErrBadUsage
 	}
 	targetUser := args[0]
 
@@ -233,7 +233,7 @@ func founders(msg *base.IncomingMessage, args []string) ([]*base.Message, error)
 
 func logs(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	if len(args) < 2 {
-		return nil, basecommand.ErrReturnUsage
+		return nil, basecommand.ErrBadUsage
 	}
 	targetChannel := strings.ToLower(args[0])
 	targetUser := strings.ToLower(args[1])

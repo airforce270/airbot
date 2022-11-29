@@ -12,8 +12,9 @@ import (
 	"github.com/airforce270/airbot/permission"
 )
 
-// ErrReturnUsage should be returned from a command handler when usage information should be returned.
-var ErrReturnUsage = errors.New("should return usage information")
+// ErrBadUsage indicates the command was used incorrectly.
+// i.e.: not enough args, etc.
+var ErrBadUsage = errors.New("bad usage")
 
 // Command represents a command the bot handles.
 type Command struct {
