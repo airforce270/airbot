@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/airforce270/airbot/apiclients/ivr"
@@ -199,19 +200,7 @@ func (t *Twitch) Connect() error {
 	}
 
 	log.Printf("Connecting to Twitch IRC...")
-	twitchIRCReady := make(chan bool)
-	t.i.OnConnect(func() { twitchIRCReady <- true })
-	go func() {
-		if err := t.i.Connect(); err != nil {
-			log.Printf("failed to connect to twitch IRC: %v", err)
-		}
-	}()
-	<-twitchIRCReady
-
-	for _, channel := range t.channels {
-		log.Printf("Joining Twitch channel %s...", channel.Name)
-		i.Join(channel.Name)
-	}
+	t.connectIRC()
 
 	log.Printf("Connecting to Twitch API...")
 	h, err := helix.NewClient(&helix.Options{
@@ -235,6 +224,23 @@ func (t *Twitch) Connect() error {
 	go t.listenForModAndVIPChanges()
 
 	return nil
+}
+
+func (t *Twitch) connectIRC() {
+	var wg sync.WaitGroup
+	wg.Add(1)
+	t.i.OnConnect(func() { wg.Done() })
+	go func() {
+		if err := t.i.Connect(); err != nil {
+			log.Fatalf("failed to connect to twitch IRC: %v", err)
+		}
+	}()
+	wg.Wait()
+
+	for _, channel := range t.channels {
+		log.Printf("Joining Twitch channel %s...", channel.Name)
+		t.i.Join(channel.Name)
+	}
 }
 
 func (t *Twitch) Disconnect() error {
@@ -411,7 +417,11 @@ func (t *Twitch) setUpIRCHandlers() {
 	// OnPrivateMessage is set within Twitch.Connect()
 	t.i.OnPongMessage(func(msg twitchirc.PongMessage) {})
 	t.i.OnReconnectMessage(func(msg twitchirc.ReconnectMessage) {
-		log.Printf("[%s] RECONNECT: %s", t.Name(), msg.Raw)
+		log.Printf("[%s] Reconnect requested, reconnecting...", t.Name())
+		if err := t.Disconnect(); err != nil {
+			log.Printf("[%s] Disconnect failed: %v", t.Name(), err)
+		}
+		t.connectIRC()
 	})
 	t.i.OnRoomStateMessage(func(msg twitchirc.RoomStateMessage) {})
 	t.i.OnSelfJoinMessage(func(msg twitchirc.UserJoinMessage) {})
