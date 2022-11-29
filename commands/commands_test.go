@@ -27,17 +27,17 @@ import (
 	"github.com/airforce270/airbot/testing/fakeserver"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/jinzhu/copier"
 	"github.com/nicklaw5/helix/v2"
 	"gorm.io/gorm"
 )
 
 type testCase struct {
-	input     *base.IncomingMessage
-	apiResp   string
-	runBefore []func() error
-	runAfter  []func() error
-	want      []*base.Message
+	input      base.IncomingMessage
+	otherTexts []string
+	apiResp    string
+	runBefore  []func() error
+	runAfter   []func() error
+	want       []*base.Message
 }
 
 func TestCommands(t *testing.T) {
@@ -48,11 +48,11 @@ func TestCommands(t *testing.T) {
 		return []byte("blahblah"), nil
 	}
 
-	tests := flatten(
+	tests := []testCase{
 		// admin.go commands
 		// $botslowmode is currently untested, need to find a good way to have a fake redis cache for test
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$echo say something",
 					UserID:  "user1",
@@ -70,9 +70,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$echo say something",
 					UserID:  "user1",
@@ -84,9 +84,9 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Mod,
 			},
 			want: nil,
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$join",
 					UserID:  "user1",
@@ -109,9 +109,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user1",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$join",
 					UserID:  "user1",
@@ -131,9 +131,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$joinother user1",
 					UserID:  "user1",
@@ -145,9 +145,9 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			want: nil,
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$joinother user1",
 					User:    "user3",
@@ -169,9 +169,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user1",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$joinother user1",
 					UserID:  "user1",
@@ -191,9 +191,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$joined",
 					UserID:  "user1",
@@ -212,9 +212,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$joined",
 					UserID:  "user1",
@@ -226,9 +226,9 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			want: nil,
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$leave",
 					UserID:  "user1",
@@ -248,9 +248,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user1",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$leave",
 					UserID:  "user1",
@@ -262,9 +262,9 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			want: nil,
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$leaveother user1",
 					UserID:  "user1",
@@ -284,9 +284,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$leaveother user1",
 					UserID:  "user1",
@@ -304,9 +304,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$leaveother user1",
 					UserID:  "user1",
@@ -318,9 +318,9 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			want: nil,
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$setprefix &",
 					UserID:  "user1",
@@ -338,9 +338,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$setprefix &",
 					UserID:  "user1",
@@ -352,17 +352,13 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			want: nil,
-		}),
+		},
 
 		// botinfo.go commands
-		testCasesWithSameOutput([]string{
-			"$bot",
-			"$botinfo",
-			"$info",
-			"$about",
-		}, testCase{
-			input: &base.IncomingMessage{
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$bot",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -372,15 +368,20 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
+			otherTexts: []string{
+				"$botinfo",
+				"$info",
+				"$about",
+			},
 			want: []*base.Message{
 				{
 					Text:    "Beep boop, this is Airbot running as fake-username in user2 with prefix $ on Twitch. Made by airforce2700, source available on GitHub ( $source )",
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$help",
 					UserID:  "user1",
@@ -398,9 +399,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$help join",
 					UserID:  "user1",
@@ -418,12 +419,11 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		testCasesWithSameOutput([]string{
-			"??prefix",
-		}, testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "??prefix",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -439,16 +439,11 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		testCasesWithSameOutput([]string{
-			";prefix",
-			"does this bot thingy have one of them prefixes",
-			"what is a prefix",
-			"forsen prefix",
-			"Successfully joined channel iP0G with prefix $",
-		}, testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    ";prefix",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -457,10 +452,16 @@ func TestCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 			},
+			otherTexts: []string{
+				"does this bot thingy have one of them prefixes",
+				"what is a prefix",
+				"forsen prefix",
+				"Successfully joined channel iP0G with prefix $",
+			},
 			want: nil,
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$source",
 					UserID:  "user1",
@@ -478,12 +479,12 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
+		},
 		// stats is currently untested due to reliance on low-level syscalls
 
 		// bulk.go commands
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$filesay https://pastebin.com/raw/B7TBjQEy",
 					UserID:  "user1",
@@ -510,9 +511,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$filesay https://pastebin.com/raw/B7TBjQEy",
 					UserID:  "user1",
@@ -525,9 +526,9 @@ func TestCommands(t *testing.T) {
 			},
 			apiResp: pastebintest.MultiLineFetchPasteResp,
 			want:    nil,
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$filesay",
 					UserID:  "user1",
@@ -546,11 +547,11 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
+		},
 
 		// echo.go commands
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$commands",
 					UserID:  "user1",
@@ -568,9 +569,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$gn",
 					UserID:  "user1",
@@ -588,9 +589,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$spam 3 yo",
 					UserID:  "user1",
@@ -616,9 +617,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$spam 3 yo",
 					UserID:  "user1",
@@ -630,9 +631,9 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			want: nil,
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$pyramid 5 yo",
 					UserID:  "user1",
@@ -682,9 +683,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$pyramid 1000 yo",
 					UserID:  "user1",
@@ -702,9 +703,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$pyramid 5 yo",
 					UserID:  "user1",
@@ -716,9 +717,9 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			want: nil,
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$TriHard",
 					UserID:  "user1",
@@ -736,9 +737,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$tuck",
 					UserID:  "user1",
@@ -756,9 +757,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$tuck someone",
 					UserID:  "user1",
@@ -776,15 +777,13 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
+		},
 
 		// fun.go commands
-		testCasesWithSameOutput([]string{
-			"$bibleverse Philippians 4:8",
-			"$bv Philippians 4:8",
-		}, testCase{
-			input: &base.IncomingMessage{
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$bibleverse Philippians 4:8",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -794,20 +793,19 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
-			apiResp: bibletest.LookupVerseSingleVerse1Resp,
+			otherTexts: []string{"$bv Philippians 4:8"},
+			apiResp:    bibletest.LookupVerseSingleVerse1Resp,
 			want: []*base.Message{
 				{
 					Text:    "[Philippians 4:8]: Finally, brothers, whatever things are true, whatever things are honorable, whatever things are just, whatever things are pure, whatever things are lovely, whatever things are of good report; if there is any virtue, and if there is any praise, think about these things.\n",
 					Channel: "user2",
 				},
 			},
-		}),
-		testCasesWithSameOutput([]string{
-			"$bibleverse John 3:16",
-			"$bv John 3:16",
-		}, testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$bibleverse John 3:16",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -817,20 +815,19 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
-			apiResp: bibletest.LookupVerseSingleVerse2Resp,
+			otherTexts: []string{"$bv John 3:16"},
+			apiResp:    bibletest.LookupVerseSingleVerse2Resp,
 			want: []*base.Message{
 				{
 					Text:    "[John 3:16]: \nFor God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.\n\n",
 					Channel: "user2",
 				},
 			},
-		}),
-		testCasesWithSameOutput([]string{
-			"$bibleverse",
-			"$bv",
-		}, testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$bibleverse",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -840,15 +837,16 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
+			otherTexts: []string{"$bv"},
 			want: []*base.Message{
 				{
 					Text:    "Usage: $bibleverse <book> <chapter:verse>",
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$cock",
 					UserID:  "user1",
@@ -866,9 +864,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$cock someone",
 					UserID:  "user1",
@@ -886,9 +884,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$iq",
 					UserID:  "user1",
@@ -906,9 +904,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$iq someone",
 					UserID:  "user1",
@@ -926,9 +924,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$ship person1 person2",
 					UserID:  "user1",
@@ -952,9 +950,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$ship person1 person2",
 					UserID:  "user1",
@@ -978,9 +976,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$ship person1 person2",
 					UserID:  "user1",
@@ -1004,9 +1002,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$ship person1 person2",
 					UserID:  "user1",
@@ -1030,9 +1028,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$ship person1 person2",
 					UserID:  "user1",
@@ -1056,9 +1054,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$ship person1 person2",
 					UserID:  "user1",
@@ -1082,9 +1080,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$ship person1",
 					UserID:  "user1",
@@ -1102,11 +1100,11 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
+		},
 
 		// gamba.go commands
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$accept",
 					UserID:  "user2",
@@ -1134,9 +1132,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$accept",
 					UserID:  "user2",
@@ -1164,9 +1162,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$accept",
 					UserID:  "user2",
@@ -1193,9 +1191,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$decline",
 					UserID:  "user2",
@@ -1223,9 +1221,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$decline",
 					UserID:  "user2",
@@ -1252,9 +1250,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$duel user2 25",
 					UserID:  "user1",
@@ -1280,9 +1278,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$duel user2 25",
 					UserID:  "user1",
@@ -1307,9 +1305,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$duel user2 25",
 					UserID:  "user1",
@@ -1334,9 +1332,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$duel user2 25",
 					UserID:  "user1",
@@ -1363,9 +1361,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$duel user2 25",
 					UserID:  "user3",
@@ -1393,9 +1391,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$duel",
 					UserID:  "user1",
@@ -1419,9 +1417,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$duel user2",
 					UserID:  "user1",
@@ -1445,9 +1443,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$duel user1 10",
 					UserID:  "user1",
@@ -1471,9 +1469,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$duel user2 0",
 					UserID:  "user1",
@@ -1497,9 +1495,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$duel user2 xx",
 					UserID:  "user1",
@@ -1523,9 +1521,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$givepoints user2 10",
 					UserID:  "user1",
@@ -1550,9 +1548,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$givepoints user2 100",
 					UserID:  "user1",
@@ -1577,9 +1575,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$givepoints user2 0",
 					UserID:  "user1",
@@ -1604,9 +1602,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$givepoints user2 xx",
 					UserID:  "user1",
@@ -1631,9 +1629,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$givepoints user2",
 					UserID:  "user1",
@@ -1657,9 +1655,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$givepoints",
 					UserID:  "user1",
@@ -1683,15 +1681,11 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		testCasesWithSameOutput([]string{
-			"$points",
-			"$points user1",
-			"$p",
-			"$p user1",
-		}, testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$points",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -1700,6 +1694,11 @@ func TestCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			otherTexts: []string{
+				"$points user1",
+				"$p",
+				"$p user1",
 			},
 			runBefore: []func() error{
 				add50PointsToUser1,
@@ -1710,13 +1709,11 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		testCasesWithSameOutput([]string{
-			"$points user1",
-			"$p user1",
-		}, testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$points user1",
 					UserID:  "user2",
 					User:    "user2",
 					Channel: "user2",
@@ -1726,6 +1723,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
+			otherTexts: []string{"$p user1"},
 			runBefore: []func() error{
 				add50PointsToUser1,
 			},
@@ -1735,13 +1733,11 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		testCasesWithSameOutput([]string{
-			"$points rando",
-			"$p rando",
-		}, testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$points rando",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -1751,21 +1747,18 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
+			otherTexts: []string{"$p rando"},
 			want: []*base.Message{
 				{
 					Text:    "rando has never been seen by fake-username",
 					Channel: "user2",
 				},
 			},
-		}),
-		testCasesWithSameOutput([]string{
-			"$roulette 10",
-			"$r 10",
-			"$roulette 20%",
-			"$r 20%",
-		}, testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$roulette 10",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -1774,6 +1767,11 @@ func TestCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			otherTexts: []string{
+				"$r 10",
+				"$roulette 20%",
+				"$r 20%",
 			},
 			runBefore: []func() error{
 				deleteAllGambaTransactions,
@@ -1789,15 +1787,11 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		testCasesWithSameOutput([]string{
-			"$roulette 10",
-			"$r 10",
-			"$roulette 20%",
-			"$r 20%",
-		}, testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$roulette 10",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -1806,6 +1800,11 @@ func TestCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			otherTexts: []string{
+				"$r 10",
+				"$roulette 20%",
+				"$r 20%",
 			},
 			runBefore: []func() error{
 				deleteAllGambaTransactions,
@@ -1821,13 +1820,11 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		testCasesWithSameOutput([]string{
-			"$roulette all",
-			"$r all",
-		}, testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$roulette all",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -1837,6 +1834,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
+			otherTexts: []string{"$r all"},
 			runBefore: []func() error{
 				deleteAllGambaTransactions,
 				setRandValueTo1,
@@ -1851,13 +1849,11 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		testCasesWithSameOutput([]string{
-			"$roulette 60",
-			"$r 60",
-		}, testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$roulette 60",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -1867,6 +1863,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
+			otherTexts: []string{"$r 60"},
 			runBefore: []func() error{
 				deleteAllGambaTransactions,
 				setRandValueTo0,
@@ -1878,11 +1875,11 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
+		},
 
 		// moderation.go commands
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$vanish",
 					UserID:  "user1",
@@ -1898,15 +1895,13 @@ func TestCommands(t *testing.T) {
 				waitForMessagesToSend,
 			},
 			want: nil,
-		}),
+		},
 
 		// twitch.go commands
-		testCasesWithSameOutput([]string{
-			"$br",
-			"$banreason",
-		}, testCase{
-			input: &base.IncomingMessage{
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$banreason",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -1916,20 +1911,19 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
-			apiResp: ivrtest.TwitchUsersBannedResp,
+			otherTexts: []string{"$br"},
+			apiResp:    ivrtest.TwitchUsersBannedResp,
 			want: []*base.Message{
 				{
 					Text:    "Usage: $banreason <user>",
 					Channel: "user2",
 				},
 			},
-		}),
-		testCasesWithSameOutput([]string{
-			"$br banneduser",
-			"$banreason banneduser",
-		}, testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$banreason banneduser",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -1939,20 +1933,19 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
-			apiResp: ivrtest.TwitchUsersBannedResp,
+			otherTexts: []string{"$br banneduser"},
+			apiResp:    ivrtest.TwitchUsersBannedResp,
 			want: []*base.Message{
 				{
 					Text:    "SeaGrade's ban reason: TOS_INDEFINITE",
 					Channel: "user2",
 				},
 			},
-		}),
-		testCasesWithSameOutput([]string{
-			"$br nonbanneduser",
-			"$banreason nonbanneduser",
-		}, testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$banreason nonbanneduser",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -1962,16 +1955,17 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
-			apiResp: ivrtest.TwitchUsersNotStreamingResp,
+			otherTexts: []string{"$br nonbanneduser"},
+			apiResp:    ivrtest.TwitchUsersNotStreamingResp,
 			want: []*base.Message{
 				{
 					Text:    "xQc is not banned.",
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$currentgame",
 					UserID:  "user1",
@@ -1990,9 +1984,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$founders",
 					UserID:  "user1",
@@ -2011,9 +2005,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$founders hasfounders",
 					UserID:  "user1",
@@ -2032,9 +2026,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$founders nofounders",
 					UserID:  "user1",
@@ -2053,9 +2047,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$founders nofounders404",
 					UserID:  "user1",
@@ -2074,9 +2068,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$logs xqc forsen",
 					UserID:  "user1",
@@ -2094,9 +2088,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$logs",
 					UserID:  "user1",
@@ -2114,9 +2108,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$mods",
 					UserID:  "user1",
@@ -2135,9 +2129,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$mods otherchannel",
 					UserID:  "user1",
@@ -2156,9 +2150,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$mods nomods",
 					UserID:  "user1",
@@ -2177,13 +2171,11 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		testCasesWithSameOutput([]string{
-			"$title",
-			"$title user1",
-		}, testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$title",
 					UserID:  "user2",
 					User:    "user2",
 					Channel: "user1",
@@ -2193,22 +2185,19 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
-			apiResp: twitchtest.GetChannelInformationResp,
+			otherTexts: []string{"$title user1"},
+			apiResp:    twitchtest.GetChannelInformationResp,
 			want: []*base.Message{
 				{
 					Text:    "user1's title: TwitchDevMonthlyUpdate//May6,2021",
 					Channel: "user1",
 				},
 			},
-		}),
-		testCasesWithSameOutput([]string{
-			"$verifiedbot",
-			"$verifiedbot otherchannel",
-			"$vb",
-			"$vb otherchannel",
-		}, testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$verifiedbot",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -2217,6 +2206,11 @@ func TestCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			otherTexts: []string{
+				"$verifiedbot otherchannel",
+				"$vb",
+				"$vb otherchannel",
 			},
 			apiResp: ivrtest.TwitchUsersVerifiedBotResp,
 			want: []*base.Message{
@@ -2225,13 +2219,11 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		testCasesWithSameOutput([]string{
-			"$verifiedbot notverified",
-			"$vb notverified",
-		}, testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$verifiedbot notverified",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -2241,26 +2233,19 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
-			apiResp: ivrtest.TwitchUsersNotVerifiedBotResp,
+			otherTexts: []string{"$vb notverified"},
+			apiResp:    ivrtest.TwitchUsersNotVerifiedBotResp,
 			want: []*base.Message{
 				{
 					Text:    "xQc is not a verified bot. ❌",
 					Channel: "user2",
 				},
 			},
-		}),
-		testCasesWithSameOutput([]string{
-			"$verifiedbotquiet",
-			"$verifiedbotquiet otherchannel",
-			"$verifiedbotq",
-			"$verifiedbotq otherchannel",
-			"$vbquiet",
-			"$vbquiet otherchannel",
-			"$vbq",
-			"$vbq otherchannel",
-		}, testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$verifiedbotquiet",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -2269,6 +2254,15 @@ func TestCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			otherTexts: []string{
+				"$verifiedbotquiet otherchannel",
+				"$verifiedbotq",
+				"$verifiedbotq otherchannel",
+				"$vbquiet",
+				"$vbquiet otherchannel",
+				"$vbq",
+				"$vbq otherchannel",
 			},
 			apiResp: ivrtest.TwitchUsersVerifiedBotResp,
 			want: []*base.Message{
@@ -2277,15 +2271,11 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		testCasesWithSameOutput([]string{
-			"$verifiedbotquiet notverified",
-			"$verifiedbotq notverified",
-			"$vbquiet notverified",
-			"$vbq notverified",
-		}, testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$verifiedbotquiet notverified",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -2295,6 +2285,11 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
 			},
+			otherTexts: []string{
+				"$verifiedbotq notverified",
+				"$vbquiet notverified",
+				"$vbq notverified",
+			},
 			apiResp: ivrtest.TwitchUsersNotVerifiedBotResp,
 			want: []*base.Message{
 				{
@@ -2302,9 +2297,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$vips",
 					UserID:  "user1",
@@ -2323,9 +2318,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$vips otherchannel",
 					UserID:  "user1",
@@ -2344,9 +2339,9 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-		singleTestCase(testCase{
-			input: &base.IncomingMessage{
+		},
+		{
+			input: base.IncomingMessage{
 				Message: base.Message{
 					Text:    "$vips novips",
 					UserID:  "user1",
@@ -2365,75 +2360,55 @@ func TestCommands(t *testing.T) {
 					Channel: "user2",
 				},
 			},
-		}),
-	)
+		},
+	}
 
-	for _, tc := range tests {
-		t.Run(fmt.Sprintf("[%s] %s", tc.input.PermissionLevel.Name(), tc.input.Message.Text), func(t *testing.T) {
-			server.Resp = tc.apiResp
-			db := databasetest.NewFakeDB()
-			database.Instance = db
-			setFakes(server.URL(), db)
-			for i, f := range tc.runBefore {
-				if err := f(); err != nil {
-					t.Fatalf("runBefore[%d] func failed: %v", i, err)
+	for _, unbuiltTC := range tests {
+		for _, tc := range buildTestCases(t, unbuiltTC) {
+			t.Run(fmt.Sprintf("[%s] %s", tc.input.PermissionLevel.Name(), tc.input.Message.Text), func(t *testing.T) {
+				server.Resp = tc.apiResp
+				db := databasetest.NewFakeDB()
+				database.Instance = db
+				setFakes(server.URL(), db)
+				for i, f := range tc.runBefore {
+					if err := f(); err != nil {
+						t.Fatalf("runBefore[%d] func failed: %v", i, err)
+					}
 				}
-			}
 
-			handler := Handler{db: db}
-			got, err := handler.Handle(tc.input)
-			if err != nil {
-				fmt.Printf("unexpected error: %v\n", err)
-				t.Fatalf("unexpected error: %v", err)
-			}
-
-			for i, f := range tc.runAfter {
-				if err := f(); err != nil {
-					t.Fatalf("runAfter[%d] func failed: %v", i, err)
+				handler := Handler{db: db}
+				got, err := handler.Handle(&tc.input)
+				if err != nil {
+					fmt.Printf("unexpected error: %v\n", err)
+					t.Fatalf("unexpected error: %v", err)
 				}
-			}
 
-			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Errorf("Handle() diff (-want +got):\n%s", diff)
-			}
-			resetFakes()
-			server.Reset()
-		})
+				for i, f := range tc.runAfter {
+					if err := f(); err != nil {
+						t.Fatalf("runAfter[%d] func failed: %v", i, err)
+					}
+				}
+
+				if diff := cmp.Diff(tc.want, got); diff != "" {
+					t.Errorf("Handle() diff (-want +got):\n%s", diff)
+				}
+				resetFakes()
+				server.Reset()
+			})
+		}
 	}
 
 	config.OSReadFile = os.ReadFile
 }
 
-func flatten[T any](itemGroups ...[]T) []T {
-	var items []T
-	for _, itemGroup := range itemGroups {
-		items = append(items, itemGroup...)
+func buildTestCases(t *testing.T, tc testCase) []testCase {
+	tcs := []testCase{tc}
+	for _, otherText := range tc.otherTexts {
+		tcCopy := tc
+		tcCopy.input.Message.Text = otherText
+		tcs = append(tcs, tcCopy)
 	}
-	return items
-}
-
-func singleTestCase(tc testCase) []testCase { return []testCase{tc} }
-
-// testCasesWithSameOutput generates test cases that have different message texts
-// but are expected to have the same response.
-func testCasesWithSameOutput(msgs []string, tc testCase) []testCase {
-	var testCases []testCase
-	for _, msg := range msgs {
-		input := base.IncomingMessage{}
-		if err := copier.CopyWithOption(&input, &tc.input, copier.Option{DeepCopy: true}); err != nil {
-			panic(err)
-		}
-		input.Message.Text = msg
-
-		msgTestCase := testCase{}
-		if err := copier.CopyWithOption(&msgTestCase, &tc, copier.Option{DeepCopy: true}); err != nil {
-			panic(err)
-		}
-		msgTestCase.input = &input
-
-		testCases = append(testCases, msgTestCase)
-	}
-	return testCases
+	return tcs
 }
 
 var (

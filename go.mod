@@ -7,7 +7,6 @@ require (
 	github.com/go-redis/redis/v9 v9.0.0-rc.2
 	github.com/google/go-cmp v0.5.9
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/jinzhu/copier v0.3.5
 	github.com/nicklaw5/helix/v2 v2.11.0
 	github.com/pelletier/go-toml/v2 v2.0.6
 	github.com/shirou/gopsutil/v3 v3.22.10
