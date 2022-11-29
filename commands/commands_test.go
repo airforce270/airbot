@@ -113,6 +113,31 @@ func TestCommands(t *testing.T) {
 		{
 			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$join &",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
+			},
+			apiResp: twitchtest.GetChannelInformationResp,
+			want: []*base.Message{
+				{
+					Text:    "Successfully joined channel user1 with prefix &",
+					Channel: "user2",
+				},
+				{
+					Text:    "Successfully joined channel! (prefix: & ) For all commands, type &commands.",
+					Channel: "user1",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$join",
 					UserID:  "user1",
 					User:    "user1",
@@ -166,6 +191,30 @@ func TestCommands(t *testing.T) {
 				},
 				{
 					Text:    "Successfully joined channel! (prefix: $ ) For all commands, type $commands.",
+					Channel: "user1",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$joinother user1 *",
+					User:    "user3",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Owner,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
+			},
+			apiResp: twitchtest.GetChannelInformationResp,
+			want: []*base.Message{
+				{
+					Text:    "Successfully joined channel user1 with prefix *",
+					Channel: "user2",
+				},
+				{
+					Text:    "Successfully joined channel! (prefix: * ) For all commands, type *commands.",
 					Channel: "user1",
 				},
 			},

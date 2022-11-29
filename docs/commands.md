@@ -32,12 +32,12 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 ### $join
 
 - Tells the bot to join your chat.
-- > Usage: `$join`
+- > Usage: `$join [prefix]`
 
 ### $joinother
 
 - Tells the bot to join a chat.
-- > Usage: `$joinother <channel>`
+- > Usage: `$joinother <channel> [prefix]`
 - > Minimum permission level: `Owner`
 
 ### $joined

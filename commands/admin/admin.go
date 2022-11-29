@@ -60,9 +60,14 @@ var (
 	joinCommand = basecommand.Command{
 		Name:       "join",
 		Help:       "Tells the bot to join your chat.",
+		Args:       []basecommand.Argument{{Name: "prefix", Required: false}},
 		Permission: permission.Normal,
 		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-			return joinChannel(msg, msg.Message.User)
+			prefix := defaultPrefix
+			if len(args) >= 1 {
+				prefix = args[0]
+			}
+			return joinChannel(msg, msg.Message.User, prefix)
 		},
 	}
 
@@ -74,16 +79,23 @@ var (
 	}
 
 	joinOtherCommand = basecommand.Command{
-		Name:       "joinother",
-		Help:       "Tells the bot to join a chat.",
-		Args:       []basecommand.Argument{{Name: "channel", Required: true}},
+		Name: "joinother",
+		Help: "Tells the bot to join a chat.",
+		Args: []basecommand.Argument{
+			{Name: "channel", Required: true},
+			{Name: "prefix", Required: false},
+		},
 		Permission: permission.Owner,
 		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-			channel := msg.Message.Channel
-			if len(args) > 0 {
-				channel = args[0]
+			if len(args) == 0 {
+				return nil, basecommand.ErrBadUsage
 			}
-			return joinChannel(msg, channel)
+			channel := args[0]
+			prefix := defaultPrefix
+			if len(args) >= 2 {
+				prefix = args[1]
+			}
+			return joinChannel(msg, channel, prefix)
 		},
 	}
 
@@ -173,9 +185,7 @@ func botSlowmode(msg *base.IncomingMessage, args []string) ([]*base.Message, err
 
 const defaultPrefix = "$"
 
-func joinChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Message, error) {
-	prefix := defaultPrefix
-
+func joinChannel(msg *base.IncomingMessage, targetChannel, prefix string) ([]*base.Message, error) {
 	db := database.Instance
 	if db == nil {
 		return nil, fmt.Errorf("database instance not initialized")
