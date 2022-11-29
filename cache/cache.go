@@ -38,7 +38,7 @@ type Cache interface {
 
 const (
 	// Cache key for the last sent Twitch message.
-	KeyLastSentTwitchMessage = "twitch_last_twitch_message"
+	KeyLastSentTwitchMessage = "twitch_last_sent_message"
 )
 
 // KeyGlobalSlowmode returns the global slowmode cache key for a platform.
