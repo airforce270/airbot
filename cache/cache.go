@@ -3,6 +3,7 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -54,7 +55,7 @@ func (c *RedisCache) StoreExpiringBool(key string, value bool, expiration time.D
 }
 func (c *RedisCache) FetchBool(key string) (bool, error) {
 	resp, err := c.r.Get(context.Background(), key).Bool()
-	if err == redis.Nil {
+	if errors.Is(err, redis.Nil) {
 		return false, nil
 	}
 	if err != nil {
