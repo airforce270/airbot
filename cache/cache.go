@@ -20,15 +20,19 @@ type Cache interface {
 	// StoreBool stores a bool value with no expiration.
 	StoreBool(key string, value bool) error
 	// StoreExpiringBool stores a bool value with an expiration.
+	// If the key does not exist, false will be returned.
 	StoreExpiringBool(key string, value bool, expiration time.Duration) error
 	// FetchBool fetches a bool value.
+	// If the key does not exist, false will be returned.
 	FetchBool(key string) (bool, error)
 
 	// StoreString stores a string value with no expiration.
 	StoreString(key, value string) error
 	// StoreExpiringString stores a string value with an expiration.
+	// If the key does not exist, an empty string will be returned.
 	StoreExpiringString(key, value string, expiration time.Duration) error
 	// FetchString fetches a string value.
+	// If the key does not exist, an empty string will be returned.
 	FetchString(key string) (string, error)
 }
 
@@ -71,6 +75,9 @@ func (c *RedisCache) StoreExpiringString(key, value string, expiration time.Dura
 }
 func (c *RedisCache) FetchString(key string) (string, error) {
 	val, err := c.r.Get(context.Background(), key).Result()
+	if errors.Is(err, redis.Nil) {
+		return "", nil
+	}
 	return val, err
 }
 
