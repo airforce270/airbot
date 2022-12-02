@@ -50,7 +50,87 @@ func TestCommands(t *testing.T) {
 
 	tests := []testCase{
 		// admin.go commands
-		// $botslowmode is currently untested, need to find a good way to have a fake redis cache for test
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$botslowmode on",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Owner,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
+			},
+			want: []*base.Message{
+				{
+					Text:    "Enabled bot slowmode on Twitch",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$botslowmode off",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Owner,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				enableBotSlowmode,
+			},
+			want: []*base.Message{
+				{
+					Text:    "Disabled bot slowmode on Twitch",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$botslowmode",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Owner,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
+			},
+			runBefore: []func() error{
+				enableBotSlowmode,
+			},
+			want: []*base.Message{
+				{
+					Text:    "Bot slowmode is currently enabled on Twitch",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$botslowmode on",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
+			},
+			want: nil,
+		},
 		{
 			input: base.IncomingMessage{
 				Message: base.Message{
@@ -2498,6 +2578,24 @@ func joinOtherUser1() error {
 	_, err := handler.Handle(&base.IncomingMessage{
 		Message: base.Message{
 			Text:    "$joinother user1",
+			UserID:  "user1",
+			User:    "user1",
+			Channel: "user2",
+			Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+		},
+		Prefix:          "$",
+		PermissionLevel: permission.Owner,
+		Platform:        twitch.NewForTesting("forsen", db),
+	})
+	return err
+}
+
+func enableBotSlowmode() error {
+	db := databasetest.NewFakeDBConn()
+	handler := Handler{db: db}
+	_, err := handler.Handle(&base.IncomingMessage{
+		Message: base.Message{
+			Text:    "$botslowmode on",
 			UserID:  "user1",
 			User:    "user1",
 			Channel: "user2",
