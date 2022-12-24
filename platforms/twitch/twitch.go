@@ -264,12 +264,12 @@ func (t *Twitch) SetPrefix(channel, prefix string) error {
 
 func (t *Twitch) User(username string) (models.User, error) {
 	var user models.User
-	result := t.db.Where("LOWER(twitch_name) = ?", strings.ToLower(username)).First(&user)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return models.User{}, fmt.Errorf("twitch user %s has never been seen by the bot: %w", username, base.ErrUserUnknown)
-	}
+	result := t.db.Where("LOWER(twitch_name) = ?", strings.ToLower(username)).Limit(1).Find(&user)
 	if result.Error != nil {
 		return models.User{}, fmt.Errorf("failed to retrieve twitch user %s from db: %w", username, result.Error)
+	}
+	if user.ID == 0 {
+		return models.User{}, fmt.Errorf("twitch user %s has never been seen by the bot: %w", username, base.ErrUserUnknown)
 	}
 	return user, nil
 }
