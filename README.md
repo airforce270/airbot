@@ -56,6 +56,10 @@ To run in production (on a debian machine):
 1. Run `./setup-vm-debian.sh` to set up the environment
 1. Fill in the empty fields in `config.toml`, notably API keys and usernames
 1. Set a value for `POSTGRES_PASSWORD` in `.env`
+1. (optional): If running in a GCE container, follow
+  [these instructions](https://docs.docker.com/config/containers/logging/configure/#configure-the-default-logging-driver)
+  to set your default Docker `log-driver` to `gcplogs` (in
+  `/etc/docker/daemon.json`) to send the Docker logs to Google Cloud Logging.
 1. Reboot the machine
 1. Run `./start-prod.sh` to start the bot
 
