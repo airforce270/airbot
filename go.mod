@@ -10,7 +10,7 @@ require (
 	github.com/nicklaw5/helix/v2 v2.14.0
 	github.com/pelletier/go-toml/v2 v2.0.6
 	github.com/shirou/gopsutil/v3 v3.22.12
-	golang.org/x/exp v0.0.0-20221114191408-850992195362
+	golang.org/x/exp v0.0.0-20230116083435-1de6713980de
 	golang.org/x/sync v0.1.0
 	gonum.org/v1/gonum v0.12.0
 	gorm.io/driver/postgres v1.4.6
