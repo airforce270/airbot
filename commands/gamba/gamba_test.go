@@ -151,8 +151,12 @@ func TestFetchUserPoints(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
-			db.Migrator().DropTable(&models.GambaTransaction{})
-			database.Migrate(db)
+			if err := db.Migrator().DropTable(&models.GambaTransaction{}); err != nil {
+				t.Fatalf("failed to drop GambaTransaction table: %v", err)
+			}
+			if err := database.Migrate(db); err != nil {
+				t.Fatalf("failed to migrate db: %v", err)
+			}
 
 			for _, txn := range tc.transactions {
 				result = db.Create(&txn)

@@ -358,7 +358,15 @@ func setPrefix(msg *base.IncomingMessage, args []string) ([]*base.Message, error
 		}
 	}
 
-	msg.Platform.SetPrefix(msg.Message.Channel, newPrefix)
+	if err := msg.Platform.SetPrefix(msg.Message.Channel, newPrefix); err != nil {
+		log.Printf("Failed to update prefix: %v", err)
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "Failed to update prefix",
+			},
+		}, nil
+	}
 
 	return []*base.Message{
 		{

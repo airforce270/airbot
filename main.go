@@ -72,7 +72,7 @@ func main() {
 	cache.Instance = &cdb
 
 	log.Printf("Performing database migrations...")
-	if database.Migrate(db); err != nil {
+	if err = database.Migrate(db); err != nil {
 		log.Fatalf("failed to perform database migrations: %v", err)
 	}
 
