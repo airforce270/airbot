@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/airforce270/airbot/base"
+	"github.com/airforce270/airbot/base/arg"
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/models"
@@ -50,9 +51,9 @@ var (
 	duelCommand = basecommand.Command{
 		Name: "duel",
 		Help: fmt.Sprintf("Duels another chatter. They have %d seconds to accept or decline.", duelPendingSecs),
-		Args: []basecommand.Argument{
-			{Name: "user", Required: true},
-			{Name: "amount", Required: true},
+		Params: []arg.Param{
+			{Name: "user", Type: arg.Username, Required: true},
+			{Name: "amount", Type: arg.Int, Required: true},
 		},
 		Permission:   permission.Normal,
 		UserCooldown: time.Duration(5) * time.Second,
@@ -63,9 +64,9 @@ var (
 		Name:    "givepoints",
 		Aliases: []string{"gp"},
 		Help:    "Give points to another chatter.",
-		Args: []basecommand.Argument{
-			{Name: "user", Required: true},
-			{Name: "amount", Required: true},
+		Params: []arg.Param{
+			{Name: "user", Type: arg.Username, Required: true},
+			{Name: "amount", Type: arg.Int, Required: true},
 		},
 		Permission: permission.Normal,
 		Handler:    givePoints,
@@ -75,7 +76,7 @@ var (
 		Name:       "points",
 		Aliases:    []string{"p"},
 		Help:       "Checks how many points someone has.",
-		Args:       []basecommand.Argument{{Name: "user", Required: false}},
+		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    points,
 	}
@@ -84,7 +85,7 @@ var (
 		Name:         "roulette",
 		Aliases:      []string{"r"},
 		Help:         "Roulettes some points.",
-		Args:         []basecommand.Argument{{Name: "amount", Required: true, Usage: "amount|percent%|all"}},
+		Params:       []arg.Param{{Name: "amount", Type: arg.String, Required: true, Usage: "amount|percent%|all"}},
 		Permission:   permission.Normal,
 		UserCooldown: time.Duration(5) * time.Second,
 		Handler:      roulette,
@@ -96,7 +97,7 @@ const (
 	duelPendingDuration = time.Duration(duelPendingSecs) * time.Second
 )
 
-func accept(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+func accept(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	db := database.Instance
 	if db == nil {
 		return nil, fmt.Errorf("database connection not initialized")
@@ -171,7 +172,7 @@ func accept(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	return outMsgs, nil
 }
 
-func decline(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+func decline(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	db := database.Instance
 	if db == nil {
 		return nil, fmt.Errorf("database connection not initialized")
@@ -212,17 +213,18 @@ func decline(msg *base.IncomingMessage, args []string) ([]*base.Message, error) 
 	}, nil
 }
 
-func duel(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+func duel(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	db := database.Instance
 	if db == nil {
 		return nil, fmt.Errorf("database connection not initialized")
 	}
 
-	if len(args) < 2 {
+	targetArg, pointsArg := args[0], args[1]
+	if !targetArg.IsPresent || !pointsArg.IsPresent {
 		return nil, basecommand.ErrBadUsage
 	}
+	target, points := targetArg.Value.(string), pointsArg.Value.(int)
 
-	target := args[0]
 	if target == msg.Message.User {
 		return []*base.Message{
 			{
@@ -232,12 +234,6 @@ func duel(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 		}, nil
 	}
 
-	pointsStr := args[1]
-	points, err := strconv.ParseInt(pointsStr, 10, 64)
-	if err != nil {
-		log.Printf("failed to parse points amount %q: %v", pointsStr, err)
-		return nil, basecommand.ErrBadUsage
-	}
 	if points == 0 {
 		return []*base.Message{
 			{
@@ -281,7 +277,7 @@ func duel(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	}
 
 	userPoints := fetchUserPoints(db, user)
-	if points > userPoints {
+	if int64(points) > userPoints {
 		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
@@ -291,7 +287,7 @@ func duel(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	}
 
 	targetUserPoints := fetchUserPoints(db, targetUser)
-	if points > targetUserPoints {
+	if int64(points) > targetUserPoints {
 		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
@@ -331,7 +327,7 @@ func duel(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 		User:     user,
 		TargetID: targetUser.ID,
 		Target:   targetUser,
-		Amount:   points,
+		Amount:   int64(points),
 		Pending:  true,
 		Accepted: false,
 		Won:      false,
@@ -348,17 +344,22 @@ func duel(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	}, nil
 }
 
-func givePoints(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+func givePoints(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	db := database.Instance
 	if db == nil {
 		return nil, fmt.Errorf("database connection not initialized")
 	}
 
+	targetArg, pointsArg := args[0], args[1]
+	if !targetArg.IsPresent || !pointsArg.IsPresent {
+		return nil, basecommand.ErrBadUsage
+	}
+	target, points := targetArg.Value.(string), pointsArg.Value.(int)
+
 	if len(args) < 2 {
 		return nil, basecommand.ErrBadUsage
 	}
 
-	target := args[0]
 	if target == msg.Message.User {
 		return []*base.Message{
 			{
@@ -368,12 +369,6 @@ func givePoints(msg *base.IncomingMessage, args []string) ([]*base.Message, erro
 		}, nil
 	}
 
-	pointsStr := args[1]
-	points, err := strconv.ParseInt(pointsStr, 10, 64)
-	if err != nil {
-		log.Printf("failed to parse points amount %q: %v", pointsStr, err)
-		return nil, basecommand.ErrBadUsage
-	}
 	if points == 0 {
 		return []*base.Message{
 			{
@@ -417,7 +412,7 @@ func givePoints(msg *base.IncomingMessage, args []string) ([]*base.Message, erro
 	}
 
 	userPoints := fetchUserPoints(db, user)
-	if points > userPoints {
+	if int64(points) > userPoints {
 		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
@@ -430,12 +425,12 @@ func givePoints(msg *base.IncomingMessage, args []string) ([]*base.Message, erro
 		{
 			Game:  "GivePoints",
 			User:  user,
-			Delta: -points,
+			Delta: -int64(points),
 		},
 		{
 			Game:  "GivePoints",
 			User:  targetUser,
-			Delta: points,
+			Delta: int64(points),
 		},
 	})
 	if result.Error != nil {
@@ -450,7 +445,7 @@ func givePoints(msg *base.IncomingMessage, args []string) ([]*base.Message, erro
 	}, nil
 }
 
-func points(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+func points(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	db := database.Instance
 	if db == nil {
 		return nil, fmt.Errorf("database connection not initialized")
@@ -480,8 +475,9 @@ func points(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	}, nil
 }
 
-func roulette(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-	if len(args) == 0 {
+func roulette(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+	amountArg := args[0]
+	if !amountArg.IsPresent {
 		return nil, basecommand.ErrBadUsage
 	}
 
@@ -507,7 +503,7 @@ func roulette(msg *base.IncomingMessage, args []string) ([]*base.Message, error)
 	points := fetchUserPoints(db, user)
 
 	var amount int64
-	amountStr := args[0]
+	amountStr := amountArg.Value.(string)
 	if amountStr == "all" {
 		amount = points
 	} else if strings.HasSuffix(amountStr, "%") {

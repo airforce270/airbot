@@ -4,6 +4,7 @@ package bulk
 import (
 	"github.com/airforce270/airbot/apiclients/pastebin"
 	"github.com/airforce270/airbot/base"
+	"github.com/airforce270/airbot/base/arg"
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/permission"
 )
@@ -17,19 +18,19 @@ var (
 	filesayCommand = basecommand.Command{
 		Name:       "filesay",
 		Help:       "Runs all commands in a given pastebin file.",
-		Args:       []basecommand.Argument{{Name: "pastebin raw URL", Required: true}},
+		Params:     []arg.Param{{Name: "pastebin raw URL", Type: arg.String, Required: true}},
 		Permission: permission.Mod,
 		Handler:    filesay,
 	}
 )
 
-func filesay(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-	if len(args) == 0 {
+func filesay(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+	pastebinURLArg := args[0]
+	if !pastebinURLArg.IsPresent {
 		return nil, basecommand.ErrBadUsage
 	}
-	pastebinURL := args[0]
 
-	paste, err := pastebin.FetchPaste(pastebinURL)
+	paste, err := pastebin.FetchPaste(pastebinURLArg.Value.(string))
 	if err != nil {
 		return nil, err
 	}

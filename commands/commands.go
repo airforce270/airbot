@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/airforce270/airbot/base"
+	"github.com/airforce270/airbot/base/arg"
 	"github.com/airforce270/airbot/commands/admin"
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/commands/botinfo"
@@ -118,7 +119,7 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.Message, error) {
 			}
 		}
 
-		args := parseArgs(pattern, msg)
+		args := parseArgs(msg, command, pattern)
 
 		respMsgs, err := command.Handler(msg, args)
 		if err != nil {
@@ -143,28 +144,32 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.Message, error) {
 	return outMsgs, nil
 }
 
-func parseArgs(pattern *regexp.Regexp, msg *base.IncomingMessage) []string {
-	var args []string
-	for _, arg := range pattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())[1:] {
-		if arg == "" {
-			continue
-		}
-		args = append(args, arg)
+// parseArgs parses all args from the given message.
+func parseArgs(msg *base.IncomingMessage, cmd basecommand.Command, pattern *regexp.Regexp) []arg.Arg {
+	var parsed []arg.Arg
+	rest := strings.TrimSpace(strings.Join(pattern.FindStringSubmatch(msg.MessageTextWithoutPrefix())[1:], " "))
+
+	for _, a := range cmd.Params {
+		var value arg.Arg
+		value, rest = a.Parse(rest)
+		parsed = append(parsed, value)
 	}
-	return args
+
+	return parsed
 }
 
 var (
 	helpCommand = basecommand.Command{
 		Name:    "help",
 		Help:    "Displays help for a command.",
-		Args:    []basecommand.Argument{{Name: "command", Required: false}},
+		Params:  []arg.Param{{Name: "command", Type: arg.String, Required: false}},
 		Handler: help,
 	}
 )
 
-func help(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-	if len(args) == 0 {
+func help(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+	targetCommandArg := args[0]
+	if !targetCommandArg.IsPresent {
 		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
@@ -172,7 +177,7 @@ func help(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 			},
 		}, nil
 	}
-	targetCommand := args[0]
+	targetCommand := targetCommandArg.Value.(string)
 
 	for _, cmd := range allCommands {
 		if !strings.EqualFold(cmd.Name, targetCommand) {

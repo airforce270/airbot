@@ -7,6 +7,7 @@ import (
 
 	"github.com/airforce270/airbot/apiclients/ivr"
 	"github.com/airforce270/airbot/base"
+	"github.com/airforce270/airbot/base/arg"
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/permission"
 	twitchplatform "github.com/airforce270/airbot/platforms/twitch"
@@ -34,7 +35,7 @@ var (
 		Name:       "banreason",
 		Aliases:    []string{"br"},
 		Help:       "Replies with the reason someone was banned on Twitch.",
-		Args:       []basecommand.Argument{{Name: "user", Required: true}},
+		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: true}},
 		Permission: permission.Normal,
 		Handler:    banReason,
 	}
@@ -42,7 +43,7 @@ var (
 	currentGameCommand = basecommand.Command{
 		Name:       "currentgame",
 		Help:       "Replies with the game that's currently being streamed on a channel.",
-		Args:       []basecommand.Argument{{Name: "channel", Required: true}},
+		Params:     []arg.Param{{Name: "channel", Type: arg.Username, Required: true}},
 		Permission: permission.Normal,
 		Handler:    currentGame,
 	}
@@ -50,7 +51,7 @@ var (
 	foundersCommand = basecommand.Command{
 		Name:       "founders",
 		Help:       "Replies with a channel's founders. If no channel is provided, the current channel will be used.",
-		Args:       []basecommand.Argument{{Name: "channel", Required: false}},
+		Params:     []arg.Param{{Name: "channel", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    founders,
 	}
@@ -58,9 +59,9 @@ var (
 	logsCommand = basecommand.Command{
 		Name: "logs",
 		Help: "Replies with a link to a Twitch user's logs in a channel.",
-		Args: []basecommand.Argument{
-			{Name: "channel", Required: true},
-			{Name: "user", Required: true},
+		Params: []arg.Param{
+			{Name: "channel", Type: arg.Username, Required: true},
+			{Name: "user", Type: arg.Username, Required: true},
 		},
 		Permission: permission.Normal,
 		Handler:    logs,
@@ -69,7 +70,7 @@ var (
 	modsCommand = basecommand.Command{
 		Name:       "mods",
 		Help:       "Replies with a channel's mods. If no channel is provided, the current channel will be used.",
-		Args:       []basecommand.Argument{{Name: "channel", Required: false}},
+		Params:     []arg.Param{{Name: "channel", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    mods,
 	}
@@ -77,7 +78,7 @@ var (
 	nameColorCommand = basecommand.Command{
 		Name:       "namecolor",
 		Help:       "Replies with a user's name color.",
-		Args:       []basecommand.Argument{{Name: "user", Required: false}},
+		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    nameColor,
 	}
@@ -85,7 +86,7 @@ var (
 	titleCommand = basecommand.Command{
 		Name:       "title",
 		Help:       "Replies with a channel's title. If no channel is provided, the current channel will be used.",
-		Args:       []basecommand.Argument{{Name: "channel", Required: false}},
+		Params:     []arg.Param{{Name: "channel", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    title,
 	}
@@ -94,7 +95,7 @@ var (
 		Name:       "verifiedbot",
 		Aliases:    []string{"vb"},
 		Help:       "Replies whether a user is a verified bot.",
-		Args:       []basecommand.Argument{{Name: "user", Required: false}},
+		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    verifiedBot,
 	}
@@ -103,7 +104,7 @@ var (
 		Name:       "verifiedbotquiet",
 		Aliases:    []string{"verifiedbotq", "vbquiet", "vbq"},
 		Help:       "Replies whether a user is a verified bot, but responds quietly.",
-		Args:       []basecommand.Argument{{Name: "user", Required: false}},
+		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    verifiedBotQuiet,
 	}
@@ -111,17 +112,18 @@ var (
 	vipsCommand = basecommand.Command{
 		Name:       "vips",
 		Help:       "Replies with a channel's VIPs. If no channel is provided, the current channel will be used.",
-		Args:       []basecommand.Argument{{Name: "channel", Required: false}},
+		Params:     []arg.Param{{Name: "channel", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    vips,
 	}
 )
 
-func banReason(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-	if len(args) == 0 {
+func banReason(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+	targetUserArg := args[0]
+	if !targetUserArg.IsPresent {
 		return nil, basecommand.ErrBadUsage
 	}
-	targetUser := args[0]
+	targetUser := targetUserArg.Value.(string)
 
 	users, err := ivr.FetchUsers(targetUser)
 	if err != nil {
@@ -155,7 +157,7 @@ func banReason(msg *base.IncomingMessage, args []string) ([]*base.Message, error
 	}, nil
 }
 
-func currentGame(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+func currentGame(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
 	tw := twitchplatform.Instance
@@ -185,7 +187,7 @@ func currentGame(msg *base.IncomingMessage, args []string) ([]*base.Message, err
 	}, nil
 }
 
-func founders(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+func founders(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
 	founders, err := ivr.FetchFounders(targetChannel)
@@ -231,12 +233,13 @@ func founders(msg *base.IncomingMessage, args []string) ([]*base.Message, error)
 	return messages, nil
 }
 
-func logs(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-	if len(args) < 2 {
+func logs(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+	targetChannelArg, targetUserArg := args[0], args[1]
+	if !targetChannelArg.IsPresent || !targetUserArg.IsPresent {
 		return nil, basecommand.ErrBadUsage
 	}
-	targetChannel := strings.ToLower(args[0])
-	targetUser := strings.ToLower(args[1])
+	targetChannel := strings.ToLower(targetChannelArg.Value.(string))
+	targetUser := strings.ToLower(targetUserArg.Value.(string))
 
 	return []*base.Message{
 		{
@@ -246,7 +249,7 @@ func logs(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	}, nil
 }
 
-func mods(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+func mods(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
 	modsAndVIPs, err := ivr.FetchModsAndVIPs(targetChannel)
@@ -283,7 +286,7 @@ func mods(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	return messages, nil
 }
 
-func nameColor(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+func nameColor(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetUser := basecommand.FirstArgOrUsername(args, msg)
 
 	users, err := ivr.FetchUsers(targetUser)
@@ -311,7 +314,7 @@ func nameColor(msg *base.IncomingMessage, args []string) ([]*base.Message, error
 	}, nil
 }
 
-func title(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+func title(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
 	tw := twitchplatform.Instance
@@ -332,7 +335,7 @@ func title(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	}, nil
 }
 
-func verifiedBot(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+func verifiedBot(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetUser := basecommand.FirstArgOrUsername(args, msg)
 
 	users, err := ivr.FetchUsers(targetUser)
@@ -367,7 +370,7 @@ func verifiedBot(msg *base.IncomingMessage, args []string) ([]*base.Message, err
 	}, nil
 }
 
-func verifiedBotQuiet(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+func verifiedBotQuiet(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetUser := basecommand.FirstArgOrUsername(args, msg)
 
 	users, err := ivr.FetchUsers(targetUser)
@@ -402,7 +405,7 @@ func verifiedBotQuiet(msg *base.IncomingMessage, args []string) ([]*base.Message
 	}, nil
 }
 
-func vips(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+func vips(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
 	modsAndVIPs, err := ivr.FetchModsAndVIPs(targetChannel)

@@ -26,7 +26,7 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 ### $echo
 
 - Echoes back whatever is sent.
-- > Usage: `$echo <anything>`
+- > Usage: `$echo <message>`
 - > Minimum permission level: `Owner`
 
 ### $join

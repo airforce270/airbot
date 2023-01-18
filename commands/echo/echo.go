@@ -3,12 +3,11 @@ package echo
 
 import (
 	"fmt"
-	"log"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/airforce270/airbot/base"
+	"github.com/airforce270/airbot/base/arg"
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/permission"
 )
@@ -19,7 +18,7 @@ var Commands = [...]basecommand.Command{
 		Name:       "commands",
 		Help:       "Replies with a link to the commands.",
 		Permission: permission.Normal,
-		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
@@ -32,7 +31,7 @@ var Commands = [...]basecommand.Command{
 		Name:       "gn",
 		Help:       "Says good night.",
 		Permission: permission.Normal,
-		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
@@ -47,7 +46,7 @@ var Commands = [...]basecommand.Command{
 		Name:       "TriHard",
 		Help:       "Replies with TriHard 7.",
 		Permission: permission.Normal,
-		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
@@ -69,9 +68,9 @@ var (
 	pyramidCommand = basecommand.Command{
 		Name: "pyramid",
 		Help: fmt.Sprintf("Makes a pyramid in chat. Max width %d.", maxPyramidWidth),
-		Args: []basecommand.Argument{
-			{Name: "width", Required: true},
-			{Name: "text", Required: true},
+		Params: []arg.Param{
+			{Name: "width", Type: arg.Int, Required: true},
+			{Name: "text", Type: arg.String, Required: true},
 		},
 		Permission:      permission.Mod,
 		ChannelCooldown: time.Duration(30) * time.Second,
@@ -81,9 +80,9 @@ var (
 	spamCommand = basecommand.Command{
 		Name: "spam",
 		Help: fmt.Sprintf("Sends a message many times. Max amount %d.", maxSpamAmount),
-		Args: []basecommand.Argument{
-			{Name: "count", Required: true},
-			{Name: "text", Required: true},
+		Params: []arg.Param{
+			{Name: "count", Type: arg.Int, Required: true},
+			{Name: "text", Type: arg.Variadic, Required: true},
 		},
 		Permission:      permission.Mod,
 		ChannelCooldown: time.Duration(30) * time.Second,
@@ -93,23 +92,19 @@ var (
 	tuckCommand = basecommand.Command{
 		Name:       "tuck",
 		Help:       "Tuck someone to bed.",
-		Args:       []basecommand.Argument{{Name: "user", Required: true}},
+		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: true}},
 		Permission: permission.Normal,
 		Handler:    tuck,
 	}
 )
 
-func spam(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-	if len(args) < 2 {
+func spam(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+	countArg, textArg := args[0], args[1]
+	if !countArg.IsPresent || !textArg.IsPresent {
 		return nil, basecommand.ErrBadUsage
 	}
 
-	count64, err := strconv.ParseInt(args[0], 10, 32)
-	if err != nil {
-		log.Printf("Failed to parse %q as int", args[0])
-		return nil, basecommand.ErrBadUsage
-	}
-	count := int(count64)
+	count := countArg.Value.(int)
 
 	if count > maxSpamAmount {
 		return []*base.Message{
@@ -120,7 +115,7 @@ func spam(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 		}, nil
 	}
 
-	text := strings.Join(args[1:], " ")
+	text := textArg.Value.(string)
 
 	msgsCount := count
 	msgs := make([]*base.Message, msgsCount)
@@ -133,17 +128,13 @@ func spam(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	return msgs, nil
 }
 
-func pyramid(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-	if len(args) < 2 {
+func pyramid(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+	widthArg, textArg := args[0], args[1]
+	if !widthArg.IsPresent || !textArg.IsPresent {
 		return nil, basecommand.ErrBadUsage
 	}
 
-	width64, err := strconv.ParseInt(args[0], 10, 32)
-	if err != nil {
-		log.Printf("Failed to parse %q as int", args[0])
-		return nil, basecommand.ErrBadUsage
-	}
-	width := int(width64)
+	width := widthArg.Value.(int)
 
 	if width > maxPyramidWidth {
 		return []*base.Message{
@@ -154,7 +145,7 @@ func pyramid(msg *base.IncomingMessage, args []string) ([]*base.Message, error) 
 		}, nil
 	}
 
-	text := strings.Join(args[1:], " ")
+	text := textArg.Value.(string)
 
 	msgsCount := width + width - 1
 	msgs := make([]*base.Message, msgsCount)
@@ -172,15 +163,16 @@ func pyramid(msg *base.IncomingMessage, args []string) ([]*base.Message, error) 
 	return msgs, nil
 }
 
-func tuck(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-	if len(args) == 0 {
+func tuck(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+	userArg := args[0]
+	if !userArg.IsPresent {
 		return nil, basecommand.ErrBadUsage
 	}
 
 	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
-			Text:    fmt.Sprintf("Bedge %s tucks %s into bed.", msg.Message.User, args[0]),
+			Text:    fmt.Sprintf("Bedge %s tucks %s into bed.", msg.Message.User, userArg.Value.(string)),
 		},
 	}, nil
 }

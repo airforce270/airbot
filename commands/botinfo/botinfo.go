@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/airforce270/airbot/base"
+	"github.com/airforce270/airbot/base/arg"
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/models"
@@ -27,19 +28,40 @@ var Commands = [...]basecommand.Command{
 		Aliases:    []string{"bot", "info", "botinfo", "about", "ping"},
 		Help:       "Replies with info about the bot.",
 		Permission: permission.Normal,
-		Handler:    botinfo,
+		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+			return []*base.Message{
+				{
+					Channel: msg.Message.Channel,
+					Text:    fmt.Sprintf("Beep boop, this is Airbot running as %s in %s with prefix %s on %s. Made by airforce2700, source available on GitHub ( %ssource )", msg.Platform.Username(), msg.Message.Channel, msg.Prefix, msg.Platform.Name(), msg.Prefix),
+				},
+			}, nil
+		},
 	},
 	{
 		Name:       "prefix",
 		Help:       "Replies with the prefix in this channel.",
 		Permission: permission.Normal,
-		Handler:    prefix,
+		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+			return []*base.Message{
+				{
+					Channel: msg.Message.Channel,
+					Text:    fmt.Sprintf("This channel's prefix is %s", msg.Prefix),
+				},
+			}, nil
+		},
 	},
 	{
 		Name:       "source",
 		Help:       "Replies a link to the bot's source code.",
 		Permission: permission.Normal,
-		Handler:    source,
+		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+			return []*base.Message{
+				{
+					Channel: msg.Message.Channel,
+					Text:    "Source code for airbot available at https://github.com/airforce270/airbot",
+				},
+			}, nil
+		},
 	},
 	{
 		Name:       "stats",
@@ -49,34 +71,7 @@ var Commands = [...]basecommand.Command{
 	},
 }
 
-func botinfo(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-	return []*base.Message{
-		{
-			Channel: msg.Message.Channel,
-			Text:    fmt.Sprintf("Beep boop, this is Airbot running as %s in %s with prefix %s on %s. Made by airforce2700, source available on GitHub ( %ssource )", msg.Platform.Username(), msg.Message.Channel, msg.Prefix, msg.Platform.Name(), msg.Prefix),
-		},
-	}, nil
-}
-
-func prefix(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-	return []*base.Message{
-		{
-			Channel: msg.Message.Channel,
-			Text:    fmt.Sprintf("This channel's prefix is %s", msg.Prefix),
-		},
-	}, nil
-}
-
-func source(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-	return []*base.Message{
-		{
-			Channel: msg.Message.Channel,
-			Text:    "Source code for airbot available at https://github.com/airforce270/airbot",
-		},
-	}, nil
-}
-
-func stats(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+func stats(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	db := database.Instance
 	if db == nil {
 		return nil, fmt.Errorf("database instance not initialized")

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/airforce270/airbot/base"
+	"github.com/airforce270/airbot/base/arg"
 	"github.com/airforce270/airbot/cache"
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/database"
@@ -32,26 +33,31 @@ var Commands = [...]basecommand.Command{
 
 var (
 	botSlowmodeCommand = basecommand.Command{
-		Name:       "botslowmode",
-		Help:       "Sets the bot to follow a global (per-platform) 1 second slowmode. If no argument is provided, checks if slowmode is enabled.",
-		Args:       []basecommand.Argument{{Name: "enable", Required: false, Usage: "on|off"}},
+		Name: "botslowmode",
+		Help: "Sets the bot to follow a global (per-platform) 1 second slowmode. If no argument is provided, checks if slowmode is enabled.",
+		Params: []arg.Param{
+			{Name: "enable", Type: arg.Boolean, Required: false},
+		},
 		Permission: permission.Owner,
 		Handler:    botSlowmode,
 	}
 
 	echoCommand = basecommand.Command{
-		Name:       "echo",
-		Help:       "Echoes back whatever is sent.",
-		Args:       generateEchoArgs(),
+		Name: "echo",
+		Help: "Echoes back whatever is sent.",
+		Params: []arg.Param{
+			{Name: "message", Type: arg.Variadic, Required: true},
+		},
 		Permission: permission.Owner,
-		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-			if len(args) == 0 {
+		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+			valueArg := args[0]
+			if !valueArg.IsPresent {
 				return nil, basecommand.ErrBadUsage
 			}
 			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
-					Text:    strings.Join(args, " "),
+					Text:    valueArg.Value.(string),
 				},
 			}, nil
 		},
@@ -60,12 +66,12 @@ var (
 	joinCommand = basecommand.Command{
 		Name:       "join",
 		Help:       "Tells the bot to join your chat.",
-		Args:       []basecommand.Argument{{Name: "prefix", Required: false}},
+		Params:     []arg.Param{{Name: "prefix", Type: arg.String, Required: false}},
 		Permission: permission.Normal,
-		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			prefix := defaultPrefix
-			if len(args) >= 1 {
-				prefix = args[0]
+			if prefixArg := args[0]; prefixArg.IsPresent {
+				prefix = prefixArg.Value.(string)
 			}
 			return joinChannel(msg, msg.Message.User, prefix)
 		},
@@ -81,19 +87,20 @@ var (
 	joinOtherCommand = basecommand.Command{
 		Name: "joinother",
 		Help: "Tells the bot to join a chat.",
-		Args: []basecommand.Argument{
-			{Name: "channel", Required: true},
-			{Name: "prefix", Required: false},
+		Params: []arg.Param{
+			{Name: "channel", Type: arg.Username, Required: true},
+			{Name: "prefix", Type: arg.String, Required: false},
 		},
 		Permission: permission.Owner,
-		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-			if len(args) == 0 {
+		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+			channelArg := args[0]
+			if !channelArg.IsPresent {
 				return nil, basecommand.ErrBadUsage
 			}
-			channel := args[0]
+			channel := channelArg.Value.(string)
 			prefix := defaultPrefix
-			if len(args) >= 2 {
-				prefix = args[1]
+			if prefixArg := args[1]; prefixArg.IsPresent {
+				prefix = prefixArg.Value.(string)
 			}
 			return joinChannel(msg, channel, prefix)
 		},
@@ -103,7 +110,7 @@ var (
 		Name:       "leave",
 		Help:       "Tells the bot to leave your chat.",
 		Permission: permission.Admin,
-		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return leaveChannel(msg, msg.Message.Channel)
 		},
 	}
@@ -111,32 +118,35 @@ var (
 	leaveOtherCommand = basecommand.Command{
 		Name:       "leaveother",
 		Help:       "Tells the bot to leave a chat.",
-		Args:       []basecommand.Argument{{Name: "channel", Required: true}},
+		Params:     []arg.Param{{Name: "channel", Type: arg.Username, Required: true}},
 		Permission: permission.Owner,
-		Handler: func(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-			if len(args) == 0 {
+		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+			channelArg := args[0]
+			if !channelArg.IsPresent {
 				return nil, basecommand.ErrBadUsage
 			}
-			return leaveChannel(msg, args[0])
+			return leaveChannel(msg, channelArg.Value.(string))
 		},
 	}
 
 	setPrefixCommand = basecommand.Command{
 		Name:       "setprefix",
 		Help:       "Sets the bot's prefix in the channel.",
-		Args:       []basecommand.Argument{{Name: "prefix", Required: true}},
+		Params:     []arg.Param{{Name: "prefix", Type: arg.String, Required: true}},
 		Permission: permission.Admin,
 		Handler:    setPrefix,
 	}
 )
 
-func botSlowmode(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+func botSlowmode(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	cdb := cache.Instance
 	if cdb == nil {
 		return nil, fmt.Errorf("cache instance not initialized")
 	}
 
-	if len(args) == 0 {
+	enableArg := args[0]
+
+	if !enableArg.IsPresent {
 		enabled, err := cdb.FetchBool(cache.KeyGlobalSlowmode(msg.Platform))
 		if err != nil {
 			return nil, err
@@ -152,10 +162,8 @@ func botSlowmode(msg *base.IncomingMessage, args []string) ([]*base.Message, err
 			},
 		}, nil
 	}
-	if args[0] != "on" && args[0] != "off" {
-		return nil, nil
-	}
-	enable := args[0] == "on"
+
+	enable := enableArg.Value.(bool)
 
 	err := cdb.StoreBool(cache.KeyGlobalSlowmode(msg.Platform), enable)
 	if err != nil {
@@ -253,7 +261,7 @@ func joinChannel(msg *base.IncomingMessage, targetChannel, prefix string) ([]*ba
 
 const maxUsersPerMessage = 15
 
-func joined(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+func joined(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	db := database.Instance
 	if db == nil {
 		return nil, fmt.Errorf("database instance not initialized")
@@ -328,11 +336,12 @@ func leaveChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Mess
 	return msgs, nil
 }
 
-func setPrefix(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-	if len(args) == 0 {
+func setPrefix(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+	prefixArg := args[0]
+	if !prefixArg.IsPresent {
 		return nil, basecommand.ErrBadUsage
 	}
-	newPrefix := args[0]
+	newPrefix := prefixArg.Value.(string)
 
 	db := database.Instance
 	if db == nil {
@@ -374,21 +383,4 @@ func setPrefix(msg *base.IncomingMessage, args []string) ([]*base.Message, error
 			Text:    fmt.Sprintf("Prefix set to %s", newPrefix),
 		},
 	}, nil
-}
-
-// Generate args for echo command, which is special as the number of args isn't limited.
-func generateEchoArgs() []basecommand.Argument {
-	var args [1000]basecommand.Argument
-	args[0] = basecommand.Argument{
-		Name:     "arg-0",
-		Required: true,
-		Usage:    "anything",
-	}
-	for i := 1; i < 1000; i++ {
-		args[i] = basecommand.Argument{
-			Name:             fmt.Sprintf("arg-%d", i),
-			ExcludeFromUsage: true,
-		}
-	}
-	return args[:]
 }

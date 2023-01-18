@@ -11,6 +11,7 @@ import (
 
 	"github.com/airforce270/airbot/apiclients/bible"
 	"github.com/airforce270/airbot/base"
+	"github.com/airforce270/airbot/base/arg"
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/permission"
 
@@ -30,9 +31,9 @@ var (
 		Name:    "bibleverse",
 		Aliases: []string{"bv"},
 		Help:    "Looks up a bible verse.",
-		Args: []basecommand.Argument{
-			{Name: "book", Required: true},
-			{Name: "chapter:verse", Required: true},
+		Params: []arg.Param{
+			{Name: "book", Type: arg.String, Required: true},
+			{Name: "chapter:verse", Type: arg.String, Required: true},
 		},
 		Permission: permission.Normal,
 		Handler:    bibleVerse,
@@ -41,7 +42,7 @@ var (
 	cockCommand = basecommand.Command{
 		Name:       "cock",
 		Help:       "Tells you the length :)",
-		Args:       []basecommand.Argument{{Name: "user", Required: false}},
+		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    cock,
 	}
@@ -49,7 +50,7 @@ var (
 	iqCommand = basecommand.Command{
 		Name:       "iq",
 		Help:       "Tells you someone's IQ",
-		Args:       []basecommand.Argument{{Name: "user", Required: false}},
+		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    iq,
 	}
@@ -57,21 +58,23 @@ var (
 	shipCommand = basecommand.Command{
 		Name: "ship",
 		Help: "Tells you the compatibility of two people.",
-		Args: []basecommand.Argument{
-			{Name: "first-person", Required: true},
-			{Name: "second-person", Required: true},
+		Params: []arg.Param{
+			{Name: "first-person", Type: arg.Username, Required: true},
+			{Name: "second-person", Type: arg.Username, Required: true},
 		},
 		Permission: permission.Normal,
 		Handler:    ship,
 	}
 )
 
-func bibleVerse(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-	if len(args) < 2 {
+func bibleVerse(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+	bookArg, chapterVerseArg := args[0], args[1]
+	if !bookArg.IsPresent || !chapterVerseArg.IsPresent {
 		return nil, basecommand.ErrBadUsage
 	}
+	book, chapterVerse := bookArg.Value.(string), chapterVerseArg.Value.(string)
 
-	verses, err := bible.FetchVerses(strings.Join(args, " "))
+	verses, err := bible.FetchVerses(book + " " + chapterVerse)
 	if err != nil {
 		log.Printf("Failed to look up Bible verses: %v", err)
 		return nil, nil
@@ -87,7 +90,7 @@ func bibleVerse(msg *base.IncomingMessage, args []string) ([]*base.Message, erro
 
 const cockMaxLength = 14
 
-func cock(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+func cock(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	target := basecommand.FirstArgOrUsername(args, msg)
 
 	length, err := rand.Int(base.RandReader, big.NewInt(cockMaxLength+1))
@@ -103,7 +106,7 @@ func cock(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	}, nil
 }
 
-func iq(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
+func iq(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	target := basecommand.FirstArgOrUsername(args, msg)
 
 	userIqFloat := distuv.Normal{Mu: 100, Sigma: 15, Src: base.RandSource}.Rand()
@@ -117,11 +120,12 @@ func iq(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
 	}, nil
 }
 
-func ship(msg *base.IncomingMessage, args []string) ([]*base.Message, error) {
-	if len(args) < 2 {
+func ship(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+	person1Arg, person2Arg := args[0], args[1]
+	if !person1Arg.IsPresent || !person2Arg.IsPresent {
 		return nil, basecommand.ErrBadUsage
 	}
-	person1, person2 := args[0], args[1]
+	person1, person2 := person1Arg.Value.(string), person2Arg.Value.(string)
 
 	percentBigInt, err := rand.Int(base.RandReader, big.NewInt(101))
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/airforce270/airbot/base"
+	"github.com/airforce270/airbot/base/arg"
 )
 
 func TestCommandUsage(t *testing.T) {
@@ -18,7 +19,7 @@ func TestCommandUsage(t *testing.T) {
 			desc: "single required arg",
 			input: Command{
 				Name: "mycommand",
-				Args: []Argument{
+				Params: []arg.Param{
 					{
 						Name:     "arg1",
 						Required: true,
@@ -32,7 +33,7 @@ func TestCommandUsage(t *testing.T) {
 			desc: "multiple args, one required",
 			input: Command{
 				Name: "mycommand",
-				Args: []Argument{
+				Params: []arg.Param{
 					{
 						Name:     "arg1",
 						Required: true,
@@ -61,12 +62,12 @@ func TestCommandUsage(t *testing.T) {
 func TestArgumentUsageForDocString(t *testing.T) {
 	tests := []struct {
 		desc  string
-		input Argument
+		input arg.Param
 		want  string
 	}{
 		{
 			desc: "no usage",
-			input: Argument{
+			input: arg.Param{
 				Name:     "myarg",
 				Required: true,
 				Usage:    "",
@@ -75,7 +76,7 @@ func TestArgumentUsageForDocString(t *testing.T) {
 		},
 		{
 			desc: "with usage",
-			input: Argument{
+			input: arg.Param{
 				Name:     "myarg",
 				Required: true,
 				Usage:    "myargusage",
@@ -95,7 +96,7 @@ func TestArgumentUsageForDocString(t *testing.T) {
 
 func TestFirstArgOrUsername(t *testing.T) {
 	tests := []struct {
-		args []string
+		args []arg.Arg
 		msg  *base.IncomingMessage
 		want string
 	}{
@@ -110,7 +111,7 @@ func TestFirstArgOrUsername(t *testing.T) {
 			want: "user1",
 		},
 		{
-			args: []string{"someone"},
+			args: []arg.Arg{{Value: "someone", IsPresent: true}},
 			msg: &base.IncomingMessage{
 				Message: base.Message{
 					User:    "user1",
@@ -120,7 +121,10 @@ func TestFirstArgOrUsername(t *testing.T) {
 			want: "someone",
 		},
 		{
-			args: []string{"someone", "someoneelse"},
+			args: []arg.Arg{
+				{Value: "someone", IsPresent: true},
+				{Value: "someoneelse", IsPresent: true},
+			},
 			msg: &base.IncomingMessage{
 				Message: base.Message{
 					User:    "user1",
@@ -142,7 +146,7 @@ func TestFirstArgOrUsername(t *testing.T) {
 
 func TestFirstArgOrChannel(t *testing.T) {
 	tests := []struct {
-		args []string
+		args []arg.Arg
 		msg  *base.IncomingMessage
 		want string
 	}{
@@ -157,7 +161,7 @@ func TestFirstArgOrChannel(t *testing.T) {
 			want: "channel1",
 		},
 		{
-			args: []string{"someone"},
+			args: []arg.Arg{{Value: "someone", IsPresent: true}},
 			msg: &base.IncomingMessage{
 				Message: base.Message{
 					User:    "user1",
@@ -167,7 +171,10 @@ func TestFirstArgOrChannel(t *testing.T) {
 			want: "someone",
 		},
 		{
-			args: []string{"someone", "someoneelse"},
+			args: []arg.Arg{
+				{Value: "someone", IsPresent: true},
+				{Value: "someoneelse", IsPresent: true},
+			},
 			msg: &base.IncomingMessage{
 				Message: base.Message{
 					User:    "user1",
