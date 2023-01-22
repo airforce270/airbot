@@ -124,8 +124,7 @@ func (p Param) UsageForDocString() string {
 	if p.Usage != "" {
 		return p.Usage
 	}
-	switch p.Type {
-	case Boolean:
+	if p.Type == Boolean {
 		return "on|off"
 	}
 	return p.Name
