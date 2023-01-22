@@ -43,10 +43,18 @@ type Param struct {
 
 // Arg represents a parsed argument from a message.
 type Arg struct {
-	// Value is the value of the arg.
-	Value any
-	// IsPresent is whether the arg is present and Value is set.
-	IsPresent bool
+	// Present is whether the arg is present and a value is set.
+	// The caller should check this field before accessing a value.
+	Present bool
+	// Type is the type of the arg.
+	// This field indicates which value should be read from.
+	Type Type
+	// StringValue is the value of the arg, if it is a string.
+	StringValue string
+	// BoolValue is the value of the arg, if it is a bool.
+	BoolValue bool
+	// IntValue is the value of the arg, if it is an int.
+	IntValue int
 }
 
 // Parse parses the param it defines from the given message.
@@ -71,7 +79,7 @@ func (a Param) Parse(msg string) (Arg, string) {
 
 	matches := pattern.FindStringSubmatch(msg)
 	if len(matches) < 2 {
-		return Arg{IsPresent: false}, msg
+		return Arg{Present: false}, msg
 	}
 
 	match := matches[1]
@@ -80,24 +88,33 @@ func (a Param) Parse(msg string) (Arg, string) {
 		rest = strings.TrimSpace(matches[2])
 	}
 
-	var value any
 	switch a.Type {
 	case Int:
 		i, err := strconv.ParseInt(match, 10, 64)
 		if err != nil {
-			return Arg{IsPresent: false}, msg
+			return Arg{Present: false}, msg
 		}
-		value = int(i)
+		return Arg{
+			Present:  true,
+			Type:     a.Type,
+			IntValue: int(i),
+		}, rest
 	case Boolean:
 		if !slices.Contains(booleanStrs, match) {
-			return Arg{IsPresent: false}, msg
+			return Arg{Present: false}, msg
 		}
-		value = slices.Contains(trueStrs, match)
+		return Arg{
+			Present:   true,
+			Type:      a.Type,
+			BoolValue: slices.Contains(trueStrs, match),
+		}, rest
 	default:
-		value = match
+		return Arg{
+			Present:     true,
+			Type:        a.Type,
+			StringValue: match,
+		}, rest
 	}
-
-	return Arg{Value: value, IsPresent: true}, rest
 }
 
 // UsageForDocString returns the usage information for putting in a usage docstring,

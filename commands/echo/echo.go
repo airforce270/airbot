@@ -100,11 +100,11 @@ var (
 
 func spam(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	countArg, textArg := args[0], args[1]
-	if !countArg.IsPresent || !textArg.IsPresent {
+	if !countArg.Present || !textArg.Present {
 		return nil, basecommand.ErrBadUsage
 	}
 
-	count := countArg.Value.(int)
+	count := countArg.IntValue
 
 	if count > maxSpamAmount {
 		return []*base.Message{
@@ -115,7 +115,7 @@ func spam(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 		}, nil
 	}
 
-	text := textArg.Value.(string)
+	text := textArg.StringValue
 
 	msgsCount := count
 	msgs := make([]*base.Message, msgsCount)
@@ -130,11 +130,11 @@ func spam(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 
 func pyramid(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	widthArg, textArg := args[0], args[1]
-	if !widthArg.IsPresent || !textArg.IsPresent {
+	if !widthArg.Present || !textArg.Present {
 		return nil, basecommand.ErrBadUsage
 	}
 
-	width := widthArg.Value.(int)
+	width := widthArg.IntValue
 
 	if width > maxPyramidWidth {
 		return []*base.Message{
@@ -145,7 +145,7 @@ func pyramid(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error)
 		}, nil
 	}
 
-	text := textArg.Value.(string)
+	text := textArg.StringValue
 
 	msgsCount := width + width - 1
 	msgs := make([]*base.Message, msgsCount)
@@ -165,14 +165,14 @@ func pyramid(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error)
 
 func tuck(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	userArg := args[0]
-	if !userArg.IsPresent {
+	if !userArg.Present {
 		return nil, basecommand.ErrBadUsage
 	}
 
 	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
-			Text:    fmt.Sprintf("Bedge %s tucks %s into bed.", msg.Message.User, userArg.Value.(string)),
+			Text:    fmt.Sprintf("Bedge %s tucks %s into bed.", msg.Message.User, userArg.StringValue),
 		},
 	}, nil
 }

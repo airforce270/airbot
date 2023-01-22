@@ -77,8 +77,8 @@ func FirstArgOrUsername(args []arg.Arg, msg *base.IncomingMessage) string {
 	if len(args) == 0 {
 		return msg.Message.User
 	}
-	if firstArg := args[0]; firstArg.IsPresent {
-		return firstArg.Value.(string)
+	if firstArg := args[0]; firstArg.Present {
+		return firstArg.StringValue
 	}
 	return msg.Message.User
 }
@@ -88,8 +88,8 @@ func FirstArgOrChannel(args []arg.Arg, msg *base.IncomingMessage) string {
 	if len(args) == 0 {
 		return msg.Message.Channel
 	}
-	if firstArg := args[0]; firstArg.IsPresent {
-		return firstArg.Value.(string)
+	if firstArg := args[0]; firstArg.Present {
+		return firstArg.StringValue
 	}
 	return msg.Message.Channel
 }

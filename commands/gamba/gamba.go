@@ -220,10 +220,10 @@ func duel(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	}
 
 	targetArg, pointsArg := args[0], args[1]
-	if !targetArg.IsPresent || !pointsArg.IsPresent {
+	if !targetArg.Present || !pointsArg.Present {
 		return nil, basecommand.ErrBadUsage
 	}
-	target, points := targetArg.Value.(string), pointsArg.Value.(int)
+	target, points := targetArg.StringValue, pointsArg.IntValue
 
 	if target == msg.Message.User {
 		return []*base.Message{
@@ -351,10 +351,10 @@ func givePoints(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, err
 	}
 
 	targetArg, pointsArg := args[0], args[1]
-	if !targetArg.IsPresent || !pointsArg.IsPresent {
+	if !targetArg.Present || !pointsArg.Present {
 		return nil, basecommand.ErrBadUsage
 	}
-	target, points := targetArg.Value.(string), pointsArg.Value.(int)
+	target, points := targetArg.StringValue, pointsArg.IntValue
 
 	if len(args) < 2 {
 		return nil, basecommand.ErrBadUsage
@@ -477,7 +477,7 @@ func points(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 
 func roulette(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	amountArg := args[0]
-	if !amountArg.IsPresent {
+	if !amountArg.Present {
 		return nil, basecommand.ErrBadUsage
 	}
 
@@ -503,7 +503,7 @@ func roulette(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error
 	points := fetchUserPoints(db, user)
 
 	var amount int64
-	amountStr := amountArg.Value.(string)
+	amountStr := amountArg.StringValue
 	if amountStr == "all" {
 		amount = points
 	} else if strings.HasSuffix(amountStr, "%") {

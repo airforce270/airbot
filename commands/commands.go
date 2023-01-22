@@ -169,7 +169,7 @@ var (
 
 func help(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetCommandArg := args[0]
-	if !targetCommandArg.IsPresent {
+	if !targetCommandArg.Present {
 		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
@@ -177,7 +177,7 @@ func help(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			},
 		}, nil
 	}
-	targetCommand := targetCommandArg.Value.(string)
+	targetCommand := targetCommandArg.StringValue
 
 	for _, cmd := range allCommands {
 		if !strings.EqualFold(cmd.Name, targetCommand) {

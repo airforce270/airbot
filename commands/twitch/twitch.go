@@ -120,10 +120,10 @@ var (
 
 func banReason(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetUserArg := args[0]
-	if !targetUserArg.IsPresent {
+	if !targetUserArg.Present {
 		return nil, basecommand.ErrBadUsage
 	}
-	targetUser := targetUserArg.Value.(string)
+	targetUser := targetUserArg.StringValue
 
 	users, err := ivr.FetchUsers(targetUser)
 	if err != nil {
@@ -235,11 +235,11 @@ func founders(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error
 
 func logs(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannelArg, targetUserArg := args[0], args[1]
-	if !targetChannelArg.IsPresent || !targetUserArg.IsPresent {
+	if !targetChannelArg.Present || !targetUserArg.Present {
 		return nil, basecommand.ErrBadUsage
 	}
-	targetChannel := strings.ToLower(targetChannelArg.Value.(string))
-	targetUser := strings.ToLower(targetUserArg.Value.(string))
+	targetChannel := strings.ToLower(targetChannelArg.StringValue)
+	targetUser := strings.ToLower(targetUserArg.StringValue)
 
 	return []*base.Message{
 		{

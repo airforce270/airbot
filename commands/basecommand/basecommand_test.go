@@ -111,7 +111,13 @@ func TestFirstArgOrUsername(t *testing.T) {
 			want: "user1",
 		},
 		{
-			args: []arg.Arg{{Value: "someone", IsPresent: true}},
+			args: []arg.Arg{
+				{
+					Present:     true,
+					Type:        arg.String,
+					StringValue: "someone",
+				},
+			},
 			msg: &base.IncomingMessage{
 				Message: base.Message{
 					User:    "user1",
@@ -122,8 +128,16 @@ func TestFirstArgOrUsername(t *testing.T) {
 		},
 		{
 			args: []arg.Arg{
-				{Value: "someone", IsPresent: true},
-				{Value: "someoneelse", IsPresent: true},
+				{
+					Present:     true,
+					Type:        arg.String,
+					StringValue: "someone",
+				},
+				{
+					Present:     true,
+					Type:        arg.String,
+					StringValue: "someoneelse",
+				},
 			},
 			msg: &base.IncomingMessage{
 				Message: base.Message{
@@ -161,7 +175,13 @@ func TestFirstArgOrChannel(t *testing.T) {
 			want: "channel1",
 		},
 		{
-			args: []arg.Arg{{Value: "someone", IsPresent: true}},
+			args: []arg.Arg{
+				{
+					Present:     true,
+					Type:        arg.String,
+					StringValue: "someone",
+				},
+			},
 			msg: &base.IncomingMessage{
 				Message: base.Message{
 					User:    "user1",
@@ -172,8 +192,16 @@ func TestFirstArgOrChannel(t *testing.T) {
 		},
 		{
 			args: []arg.Arg{
-				{Value: "someone", IsPresent: true},
-				{Value: "someoneelse", IsPresent: true},
+				{
+					Present:     true,
+					Type:        arg.String,
+					StringValue: "someone",
+				},
+				{
+					Present:     true,
+					Type:        arg.String,
+					StringValue: "someoneelse",
+				},
 			},
 			msg: &base.IncomingMessage{
 				Message: base.Message{

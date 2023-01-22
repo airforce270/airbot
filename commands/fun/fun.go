@@ -69,10 +69,10 @@ var (
 
 func bibleVerse(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	bookArg, chapterVerseArg := args[0], args[1]
-	if !bookArg.IsPresent || !chapterVerseArg.IsPresent {
+	if !bookArg.Present || !chapterVerseArg.Present {
 		return nil, basecommand.ErrBadUsage
 	}
-	book, chapterVerse := bookArg.Value.(string), chapterVerseArg.Value.(string)
+	book, chapterVerse := bookArg.StringValue, chapterVerseArg.StringValue
 
 	verses, err := bible.FetchVerses(book + " " + chapterVerse)
 	if err != nil {
@@ -122,10 +122,10 @@ func iq(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 
 func ship(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	person1Arg, person2Arg := args[0], args[1]
-	if !person1Arg.IsPresent || !person2Arg.IsPresent {
+	if !person1Arg.Present || !person2Arg.Present {
 		return nil, basecommand.ErrBadUsage
 	}
-	person1, person2 := person1Arg.Value.(string), person2Arg.Value.(string)
+	person1, person2 := person1Arg.StringValue, person2Arg.StringValue
 
 	percentBigInt, err := rand.Int(base.RandReader, big.NewInt(101))
 	if err != nil {

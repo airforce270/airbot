@@ -51,13 +51,13 @@ var (
 		Permission: permission.Owner,
 		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			valueArg := args[0]
-			if !valueArg.IsPresent {
+			if !valueArg.Present {
 				return nil, basecommand.ErrBadUsage
 			}
 			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
-					Text:    valueArg.Value.(string),
+					Text:    valueArg.StringValue,
 				},
 			}, nil
 		},
@@ -70,8 +70,8 @@ var (
 		Permission: permission.Normal,
 		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			prefix := defaultPrefix
-			if prefixArg := args[0]; prefixArg.IsPresent {
-				prefix = prefixArg.Value.(string)
+			if prefixArg := args[0]; prefixArg.Present {
+				prefix = prefixArg.StringValue
 			}
 			return joinChannel(msg, msg.Message.User, prefix)
 		},
@@ -94,13 +94,13 @@ var (
 		Permission: permission.Owner,
 		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			channelArg := args[0]
-			if !channelArg.IsPresent {
+			if !channelArg.Present {
 				return nil, basecommand.ErrBadUsage
 			}
-			channel := channelArg.Value.(string)
+			channel := channelArg.StringValue
 			prefix := defaultPrefix
-			if prefixArg := args[1]; prefixArg.IsPresent {
-				prefix = prefixArg.Value.(string)
+			if prefixArg := args[1]; prefixArg.Present {
+				prefix = prefixArg.StringValue
 			}
 			return joinChannel(msg, channel, prefix)
 		},
@@ -122,10 +122,10 @@ var (
 		Permission: permission.Owner,
 		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			channelArg := args[0]
-			if !channelArg.IsPresent {
+			if !channelArg.Present {
 				return nil, basecommand.ErrBadUsage
 			}
-			return leaveChannel(msg, channelArg.Value.(string))
+			return leaveChannel(msg, channelArg.StringValue)
 		},
 	}
 
@@ -146,7 +146,7 @@ func botSlowmode(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 
 	enableArg := args[0]
 
-	if !enableArg.IsPresent {
+	if !enableArg.Present {
 		enabled, err := cdb.FetchBool(cache.KeyGlobalSlowmode(msg.Platform))
 		if err != nil {
 			return nil, err
@@ -163,7 +163,7 @@ func botSlowmode(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 		}, nil
 	}
 
-	enable := enableArg.Value.(bool)
+	enable := enableArg.BoolValue
 
 	err := cdb.StoreBool(cache.KeyGlobalSlowmode(msg.Platform), enable)
 	if err != nil {
@@ -338,10 +338,10 @@ func leaveChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Mess
 
 func setPrefix(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	prefixArg := args[0]
-	if !prefixArg.IsPresent {
+	if !prefixArg.Present {
 		return nil, basecommand.ErrBadUsage
 	}
-	newPrefix := prefixArg.Value.(string)
+	newPrefix := prefixArg.StringValue
 
 	db := database.Instance
 	if db == nil {

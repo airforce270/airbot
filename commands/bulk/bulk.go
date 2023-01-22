@@ -26,11 +26,11 @@ var (
 
 func filesay(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	pastebinURLArg := args[0]
-	if !pastebinURLArg.IsPresent {
+	if !pastebinURLArg.Present {
 		return nil, basecommand.ErrBadUsage
 	}
 
-	paste, err := pastebin.FetchPaste(pastebinURLArg.Value.(string))
+	paste, err := pastebin.FetchPaste(pastebinURLArg.StringValue)
 	if err != nil {
 		return nil, err
 	}
