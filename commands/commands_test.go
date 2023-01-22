@@ -2201,6 +2201,195 @@ func TestCommands(t *testing.T) {
 		{
 			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$subage macroblank1 xqc",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			apiResp: ivrtest.SubAgeCurrentPaidTier3Resp,
+			want: []*base.Message{
+				{
+					Text:    "Macroblank1 is currently subscribed to xQc with a Tier 3 paid subscription (3 days remaining) and is on a 17 month streak",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$sa macroblank1 xqc",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			apiResp: ivrtest.SubAgeCurrentPaidTier3Resp,
+			want: []*base.Message{
+				{
+					Text:    "Macroblank1 is currently subscribed to xQc with a Tier 3 paid subscription (3 days remaining) and is on a 17 month streak",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$sublength macroblank1 xqc",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			apiResp: ivrtest.SubAgeCurrentPaidTier3Resp,
+			want: []*base.Message{
+				{
+					Text:    "Macroblank1 is currently subscribed to xQc with a Tier 3 paid subscription (3 days remaining) and is on a 17 month streak",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$subage ellagarten xqc",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			apiResp: ivrtest.SubAgeCurrentGiftTier1Resp,
+			want: []*base.Message{
+				{
+					Text:    "ellagarten is currently subscribed to xQc with a Tier 1 gifted subscription (14 days remaining) and is on a 4 month streak (total: 17 months)",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$subage airforce2700 xqc",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			apiResp: ivrtest.SubAgeCurrentPrimeResp,
+			want: []*base.Message{
+				{
+					Text:    "airforce2700 is currently subscribed to xQc with a Prime subscription (1 day remaining) and is on a 22 month streak",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$subage @airforce2700 @elis",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			apiResp: ivrtest.SubAgePreviousSubResp,
+			want: []*base.Message{
+				{
+					Text:    "airforce2700 is not currently subscribed to elis, but was previously subscribed for 4 months",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$subage airforce2700 hasanabi",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			apiResp: ivrtest.SubAgeNeverSubbedResp,
+			want: []*base.Message{
+				{
+					Text:    "airforce2700 is not subscribed to HasanAbi and has not been previously subscribed",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$subage airforce2700 channelthatdoesntexist",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			apiResp: ivrtest.SubAge404ChannelResp,
+			want: []*base.Message{
+				{
+					Text:    "Channel channelthatdoesntexist was not found",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$subage userthatdoesntexist xqc",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			apiResp: ivrtest.SubAge404UserResp,
+			want: []*base.Message{
+				{
+					Text:    "User userthatdoesntexist was not found",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$logs xqc forsen",
 					UserID:  "user1",
 					User:    "user1",

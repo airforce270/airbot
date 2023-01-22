@@ -3,14 +3,23 @@ package ivr
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
 // Base URL for API requests. Should only be changed for testing.
 var BaseURL = "https://api.ivr.fi"
+
+var (
+	// ErrUserNotFound is returned from some methods when the user couldn't be found.
+	ErrUserNotFound = errors.New("user was not found")
+	// ErrUserNotFound is returned from some methods when the channel couldn't be found.
+	ErrChannelNotFound = errors.New("channel was not found")
+)
 
 // TwitchUsersResponseItem /is the type that the IVR API responds with
 // for calls to /v2/twitch/users.
@@ -165,7 +174,7 @@ type ModsAndVIPsResponse struct {
 type ModOrVIPUser struct {
 	// ID is the user's Twitch ID.
 	ID string `json:"id"`
-	// Username is the user's twitch username.
+	// Username is the user's Twitch username.
 	Username string `json:"login"`
 	// DisplayName is the user's display name.
 	DisplayName string `json:"displayName"`
@@ -191,6 +200,83 @@ type Founder struct {
 	InitiallySubbedAt time.Time `json:"entitlementStart"`
 	// IsSubscribed is whether the user is currently subscribed.
 	IsSubscribed bool `json:"isSubscribed"`
+}
+
+// SubAgeResponse is the type that the IVR API responds with
+// for calls to /v2/twitch/subage/{user}/{channel}.
+type SubAgeResponse struct {
+	// User is the user in question.
+	User SubAgeUser `json:"user"`
+	// Channel is the channel in question.
+	Channel SubAgeUser `json:"channel"`
+	// StatusHidden is whether the user has hidden the status
+	// of their subscription to this channel.
+	StatusHidden bool `json:"statusHidden"`
+	// FollowTime is when the user followed the channel.
+	FollowTime time.Time `json:"followedAt"`
+	// Streak contains information about the user's
+	// subscription streak to this channel.
+	Streak *SubAgeDuration `json:"streak"`
+	// Streak contains information about the user's
+	// cumulative subscription time to this channel.
+	Cumulative *SubAgeDuration `json:"cumulative"`
+	// Metadata contains metadata about the user's subscription to this channel.
+	Metadata *SubAgeMetadata `json:"meta"`
+}
+
+// SubAgeUser represents a user/channel used in subscription age lookups.
+type SubAgeUser struct {
+	// ID is the user's Twitch ID.
+	ID string `json:"id"`
+	// Username is the user's Twitch username.
+	Username string `json:"login"`
+	// DisplayName is the user's name as it's displayed.
+	DisplayName string `json:"displayName"`
+}
+
+// SubAgeDuration contains information
+// about the duration of a user's subscription.
+type SubAgeDuration struct {
+	// ElapsedDays is the number of days elapsed in the *current month*
+	// (or latest month, if an expired subscription) of a subscription.
+	// Note that this is NOT the TOTAL elapsed days of a subscription.
+	ElapsedDays int `json:"elapsedDays"`
+	// DaysRemaining is how many days are remaining in the subscription.
+	DaysRemaining int `json:"daysRemaining"`
+	// Months is the number of cumulative months in the subscription.
+	// If this is part of a streak, the number of months in the streak.
+	Months int `json:"months"`
+	// StartTime is when the current month of the subscription started.
+	StartTime time.Time `json:"start"`
+	// EndTime is when the current month of the subscription will end.
+	EndTime time.Time `json:"end"`
+}
+
+// SubAgeMetadata contains metadata about a user's subscription to a channel.
+type SubAgeMetadata struct {
+	// Type is the subscription type.
+	// Either "paid", "prime", or "gift"
+	Type string `json:"type"`
+	// Tier is the tier the user is subscribed at.
+	// Either "1", "2", or "3".
+	Tier string `json:"tier"`
+	// EndTime is when the user's subscription ends.
+	EndTime time.Time `json:"endsAt"`
+	// RenewTime is when the user's subscription is set to renew.
+	// Only set if the user has auto-renew enabled for the subscription.
+	RenewTime *time.Time `json:"renewsAt"`
+	// GiftInfo contains information about the gift, if the subscription is gifted.
+	// Only set if Type is "gift".
+	GiftInfo *SubAgeGiftMetadata `json:"giftMeta"`
+}
+
+// GiftInfo contains metadata about a gifted subscription.
+type SubAgeGiftMetadata struct {
+	// GiftTime is when the subscription was gifted.
+	GiftTime time.Time `json:"giftDate"`
+	// Gifter is the user that gifted the subscription.
+	// Only present if the gifting user did not perform an anonymous gift.
+	Gifter *SubAgeUser `json:"gifter"`
 }
 
 // FetchUsers fetches a user info from the IVR API.
@@ -222,6 +308,7 @@ func FetchModsAndVIPs(channel string) (*ModsAndVIPsResponse, error) {
 	return &resp, nil
 }
 
+// FetchFounders fetches the list of founders for a given Twitch channel.
 func FetchFounders(channel string) (*FoundersResponse, error) {
 	reqURL := fmt.Sprintf("%s/v2/twitch/founders/%s", BaseURL, channel)
 	httpResp, err := http.Get(reqURL)
@@ -247,6 +334,50 @@ func FetchFounders(channel string) (*FoundersResponse, error) {
 	}
 
 	resp := FoundersResponse{}
+	if err = json.Unmarshal(body, &resp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
+	}
+
+	return &resp, nil
+}
+
+// FetchSubAge fetches subscription information
+// for a Twitch user to a given Twitch channel.
+// If a user or channel was not found,
+// ErrUserNotFound or ErrChannelNotFound will be returned, respectively.
+func FetchSubAge(user, channel string) (*SubAgeResponse, error) {
+	reqURL := fmt.Sprintf("%s/v2/twitch/subage/%s/%s", BaseURL, user, channel)
+	httpResp, err := http.Get(reqURL)
+	if err != nil {
+		return nil, err
+	}
+	// The IVR API responds with a 404 when a user or channel was not found.
+	if httpResp.StatusCode != http.StatusOK && httpResp.StatusCode != http.StatusNotFound {
+		return nil, fmt.Errorf("bad response from IVR API (URL:%s): %v", reqURL, httpResp)
+	}
+
+	if httpResp.Body == nil {
+		return nil, fmt.Errorf("no data returned from IVR API: %v", httpResp)
+	}
+	defer httpResp.Body.Close()
+
+	body, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response from IVR API: %w", err)
+	}
+
+	// The IVR API responds with a 404 when a user or channel was not found.
+	if httpResp.StatusCode == http.StatusNotFound {
+		if strings.Contains(string(body), "User was not found") {
+			return nil, ErrUserNotFound
+		}
+		if strings.Contains(string(body), "Channel was not found") {
+			return nil, ErrChannelNotFound
+		}
+		return nil, fmt.Errorf("bad response from IVR API (URL:%s): %v", reqURL, httpResp)
+	}
+
+	resp := SubAgeResponse{}
 	if err = json.Unmarshal(body, &resp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
 	}

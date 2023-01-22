@@ -2,6 +2,7 @@
 package twitch
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -22,6 +23,7 @@ var Commands = [...]basecommand.Command{
 	logsCommand,
 	modsCommand,
 	nameColorCommand,
+	subAgeCommand,
 	titleCommand,
 	verifiedBotCommand,
 	verifiedBotQuietCommand,
@@ -81,6 +83,18 @@ var (
 		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    nameColor,
+	}
+
+	subAgeCommand = basecommand.Command{
+		Name:    "subage",
+		Aliases: []string{"sa", "sublength"},
+		Help:    "Checks the length that someone has been subscribed to a channel on Twitch.",
+		Params: []arg.Param{
+			{Name: "user", Type: arg.Username, Required: true},
+			{Name: "channel", Type: arg.Username, Required: true},
+		},
+		Permission: permission.Normal,
+		Handler:    subAge,
 	}
 
 	titleCommand = basecommand.Command{
@@ -314,6 +328,77 @@ func nameColor(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, erro
 	}, nil
 }
 
+func subAge(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+	userArg, channelArg := args[0], args[1]
+	if !userArg.Present || !channelArg.Present {
+		return nil, basecommand.ErrBadUsage
+	}
+
+	sub, err := ivr.FetchSubAge(userArg.StringValue, channelArg.StringValue)
+	if err != nil {
+		if errors.Is(err, ivr.ErrUserNotFound) {
+			return []*base.Message{
+				{
+					Channel: msg.Message.Channel,
+					Text:    fmt.Sprintf("User %s was not found", userArg.StringValue),
+				},
+			}, nil
+		}
+		if errors.Is(err, ivr.ErrChannelNotFound) {
+			return []*base.Message{
+				{
+					Channel: msg.Message.Channel,
+					Text:    fmt.Sprintf("Channel %s was not found", channelArg.StringValue),
+				},
+			}, nil
+		}
+		return nil, err
+	}
+
+	if sub.Streak != nil && sub.Cumulative != nil {
+		tier := ""
+		if sub.Metadata.Type == "prime" {
+			tier = "Prime"
+		} else if sub.Metadata.Type == "gift" {
+			tier = fmt.Sprintf("Tier %s gifted", sub.Metadata.Tier)
+		} else {
+			tier = fmt.Sprintf("Tier %s paid", sub.Metadata.Tier)
+		}
+
+		parts := []string{
+			fmt.Sprintf("%s is currently subscribed to %s", sub.User.DisplayName, sub.Channel.DisplayName),
+			fmt.Sprintf("with a %s subscription", tier),
+			fmt.Sprintf("(%d %s remaining)", sub.Streak.DaysRemaining, plural("day", sub.Streak.DaysRemaining)),
+			fmt.Sprintf("and is on a %d month streak", sub.Streak.Months),
+		}
+
+		if sub.Cumulative.Months > sub.Streak.Months {
+			parts = append(parts, fmt.Sprintf("(total: %d %s)", sub.Cumulative.Months, plural("month", sub.Cumulative.Months)))
+		}
+
+		return []*base.Message{{Channel: msg.Message.Channel, Text: strings.Join(parts, " ")}}, nil
+	}
+
+	if sub.Streak == nil && sub.Cumulative != nil {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text: strings.Join([]string{
+					fmt.Sprintf("%s is not currently subscribed to %s,", sub.User.DisplayName, sub.Channel.DisplayName),
+					fmt.Sprintf("but was previously subscribed for %d %s", sub.Cumulative.Months, plural("month", sub.Cumulative.Months)),
+				}, " "),
+			},
+		}, nil
+	}
+
+	return []*base.Message{
+		{
+			Channel: msg.Message.Channel,
+			Text:    fmt.Sprintf("%s is not subscribed to %s and has not been previously subscribed", sub.User.DisplayName, sub.Channel.DisplayName),
+		},
+	}, nil
+}
+
 func title(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
@@ -439,6 +524,13 @@ func vips(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	}
 
 	return messages, nil
+}
+
+func plural(word string, num int) string {
+	if num > 1 {
+		return word + "s"
+	}
+	return word
 }
 
 func namesFromFounders(users []*ivr.Founder) []string {

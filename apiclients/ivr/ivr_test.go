@@ -1,6 +1,7 @@
 package ivr
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -478,6 +479,220 @@ func TestFetchFounders(t *testing.T) {
 
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Errorf("FetchFounders() diff (-want +got):\n%s", diff)
+			}
+		})
+		server.Reset()
+	}
+}
+
+func TestFetchSubAge(t *testing.T) {
+	server := fakeserver.New()
+	server.AddOnClose(func() { originalIvrBaseUrl = BaseURL })
+	defer server.Close()
+	BaseURL = server.URL()
+
+	tests := []struct {
+		desc    string
+		useResp string
+		want    *SubAgeResponse
+		wantErr *error
+	}{
+		{
+			desc:    "current paid tier 3 sub",
+			useResp: ivrtest.SubAgeCurrentPaidTier3Resp,
+			want: &SubAgeResponse{
+				User: SubAgeUser{
+					ID:          "460691477",
+					Username:    "macroblank1",
+					DisplayName: "Macroblank1",
+				},
+				Channel: SubAgeUser{
+					ID:          "71092938",
+					Username:    "xqc",
+					DisplayName: "xQc",
+				},
+				StatusHidden: false,
+				FollowTime:   time.Date(2021, 6, 29, 7, 37, 31, 0, time.UTC),
+				Streak: &SubAgeDuration{
+					ElapsedDays:   27,
+					DaysRemaining: 3,
+					Months:        17,
+					StartTime:     time.Date(2023, 1, 1, 5, 31, 26, 0, time.UTC),
+					EndTime:       time.Date(2023, 1, 25, 0, 0, 0, 0, time.UTC),
+				},
+				Cumulative: &SubAgeDuration{
+					ElapsedDays:   27,
+					DaysRemaining: 3,
+					Months:        17,
+					StartTime:     time.Date(2023, 1, 1, 5, 31, 26, 0, time.UTC),
+					EndTime:       time.Date(2023, 1, 25, 0, 0, 0, 0, time.UTC),
+				},
+				Metadata: &SubAgeMetadata{
+					Type:     "paid",
+					Tier:     "3",
+					EndTime:  time.Date(2023, 2, 1, 5, 31, 23, 0, time.UTC),
+					GiftInfo: nil,
+				},
+			},
+		},
+		{
+			desc:    "current gifted tier 1 sub",
+			useResp: ivrtest.SubAgeCurrentGiftTier1Resp,
+			want: &SubAgeResponse{
+				User: SubAgeUser{
+					ID:          "46620027",
+					Username:    "ellagarten",
+					DisplayName: "ellagarten",
+				},
+				Channel: SubAgeUser{
+					ID:          "71092938",
+					Username:    "xqc",
+					DisplayName: "xQc",
+				},
+				StatusHidden: false,
+				FollowTime:   time.Date(2020, 4, 4, 22, 31, 11, 0, time.UTC),
+				Streak: &SubAgeDuration{
+					ElapsedDays:   17,
+					DaysRemaining: 14,
+					Months:        4,
+					StartTime:     time.Date(2023, 1, 5, 0, 0, 0, 0, time.UTC),
+					EndTime:       time.Date(2023, 2, 5, 21, 47, 32, 0, time.UTC),
+				},
+				Cumulative: &SubAgeDuration{
+					ElapsedDays:   17,
+					DaysRemaining: 14,
+					Months:        17,
+					StartTime:     time.Date(2023, 1, 5, 0, 0, 0, 0, time.UTC),
+					EndTime:       time.Date(2023, 2, 5, 21, 47, 32, 0, time.UTC),
+				},
+				Metadata: &SubAgeMetadata{
+					Type:    "gift",
+					Tier:    "1",
+					EndTime: time.Date(2023, 2, 5, 21, 47, 32, 0, time.UTC),
+					GiftInfo: &SubAgeGiftMetadata{
+						GiftTime: time.Date(2022, 11, 5, 21, 47, 33, 94141514, time.UTC),
+						Gifter: &SubAgeUser{
+							ID:          "150839051",
+							Username:    "takanatsume_",
+							DisplayName: "TakaNatsume_",
+						},
+					},
+				},
+			},
+		},
+		{
+			desc:    "current prime sub",
+			useResp: ivrtest.SubAgeCurrentPrimeResp,
+			want: &SubAgeResponse{
+				User: SubAgeUser{
+					ID:          "181950834",
+					Username:    "airforce2700",
+					DisplayName: "airforce2700",
+				},
+				Channel: SubAgeUser{
+					ID:          "71092938",
+					Username:    "xqc",
+					DisplayName: "xQc",
+				},
+				StatusHidden: false,
+				FollowTime:   time.Date(2019, 10, 14, 3, 10, 31, 0, time.UTC),
+				Streak: &SubAgeDuration{
+					ElapsedDays:   29,
+					DaysRemaining: 1,
+					Months:        22,
+					StartTime:     time.Date(2022, 12, 23, 18, 46, 37, 0, time.UTC),
+					EndTime:       time.Date(2023, 1, 23, 18, 46, 37, 0, time.UTC),
+				},
+				Cumulative: &SubAgeDuration{
+					ElapsedDays:   29,
+					DaysRemaining: 1,
+					Months:        22,
+					StartTime:     time.Date(2022, 12, 23, 18, 46, 37, 0, time.UTC),
+					EndTime:       time.Date(2023, 1, 23, 18, 46, 37, 0, time.UTC),
+				},
+				Metadata: &SubAgeMetadata{
+					Type:     "prime",
+					Tier:     "1",
+					EndTime:  time.Date(2023, 1, 23, 18, 46, 37, 0, time.UTC),
+					GiftInfo: nil,
+				},
+			},
+		},
+		{
+			desc:    "previous sub",
+			useResp: ivrtest.SubAgePreviousSubResp,
+			want: &SubAgeResponse{
+				User: SubAgeUser{
+					ID:          "181950834",
+					Username:    "airforce2700",
+					DisplayName: "airforce2700",
+				},
+				Channel: SubAgeUser{
+					ID:          "186352304",
+					Username:    "elis",
+					DisplayName: "elis",
+				},
+				StatusHidden: false,
+				FollowTime:   time.Date(2021, 11, 11, 17, 47, 35, 0, time.UTC),
+				Streak:       nil,
+				Cumulative: &SubAgeDuration{
+					ElapsedDays: 31,
+					Months:      4,
+					StartTime:   time.Date(2022, 12, 20, 20, 48, 38, 0, time.UTC),
+					EndTime:     time.Date(2023, 1, 20, 20, 48, 38, 0, time.UTC),
+				},
+			},
+		},
+		{
+			desc:    "never subbed",
+			useResp: ivrtest.SubAgeNeverSubbedResp,
+			want: &SubAgeResponse{
+				User: SubAgeUser{
+					ID:          "181950834",
+					Username:    "airforce2700",
+					DisplayName: "airforce2700",
+				},
+				Channel: SubAgeUser{
+					ID:          "207813352",
+					Username:    "hasanabi",
+					DisplayName: "HasanAbi",
+				},
+				StatusHidden: false,
+				FollowTime:   time.Date(2022, 9, 20, 2, 39, 51, 0, time.UTC),
+				Streak:       nil,
+				Cumulative:   nil,
+			},
+		},
+		{
+			desc:    "non-existent user",
+			useResp: ivrtest.SubAge404UserResp,
+			wantErr: &ErrUserNotFound,
+		},
+		{
+			desc:    "non-existent channel",
+			useResp: ivrtest.SubAge404ChannelResp,
+			wantErr: &ErrChannelNotFound,
+		},
+	}
+
+	for _, tc := range tests {
+		server.Resp = tc.useResp
+		t.Run(tc.desc, func(t *testing.T) {
+			got, err := FetchSubAge("fakeuser", "fakechannel")
+			if err != nil && tc.wantErr == nil {
+				t.Fatalf("FetchSubAge() unexpected error: %v", err)
+			}
+			if err == nil && tc.wantErr != nil {
+				t.Fatal("FetchSubAge() wanted error, but none was present")
+			}
+			if err != nil && tc.wantErr != nil {
+				if !errors.Is(err, *tc.wantErr) {
+					t.Fatalf("FetchSubAge() error not the expected one: %v", err)
+				}
+			}
+
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Errorf("FetchSubAge() diff (-want +got):\n%s", diff)
 			}
 		})
 		server.Reset()

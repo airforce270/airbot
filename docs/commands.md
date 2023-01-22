@@ -236,6 +236,12 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - Replies with a user's name color.
 - > Usage: `$namecolor [user]`
 
+### $subage
+
+- Checks the length that someone has been subscribed to a channel on Twitch.
+- > Usage: `$subage <user> <channel>`
+- > Aliases: `$sa`, `$sublength`
+
 ### $title
 
 - Replies with a channel's title. If no channel is provided, the current channel will be used.
