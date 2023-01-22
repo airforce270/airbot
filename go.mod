@@ -3,14 +3,14 @@ module github.com/airforce270/airbot
 go 1.19
 
 require (
-	github.com/gempir/go-twitch-irc/v3 v3.2.0
+	github.com/gempir/go-twitch-irc/v3 v3.3.0
 	github.com/go-redis/redis/v9 v9.0.0-rc.2
 	github.com/google/go-cmp v0.5.9
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/nicklaw5/helix/v2 v2.14.0
 	github.com/pelletier/go-toml/v2 v2.0.6
 	github.com/shirou/gopsutil/v3 v3.22.12
-	golang.org/x/exp v0.0.0-20230116083435-1de6713980de
+	golang.org/x/exp v0.0.0-20230118134722-a68e582fa157
 	golang.org/x/sync v0.1.0
 	gonum.org/v1/gonum v0.12.0
 	gorm.io/driver/postgres v1.4.6
