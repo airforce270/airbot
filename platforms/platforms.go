@@ -33,7 +33,7 @@ func StartHandling(p base.Platform, db *gorm.DB, cdb cache.Cache, logIncoming, l
 	handler := commands.NewHandler(db)
 	inC := p.Listen()
 
-	outC := make(chan base.Message)
+	outC := make(chan base.OutgoingMessage)
 	go startSending(p, outC, cdb, logOutgoing)
 
 	for {
@@ -43,7 +43,7 @@ func StartHandling(p base.Platform, db *gorm.DB, cdb cache.Cache, logIncoming, l
 }
 
 // processMessage processes a single message and may queue messages to be sent in response.
-func processMessage(handler *commands.Handler, db *gorm.DB, p base.Platform, outC chan<- base.Message, msg base.IncomingMessage, logIncoming bool) {
+func processMessage(handler *commands.Handler, db *gorm.DB, p base.Platform, outC chan<- base.OutgoingMessage, msg base.IncomingMessage, logIncoming bool) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("processMessage panicked, recovered: %v; %s", r, debug.Stack())
@@ -63,18 +63,26 @@ func processMessage(handler *commands.Handler, db *gorm.DB, p base.Platform, out
 		return
 	}
 
-	for _, out := range outMsgs {
-		outC <- *out
+	for _, outMsg := range outMsgs {
+		out := base.OutgoingMessage{
+			Message: *outMsg,
+		}
+		if msg.Message.ID != "" {
+			out.ReplyToID = msg.Message.ID
+		}
+		outC <- out
 	}
 }
 
+const slowmodeSleepDuration = time.Duration(1) * time.Second
+
 // startSending sends messages from the queue.
-func startSending(p base.Platform, outC <-chan base.Message, cdb cache.Cache, logOutgoing bool) {
+func startSending(p base.Platform, outC <-chan base.OutgoingMessage, cdb cache.Cache, logOutgoing bool) {
 	for {
 		out := <-outC
 
 		if logOutgoing {
-			log.Printf("[%s-> %s/%s]: %s", p.Name(), out.Channel, p.Username(), out.Text)
+			log.Printf("[%s-> %s/%s]: %s", p.Name(), out.Message.Channel, p.Username(), out.Message.Text)
 		}
 
 		if err := p.Send(out); err != nil {
@@ -87,7 +95,7 @@ func startSending(p base.Platform, outC <-chan base.Message, cdb cache.Cache, lo
 		}
 
 		if slowmode {
-			time.Sleep(time.Duration(1) * time.Second)
+			time.Sleep(slowmodeSleepDuration)
 		}
 	}
 }

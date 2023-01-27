@@ -32,7 +32,7 @@ type Platform interface {
 	// Listen returns a channel that will provide incoming messages.
 	Listen() <-chan IncomingMessage
 	// Send sends a message.
-	Send(m Message) error
+	Send(m OutgoingMessage) error
 
 	// Join joins a channel.
 	Join(channel, prefix string) error
@@ -58,6 +58,9 @@ type Message struct {
 	// Channel represents the channel the message was sent in
 	// (or should be sent in).
 	Channel string
+	// ID is the unique ID of the message, as provided by the platform.
+	// This may not be set - some platforms do not provide an ID.
+	ID string
 	// UserID is the unique ID of the user that sent the message.
 	UserID string
 	// User is the username of the user that sent the message.
@@ -81,6 +84,18 @@ type IncomingMessage struct {
 // MessageTextWithoutPrefix returns the message's text without the prefix.
 func (m *IncomingMessage) MessageTextWithoutPrefix() string {
 	return strings.Replace(m.Message.Text, m.Prefix, "", 1)
+}
+
+// OutgoingMessage represents an outgoing chat message.
+type OutgoingMessage struct {
+	// Message is the message.
+	Message Message
+	// ReplyToID is the ID of the message being replied to.
+	// This field is only set if:
+	//   1. The platform provides IDs for individual messages
+	//   2. The platform supports replying to messages
+	//   3. The message is a reply to another message
+	ReplyToID string
 }
 
 var (
