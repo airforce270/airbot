@@ -2533,7 +2533,7 @@ func TestCommands(t *testing.T) {
 			apiResp: ivrtest.TwitchUsersVerifiedBotResp,
 			want: []*base.Message{
 				{
-					Text:    "iP0G is a verified bot. ✅",
+					Text:    "This command is currently offline due to changes on Twitch's end :(",
 					Channel: "user2",
 				},
 			},
@@ -2555,7 +2555,7 @@ func TestCommands(t *testing.T) {
 			apiResp:    ivrtest.TwitchUsersNotVerifiedBotResp,
 			want: []*base.Message{
 				{
-					Text:    "xQc is not a verified bot. ❌",
+					Text:    "This command is currently offline due to changes on Twitch's end :(",
 					Channel: "user2",
 				},
 			},
@@ -2585,7 +2585,7 @@ func TestCommands(t *testing.T) {
 			apiResp: ivrtest.TwitchUsersVerifiedBotResp,
 			want: []*base.Message{
 				{
-					Text:    "✅",
+					Text:    "This command is currently offline due to changes on Twitch's end :(",
 					Channel: "user2",
 				},
 			},
@@ -2611,7 +2611,7 @@ func TestCommands(t *testing.T) {
 			apiResp: ivrtest.TwitchUsersNotVerifiedBotResp,
 			want: []*base.Message{
 				{
-					Text:    "❌",
+					Text:    "This command is currently offline due to changes on Twitch's end :(",
 					Channel: "user2",
 				},
 			},

@@ -108,7 +108,7 @@ var (
 	verifiedBotCommand = basecommand.Command{
 		Name:       "verifiedbot",
 		Aliases:    []string{"vb"},
-		Help:       "Replies whether a user is a verified bot.",
+		Help:       "Replies whether a user is a verified bot. Currently offline due to changes on Twitch's end.",
 		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    verifiedBot,
@@ -117,7 +117,7 @@ var (
 	verifiedBotQuietCommand = basecommand.Command{
 		Name:       "verifiedbotquiet",
 		Aliases:    []string{"verifiedbotq", "vbquiet", "vbq"},
-		Help:       "Replies whether a user is a verified bot, but responds quietly.",
+		Help:       "Replies whether a user is a verified bot, but responds quietly. Currently offline due to changes on Twitch's end.",
 		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    verifiedBotQuiet,
@@ -421,6 +421,15 @@ func title(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 }
 
 func verifiedBot(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+	if true {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "This command is currently offline due to changes on Twitch's end :(",
+			},
+		}, nil
+	}
+
 	targetUser := basecommand.FirstArgOrUsername(args, msg)
 
 	users, err := ivr.FetchUsers(targetUser)
@@ -456,6 +465,15 @@ func verifiedBot(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 }
 
 func verifiedBotQuiet(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+	if true {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "This command is currently offline due to changes on Twitch's end :(",
+			},
+		}, nil
+	}
+
 	targetUser := basecommand.FirstArgOrUsername(args, msg)
 
 	users, err := ivr.FetchUsers(targetUser)

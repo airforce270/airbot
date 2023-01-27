@@ -249,13 +249,13 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 ### $verifiedbot
 
-- Replies whether a user is a verified bot.
+- Replies whether a user is a verified bot. Currently offline due to changes on Twitch's end.
 - > Usage: `$verifiedbot [user]`
 - > Aliases: `$vb`
 
 ### $verifiedbotquiet
 
-- Replies whether a user is a verified bot, but responds quietly.
+- Replies whether a user is a verified bot, but responds quietly. Currently offline due to changes on Twitch's end.
 - > Usage: `$verifiedbotquiet [user]`
 - > Aliases: `$verifiedbotq`, `$vbquiet`, `$vbq`
 
