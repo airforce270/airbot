@@ -4,10 +4,8 @@
 
 # Commands
 
-All commands assume the `$` prefix, but note that the prefix is configurable
-per-channel (in `config.toml`).
-To find out what the prefix is in a channel, ask `what's airbot's prefix?`
-in a chat.
+All commands assume the `$` prefix, but the prefix is configurable
+per-channel (see [$setprefix](#setprefix)).
 
 Some commands include parameters.
 
