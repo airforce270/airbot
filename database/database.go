@@ -27,7 +27,18 @@ func Connect(dbname, user, password string) (*gorm.DB, error) {
 		"TimeZone": "UTC",
 	}
 	dsn := formatDSN(settings)
-	return gorm.Open(postgres.Open(dsn))
+	gormDB, err := gorm.Open(postgres.Open(dsn))
+	if err != nil {
+		return nil, err
+	}
+
+	db, err := gormDB.DB()
+	if err != nil {
+		return nil, err
+	}
+	db.SetMaxOpenConns(100)
+
+	return gormDB, nil
 }
 
 // Migrate performs GORM auto-migrations for all data models.
