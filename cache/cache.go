@@ -9,7 +9,7 @@ import (
 
 	"github.com/airforce270/airbot/base"
 
-	"github.com/go-redis/redis/v9"
+	"github.com/redis/go-redis/v9"
 )
 
 // Instance is an instance of the cache.
