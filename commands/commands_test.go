@@ -552,6 +552,46 @@ func TestCommands(t *testing.T) {
 		{
 			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$help duel",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
+			},
+			want: []*base.Message{
+				{
+					Text:    "[ $duel ] Duels another chatter. They have 30 seconds to accept or decline. User-specific cooldown: 5s",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$help pyramid",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
+			},
+			want: []*base.Message{
+				{
+					Text:    "[ $pyramid ] Makes a pyramid in chat. Max width 25. Channel-wide cooldown: 30s",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
 					Text:    "??prefix",
 					UserID:  "user1",
 					User:    "user1",

@@ -30,7 +30,7 @@ var (
 	bibleVerseCommand = basecommand.Command{
 		Name:    "bibleverse",
 		Aliases: []string{"bv"},
-		Help:    "Looks up a bible verse.",
+		Desc:    "Looks up a bible verse.",
 		Params: []arg.Param{
 			{Name: "book", Type: arg.String, Required: true},
 			{Name: "chapter:verse", Type: arg.String, Required: true},
@@ -41,7 +41,7 @@ var (
 
 	cockCommand = basecommand.Command{
 		Name:       "cock",
-		Help:       "Tells you the length :)",
+		Desc:       "Tells you the length :)",
 		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    cock,
@@ -49,7 +49,7 @@ var (
 
 	iqCommand = basecommand.Command{
 		Name:       "iq",
-		Help:       "Tells you someone's IQ",
+		Desc:       "Tells you someone's IQ",
 		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    iq,
@@ -57,7 +57,7 @@ var (
 
 	shipCommand = basecommand.Command{
 		Name: "ship",
-		Help: "Tells you the compatibility of two people.",
+		Desc: "Tells you the compatibility of two people.",
 		Params: []arg.Param{
 			{Name: "first-person", Type: arg.Username, Required: true},
 			{Name: "second-person", Type: arg.Username, Required: true},

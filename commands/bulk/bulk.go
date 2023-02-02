@@ -17,7 +17,7 @@ var Commands = [...]basecommand.Command{
 var (
 	filesayCommand = basecommand.Command{
 		Name:       "filesay",
-		Help:       "Runs all commands in a given pastebin file.",
+		Desc:       "Runs all commands in a given pastebin file.",
 		Params:     []arg.Param{{Name: "pastebin raw URL", Type: arg.String, Required: true}},
 		Permission: permission.Mod,
 		Handler:    filesay,

@@ -18,7 +18,7 @@ var Commands = [...]basecommand.Command{
 var (
 	vanishCommand = basecommand.Command{
 		Name:       "vanish",
-		Help:       "Times you out for 1 second.",
+		Desc:       "Times you out for 1 second.",
 		Permission: permission.Normal,
 		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			err := msg.Platform.Timeout(msg.Message.User, msg.Message.Channel, time.Duration(1)*time.Second)

@@ -36,7 +36,7 @@ var (
 	banReasonCommand = basecommand.Command{
 		Name:       "banreason",
 		Aliases:    []string{"br"},
-		Help:       "Replies with the reason someone was banned on Twitch.",
+		Desc:       "Replies with the reason someone was banned on Twitch.",
 		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: true}},
 		Permission: permission.Normal,
 		Handler:    banReason,
@@ -44,7 +44,7 @@ var (
 
 	currentGameCommand = basecommand.Command{
 		Name:       "currentgame",
-		Help:       "Replies with the game that's currently being streamed on a channel.",
+		Desc:       "Replies with the game that's currently being streamed on a channel.",
 		Params:     []arg.Param{{Name: "channel", Type: arg.Username, Required: true}},
 		Permission: permission.Normal,
 		Handler:    currentGame,
@@ -52,7 +52,7 @@ var (
 
 	foundersCommand = basecommand.Command{
 		Name:       "founders",
-		Help:       "Replies with a channel's founders. If no channel is provided, the current channel will be used.",
+		Desc:       "Replies with a channel's founders. If no channel is provided, the current channel will be used.",
 		Params:     []arg.Param{{Name: "channel", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    founders,
@@ -60,7 +60,7 @@ var (
 
 	logsCommand = basecommand.Command{
 		Name: "logs",
-		Help: "Replies with a link to a Twitch user's logs in a channel.",
+		Desc: "Replies with a link to a Twitch user's logs in a channel.",
 		Params: []arg.Param{
 			{Name: "channel", Type: arg.Username, Required: true},
 			{Name: "user", Type: arg.Username, Required: true},
@@ -71,7 +71,7 @@ var (
 
 	modsCommand = basecommand.Command{
 		Name:       "mods",
-		Help:       "Replies with a channel's mods. If no channel is provided, the current channel will be used.",
+		Desc:       "Replies with a channel's mods. If no channel is provided, the current channel will be used.",
 		Params:     []arg.Param{{Name: "channel", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    mods,
@@ -79,7 +79,7 @@ var (
 
 	nameColorCommand = basecommand.Command{
 		Name:       "namecolor",
-		Help:       "Replies with a user's name color.",
+		Desc:       "Replies with a user's name color.",
 		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    nameColor,
@@ -88,7 +88,7 @@ var (
 	subAgeCommand = basecommand.Command{
 		Name:    "subage",
 		Aliases: []string{"sa", "sublength"},
-		Help:    "Checks the length that someone has been subscribed to a channel on Twitch.",
+		Desc:    "Checks the length that someone has been subscribed to a channel on Twitch.",
 		Params: []arg.Param{
 			{Name: "user", Type: arg.Username, Required: true},
 			{Name: "channel", Type: arg.Username, Required: true},
@@ -99,7 +99,7 @@ var (
 
 	titleCommand = basecommand.Command{
 		Name:       "title",
-		Help:       "Replies with a channel's title. If no channel is provided, the current channel will be used.",
+		Desc:       "Replies with a channel's title. If no channel is provided, the current channel will be used.",
 		Params:     []arg.Param{{Name: "channel", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    title,
@@ -108,7 +108,7 @@ var (
 	verifiedBotCommand = basecommand.Command{
 		Name:       "verifiedbot",
 		Aliases:    []string{"vb"},
-		Help:       "Replies whether a user is a verified bot. Currently offline due to changes on Twitch's end.",
+		Desc:       "Replies whether a user is a verified bot. Currently offline due to changes on Twitch's end.",
 		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    verifiedBot,
@@ -117,7 +117,7 @@ var (
 	verifiedBotQuietCommand = basecommand.Command{
 		Name:       "verifiedbotquiet",
 		Aliases:    []string{"verifiedbotq", "vbquiet", "vbq"},
-		Help:       "Replies whether a user is a verified bot, but responds quietly. Currently offline due to changes on Twitch's end.",
+		Desc:       "Replies whether a user is a verified bot, but responds quietly. Currently offline due to changes on Twitch's end.",
 		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    verifiedBotQuiet,
@@ -125,7 +125,7 @@ var (
 
 	vipsCommand = basecommand.Command{
 		Name:       "vips",
-		Help:       "Replies with a channel's VIPs. If no channel is provided, the current channel will be used.",
+		Desc:       "Replies with a channel's VIPs. If no channel is provided, the current channel will be used.",
 		Params:     []arg.Param{{Name: "channel", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    vips,

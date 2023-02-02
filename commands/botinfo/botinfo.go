@@ -26,7 +26,7 @@ var Commands = [...]basecommand.Command{
 	{
 		Name:       "botinfo",
 		Aliases:    []string{"bot", "info", "botinfo", "about", "ping"},
-		Help:       "Replies with info about the bot.",
+		Desc:       "Replies with info about the bot.",
 		Permission: permission.Normal,
 		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return []*base.Message{
@@ -39,7 +39,7 @@ var Commands = [...]basecommand.Command{
 	},
 	{
 		Name:       "prefix",
-		Help:       "Replies with the prefix in this channel.",
+		Desc:       "Replies with the prefix in this channel.",
 		Permission: permission.Normal,
 		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return []*base.Message{
@@ -52,7 +52,7 @@ var Commands = [...]basecommand.Command{
 	},
 	{
 		Name:       "source",
-		Help:       "Replies a link to the bot's source code.",
+		Desc:       "Replies a link to the bot's source code.",
 		Permission: permission.Normal,
 		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return []*base.Message{
@@ -65,7 +65,7 @@ var Commands = [...]basecommand.Command{
 	},
 	{
 		Name:       "stats",
-		Help:       "Replies with stats about the bot.",
+		Desc:       "Replies with stats about the bot.",
 		Permission: permission.Normal,
 		Handler:    stats,
 	},

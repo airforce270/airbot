@@ -34,7 +34,7 @@ var Commands = [...]basecommand.Command{
 var (
 	botSlowmodeCommand = basecommand.Command{
 		Name: "botslowmode",
-		Help: "Sets the bot to follow a global (per-platform) 1 second slowmode. If no argument is provided, checks if slowmode is enabled.",
+		Desc: "Sets the bot to follow a global (per-platform) 1 second slowmode. If no argument is provided, checks if slowmode is enabled.",
 		Params: []arg.Param{
 			{Name: "enable", Type: arg.Boolean, Required: false},
 		},
@@ -44,7 +44,7 @@ var (
 
 	echoCommand = basecommand.Command{
 		Name: "echo",
-		Help: "Echoes back whatever is sent.",
+		Desc: "Echoes back whatever is sent.",
 		Params: []arg.Param{
 			{Name: "message", Type: arg.Variadic, Required: true},
 		},
@@ -65,7 +65,7 @@ var (
 
 	joinCommand = basecommand.Command{
 		Name:       "join",
-		Help:       "Tells the bot to join your chat.",
+		Desc:       "Tells the bot to join your chat.",
 		Params:     []arg.Param{{Name: "prefix", Type: arg.String, Required: false}},
 		Permission: permission.Normal,
 		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
@@ -79,14 +79,14 @@ var (
 
 	joinedCommand = basecommand.Command{
 		Name:       "joined",
-		Help:       "Lists the channels the bot is currently in.",
+		Desc:       "Lists the channels the bot is currently in.",
 		Permission: permission.Owner,
 		Handler:    joined,
 	}
 
 	joinOtherCommand = basecommand.Command{
 		Name: "joinother",
-		Help: "Tells the bot to join a chat.",
+		Desc: "Tells the bot to join a chat.",
 		Params: []arg.Param{
 			{Name: "channel", Type: arg.Username, Required: true},
 			{Name: "prefix", Type: arg.String, Required: false},
@@ -108,7 +108,7 @@ var (
 
 	leaveCommand = basecommand.Command{
 		Name:       "leave",
-		Help:       "Tells the bot to leave your chat.",
+		Desc:       "Tells the bot to leave your chat.",
 		Permission: permission.Admin,
 		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return leaveChannel(msg, msg.Message.Channel)
@@ -117,7 +117,7 @@ var (
 
 	leaveOtherCommand = basecommand.Command{
 		Name:       "leaveother",
-		Help:       "Tells the bot to leave a chat.",
+		Desc:       "Tells the bot to leave a chat.",
 		Params:     []arg.Param{{Name: "channel", Type: arg.Username, Required: true}},
 		Permission: permission.Owner,
 		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
@@ -131,7 +131,7 @@ var (
 
 	setPrefixCommand = basecommand.Command{
 		Name:       "setprefix",
-		Help:       "Sets the bot's prefix in the channel.",
+		Desc:       "Sets the bot's prefix in the channel.",
 		Params:     []arg.Param{{Name: "prefix", Type: arg.String, Required: true}},
 		Permission: permission.Admin,
 		Handler:    setPrefix,

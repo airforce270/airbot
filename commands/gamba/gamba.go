@@ -36,21 +36,21 @@ var Commands = [...]basecommand.Command{
 var (
 	acceptCommand = basecommand.Command{
 		Name:       "accept",
-		Help:       "Accepts a duel.",
+		Desc:       "Accepts a duel.",
 		Permission: permission.Normal,
 		Handler:    accept,
 	}
 
 	declineCommand = basecommand.Command{
 		Name:       "decline",
-		Help:       "Declines a duel.",
+		Desc:       "Declines a duel.",
 		Permission: permission.Normal,
 		Handler:    decline,
 	}
 
 	duelCommand = basecommand.Command{
 		Name: "duel",
-		Help: fmt.Sprintf("Duels another chatter. They have %d seconds to accept or decline.", duelPendingSecs),
+		Desc: fmt.Sprintf("Duels another chatter. They have %d seconds to accept or decline.", duelPendingSecs),
 		Params: []arg.Param{
 			{Name: "user", Type: arg.Username, Required: true},
 			{Name: "amount", Type: arg.Int, Required: true},
@@ -63,7 +63,7 @@ var (
 	givePointsCommand = basecommand.Command{
 		Name:    "givepoints",
 		Aliases: []string{"gp"},
-		Help:    "Give points to another chatter.",
+		Desc:    "Give points to another chatter.",
 		Params: []arg.Param{
 			{Name: "user", Type: arg.Username, Required: true},
 			{Name: "amount", Type: arg.Int, Required: true},
@@ -75,7 +75,7 @@ var (
 	pointsCommand = basecommand.Command{
 		Name:       "points",
 		Aliases:    []string{"p"},
-		Help:       "Checks how many points someone has.",
+		Desc:       "Checks how many points someone has.",
 		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    points,
@@ -84,7 +84,7 @@ var (
 	rouletteCommand = basecommand.Command{
 		Name:         "roulette",
 		Aliases:      []string{"r"},
-		Help:         "Roulettes some points.",
+		Desc:         "Roulettes some points.",
 		Params:       []arg.Param{{Name: "amount", Type: arg.String, Required: true, Usage: "amount|percent%|all"}},
 		Permission:   permission.Normal,
 		UserCooldown: time.Duration(5) * time.Second,

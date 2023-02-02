@@ -161,7 +161,7 @@ func parseArgs(msg *base.IncomingMessage, cmd basecommand.Command, pattern *rege
 var (
 	helpCommand = basecommand.Command{
 		Name:    "help",
-		Help:    "Displays help for a command.",
+		Desc:    "Displays help for a command.",
 		Params:  []arg.Param{{Name: "command", Type: arg.String, Required: false}},
 		Handler: help,
 	}
@@ -183,14 +183,10 @@ func help(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 		if !strings.EqualFold(cmd.Name, targetCommand) {
 			continue
 		}
-		help := cmd.Help
-		if help == "" {
-			help = "<no help information found>"
-		}
 		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
-				Text:    fmt.Sprintf("[ %s%s ] %s", msg.Prefix, cmd.Name, help),
+				Text:    fmt.Sprintf("[ %s%s ] %s", msg.Prefix, cmd.Name, cmd.Help()),
 			},
 		}, nil
 	}

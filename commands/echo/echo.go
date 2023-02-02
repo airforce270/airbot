@@ -16,7 +16,7 @@ import (
 var Commands = [...]basecommand.Command{
 	{
 		Name:       "commands",
-		Help:       "Replies with a link to the commands.",
+		Desc:       "Replies with a link to the commands.",
 		Permission: permission.Normal,
 		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return []*base.Message{
@@ -29,7 +29,7 @@ var Commands = [...]basecommand.Command{
 	},
 	{
 		Name:       "gn",
-		Help:       "Says good night.",
+		Desc:       "Says good night.",
 		Permission: permission.Normal,
 		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return []*base.Message{
@@ -44,7 +44,7 @@ var Commands = [...]basecommand.Command{
 	spamCommand,
 	{
 		Name:       "TriHard",
-		Help:       "Replies with TriHard 7.",
+		Desc:       "Replies with TriHard 7.",
 		Permission: permission.Normal,
 		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return []*base.Message{
@@ -67,7 +67,7 @@ const (
 var (
 	pyramidCommand = basecommand.Command{
 		Name: "pyramid",
-		Help: fmt.Sprintf("Makes a pyramid in chat. Max width %d.", maxPyramidWidth),
+		Desc: fmt.Sprintf("Makes a pyramid in chat. Max width %d.", maxPyramidWidth),
 		Params: []arg.Param{
 			{Name: "width", Type: arg.Int, Required: true},
 			{Name: "text", Type: arg.String, Required: true},
@@ -79,7 +79,7 @@ var (
 
 	spamCommand = basecommand.Command{
 		Name: "spam",
-		Help: fmt.Sprintf("Sends a message many times. Max amount %d.", maxSpamAmount),
+		Desc: fmt.Sprintf("Sends a message many times. Max amount %d.", maxSpamAmount),
 		Params: []arg.Param{
 			{Name: "count", Type: arg.Int, Required: true},
 			{Name: "text", Type: arg.Variadic, Required: true},
@@ -91,7 +91,7 @@ var (
 
 	tuckCommand = basecommand.Command{
 		Name:       "tuck",
-		Help:       "Tuck someone to bed.",
+		Desc:       "Tuck someone to bed.",
 		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: true}},
 		Permission: permission.Normal,
 		Handler:    tuck,

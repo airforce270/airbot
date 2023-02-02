@@ -23,8 +23,8 @@ type Command struct {
 	Name string
 	// Aliases are the aliases/alternate names for this command, if any.
 	Aliases []string
-	// Help is the help information for this command.
-	Help string
+	// Desc is the description of this command.
+	Desc string
 	// Params contains the parameters to the command.
 	// Currently, only the last param can be optional.
 	// All params before the last should be required.
@@ -70,6 +70,39 @@ func (c *Command) Usage(prefix string) string {
 		}
 	}
 	return strings.Join(parts, " ")
+}
+
+// Help returns help information for the command.
+func (c *Command) Help() string {
+	if c.Desc == "" {
+		return "<no help information found>"
+	}
+
+	if c.ChannelCooldown == 0 && c.UserCooldown == 0 {
+		return c.Desc
+	}
+
+	var parts strings.Builder
+	parts.WriteString(c.Desc)
+
+	if !strings.HasSuffix(c.Desc, " ") {
+		parts.WriteString(" ")
+	}
+
+	var cooldowns []string
+	if c.ChannelCooldown > 0 && c.UserCooldown > 0 {
+		cooldowns = append(cooldowns, fmt.Sprintf("Channel-wide cooldown: %s, user-specific cooldown: %s", c.ChannelCooldown, c.UserCooldown))
+	} else {
+		if c.ChannelCooldown > 0 {
+			cooldowns = append(cooldowns, fmt.Sprintf("Channel-wide cooldown: %s", c.ChannelCooldown))
+		}
+		if c.UserCooldown > 0 {
+			cooldowns = append(cooldowns, fmt.Sprintf("User-specific cooldown: %s", c.UserCooldown))
+		}
+	}
+	parts.WriteString(strings.Join(cooldowns, ", "))
+
+	return parts.String()
 }
 
 // FirstArgOrUsername returns the first provided arg, or the message's sender if not present.
