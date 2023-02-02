@@ -1,6 +1,6 @@
 module github.com/airforce270/airbot
 
-go 1.19
+go 1.20
 
 require (
 	github.com/gempir/go-twitch-irc/v3 v3.3.0
