@@ -64,13 +64,7 @@ func processMessage(handler *commands.Handler, db *gorm.DB, p base.Platform, out
 	}
 
 	for _, outMsg := range outMsgs {
-		out := base.OutgoingMessage{
-			Message: *outMsg,
-		}
-		if msg.Message.ID != "" {
-			out.ReplyToID = msg.Message.ID
-		}
-		outC <- out
+		outC <- *outMsg
 	}
 }
 
@@ -82,11 +76,17 @@ func startSending(p base.Platform, outC <-chan base.OutgoingMessage, cdb cache.C
 		out := <-outC
 
 		if logOutgoing {
-			log.Printf("[%s-> %s/%s]: %s", p.Name(), out.Message.Channel, p.Username(), out.Message.Text)
+			log.Printf("[%s-> %s/%s]: %s", p.Name(), out.Channel, p.Username(), out.Text)
 		}
 
-		if err := p.Send(out); err != nil {
-			log.Printf("Failed to send message %v: %v", out, err)
+		if out.ReplyToID != "" {
+			if err := p.Reply(out.Message, out.ReplyToID); err != nil {
+				log.Printf("Failed to send message (reply) %v: %v", out, err)
+			}
+		} else {
+			if err := p.Send(out.Message); err != nil {
+				log.Printf("Failed to send message %v: %v", out, err)
+			}
 		}
 
 		slowmode, err := cdb.FetchBool(cache.KeyGlobalSlowmode(p))

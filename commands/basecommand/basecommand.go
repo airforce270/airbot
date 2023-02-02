@@ -35,6 +35,9 @@ type Command struct {
 	ChannelCooldown time.Duration
 	// ChannelCooldown is the cooldown between when a command can be used by a given user.
 	UserCooldown time.Duration
+	// DisableReplies will disable the returned messages from being sent as replies.
+	// This only has an effect on platforms that support replies.
+	DisableReplies bool
 	// Handler is the function to be run if this command matches.
 	// args contains the arguments to the command as specified by Params.
 	Handler func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error)

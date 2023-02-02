@@ -59,15 +59,19 @@ func (t *Twitch) Name() string { return "Twitch" }
 
 func (t *Twitch) Username() string { return t.username }
 
-func (t *Twitch) Send(msg base.OutgoingMessage) error {
+func (t *Twitch) Send(msg base.Message) error {
+	return t.Reply(msg, "")
+}
+
+func (t *Twitch) Reply(msg base.Message, replyToID string) error {
 	var channel *twitchChannel
 	for _, c := range t.channels {
-		if strings.EqualFold(c.Name, msg.Message.Channel) {
+		if strings.EqualFold(c.Name, msg.Channel) {
 			channel = c
 		}
 	}
 	if channel == nil {
-		return fmt.Errorf("can't send message to unjoined channel %q", msg.Message.Channel)
+		return fmt.Errorf("can't send message to unjoined channel %q", msg.Channel)
 	}
 
 	// If the bot has "normal permissions" (not verified, mod, or VIP),
@@ -77,25 +81,24 @@ func (t *Twitch) Send(msg base.OutgoingMessage) error {
 	}
 
 	// Any newlines in the message causes Twitch to drop the rest of the message.
-	text := strings.ReplaceAll(msg.Message.Text, "\n", " ")
+	text := strings.ReplaceAll(msg.Text, "\n", " ")
 
 	// Bypass 30-second same message detection.
 	lastSentMsg, err := t.cdb.FetchString(cache.KeyLastSentTwitchMessage)
 	if err != nil {
-		log.Printf("Failed to check if message (%q/%q) is in cache: %v", msg.Message.Channel, text, err)
+		log.Printf("Failed to check if message (%q/%q) is in cache: %v", msg.Channel, text, err)
 	} else if lastSentMsg == text {
 		text = bypassSameMessageDetection(text)
 	}
 
-	go t.persistUserAndMessage(t.id, t.username, text, msg.Message.Channel, msg.Message.Time)
+	go t.persistUserAndMessage(t.id, t.username, text, msg.Channel, msg.Time)
 
 	if t.i != nil {
-		if msg.ReplyToID != "" {
-			t.i.Reply(msg.Message.Channel, msg.ReplyToID, text)
+		if replyToID != "" {
+			t.i.Reply(msg.Channel, replyToID, text)
 		} else {
-			t.i.Say(msg.Message.Channel, text)
+			t.i.Say(msg.Channel, text)
 		}
-
 	} else {
 		log.Print("Didn't actually send message - IRC client is nil. This is expected in test, but if you see this in production, something's broken!")
 	}
@@ -298,11 +301,10 @@ func (t *Twitch) CurrentUsers() ([]string, error) {
 }
 
 func (t *Twitch) Timeout(username, channel string, duration time.Duration) error {
-	return t.Send(base.OutgoingMessage{
-		Message: base.Message{
-			Channel: channel,
-			Text:    fmt.Sprintf("/timeout %s %.f", username, duration.Seconds()),
-		}})
+	return t.Send(base.Message{
+		Channel: channel,
+		Text:    fmt.Sprintf("/timeout %s %.f", username, duration.Seconds()),
+	})
 }
 
 func (t *Twitch) FetchUser(channel string) (*helix.User, error) {

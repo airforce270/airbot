@@ -32,7 +32,9 @@ type Platform interface {
 	// Listen returns a channel that will provide incoming messages.
 	Listen() <-chan IncomingMessage
 	// Send sends a message.
-	Send(m OutgoingMessage) error
+	Send(m Message) error
+	// Reply sends a message in reply to another message.
+	Reply(m Message, replyToID string) error
 
 	// Join joins a channel.
 	Join(channel, prefix string) error
@@ -89,7 +91,7 @@ func (m *IncomingMessage) MessageTextWithoutPrefix() string {
 // OutgoingMessage represents an outgoing chat message.
 type OutgoingMessage struct {
 	// Message is the message.
-	Message Message
+	Message
 	// ReplyToID is the ID of the message being replied to.
 	// This field is only set if:
 	//   1. The platform provides IDs for individual messages

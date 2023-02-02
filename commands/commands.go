@@ -70,8 +70,8 @@ type Handler struct {
 }
 
 // Handle handles incoming messages, possibly returning messages to be sent in response.
-func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.Message, error) {
-	var outMsgs []*base.Message
+func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, error) {
+	var outMsgs []*base.OutgoingMessage
 	for pattern, command := range commandPatterns {
 		if !strings.HasPrefix(strings.TrimSpace(msg.Message.Text), msg.Prefix) {
 			continue
@@ -126,12 +126,24 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.Message, error) {
 			if !errors.Is(err, basecommand.ErrBadUsage) {
 				return nil, err
 			}
-			outMsgs = append(outMsgs, &base.Message{
-				Channel: msg.Message.Channel,
-				Text:    "Usage: " + command.Usage(msg.Prefix),
-			})
+			outMsg := &base.OutgoingMessage{
+				Message: base.Message{
+					Channel: msg.Message.Channel,
+					Text:    "Usage: " + command.Usage(msg.Prefix),
+				},
+			}
+			if !command.DisableReplies {
+				outMsg.ReplyToID = msg.Message.ID
+			}
+			outMsgs = append(outMsgs, outMsg)
 		} else {
-			outMsgs = append(outMsgs, respMsgs...)
+			for _, respMsg := range respMsgs {
+				outMsg := &base.OutgoingMessage{Message: *respMsg}
+				if !command.DisableReplies {
+					outMsg.ReplyToID = msg.Message.ID
+				}
+				outMsgs = append(outMsgs, outMsg)
+			}
 		}
 
 		channelCooldown.LastRun = time.Now()

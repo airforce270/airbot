@@ -38,6 +38,10 @@ type testCase struct {
 	runBefore  []func() error
 	runAfter   []func() error
 	want       []*base.Message
+	// `wantWrapped` shouldn't be set in test cases directly,
+	// it's just `want` values wrapped in OutgoingMessages
+	// which is set by pretest processing
+	wantWrapped []*base.OutgoingMessage
 }
 
 func TestCommands(t *testing.T) {
@@ -2737,7 +2741,6 @@ func TestCommands(t *testing.T) {
 				handler := Handler{db: db}
 				got, err := handler.Handle(&tc.input)
 				if err != nil {
-					fmt.Printf("unexpected error: %v\n", err)
 					t.Fatalf("unexpected error: %v", err)
 				}
 
@@ -2747,7 +2750,7 @@ func TestCommands(t *testing.T) {
 					}
 				}
 
-				if diff := cmp.Diff(tc.want, got); diff != "" {
+				if diff := cmp.Diff(tc.wantWrapped, got); diff != "" {
 					t.Errorf("Handle() diff (-want +got):\n%s", diff)
 				}
 				resetFakes()
@@ -2760,6 +2763,9 @@ func TestCommands(t *testing.T) {
 }
 
 func buildTestCases(t *testing.T, tc testCase) []testCase {
+	for _, want := range tc.want {
+		tc.wantWrapped = append(tc.wantWrapped, &base.OutgoingMessage{Message: *want})
+	}
 	tcs := []testCase{tc}
 	for _, otherText := range tc.otherTexts {
 		tcCopy := tc

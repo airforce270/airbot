@@ -16,8 +16,8 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 {{- range $commands }}
 
 ### ${{ .Name }}
-{{ if .Help }}
-- {{ .Help }}
+{{ if .Desc }}
+- {{ .Desc }}
 {{- end }}
 - > Usage: `{{ formatUsage . }}`
 {{- if and .Permission .Permission.IsElevated }}

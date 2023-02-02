@@ -74,6 +74,7 @@ var (
 		},
 		Permission:      permission.Mod,
 		ChannelCooldown: time.Duration(30) * time.Second,
+		DisableReplies:  true,
 		Handler:         pyramid,
 	}
 
@@ -86,6 +87,7 @@ var (
 		},
 		Permission:      permission.Mod,
 		ChannelCooldown: time.Duration(30) * time.Second,
+		DisableReplies:  true,
 		Handler:         spam,
 	}
 
