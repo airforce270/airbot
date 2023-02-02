@@ -41,8 +41,8 @@ const (
 	KeyLastSentTwitchMessage = "twitch_last_sent_message"
 )
 
-// KeyGlobalSlowmode returns the global slowmode cache key for a platform.
-func KeyGlobalSlowmode(p base.Platform) string {
+// GlobalSlowmodeKey returns the global slowmode cache key for a platform.
+func GlobalSlowmodeKey(p base.Platform) string {
 	return fmt.Sprintf("global_slowmode_%s", p.Name())
 }
 

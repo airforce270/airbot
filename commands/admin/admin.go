@@ -147,7 +147,7 @@ func botSlowmode(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 	enableArg := args[0]
 
 	if !enableArg.Present {
-		enabled, err := cdb.FetchBool(cache.KeyGlobalSlowmode(msg.Platform))
+		enabled, err := cdb.FetchBool(cache.GlobalSlowmodeKey(msg.Platform))
 		if err != nil {
 			return nil, err
 		}
@@ -165,7 +165,7 @@ func botSlowmode(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 
 	enable := enableArg.BoolValue
 
-	err := cdb.StoreBool(cache.KeyGlobalSlowmode(msg.Platform), enable)
+	err := cdb.StoreBool(cache.GlobalSlowmodeKey(msg.Platform), enable)
 	if err != nil {
 		failureMsgStart := "Failed to enable"
 		if !enable {

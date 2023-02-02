@@ -89,7 +89,7 @@ func startSending(p base.Platform, outC <-chan base.OutgoingMessage, cdb cache.C
 			}
 		}
 
-		slowmode, err := cdb.FetchBool(cache.KeyGlobalSlowmode(p))
+		slowmode, err := cdb.FetchBool(cache.GlobalSlowmodeKey(p))
 		if err != nil {
 			log.Printf("Failed to fetch slowmode status for %s: %v", p.Name(), err)
 		}
