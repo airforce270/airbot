@@ -2,7 +2,6 @@
 package main
 
 import (
-	"bytes"
 	_ "embed"
 	"fmt"
 	"log"
@@ -59,7 +58,7 @@ type fileToGenerate struct {
 }
 
 func gen(tmpl *template.Template, fileName string, data any) error {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return err
 	}
