@@ -6,7 +6,7 @@ require (
 	github.com/gempir/go-twitch-irc/v3 v3.3.0
 	github.com/google/go-cmp v0.5.9
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/nicklaw5/helix/v2 v2.17.0
+	github.com/nicklaw5/helix/v2 v2.18.0
 	github.com/pelletier/go-toml/v2 v2.0.6
 	github.com/redis/go-redis/v9 v9.0.2
 	github.com/shirou/gopsutil/v3 v3.23.1
@@ -22,7 +22,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
-	github.com/golang-jwt/jwt/v4 v4.4.3 // indirect
+	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
