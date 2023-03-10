@@ -9,7 +9,7 @@ require (
 	github.com/nicklaw5/helix/v2 v2.20.0
 	github.com/pelletier/go-toml/v2 v2.0.7
 	github.com/redis/go-redis/v9 v9.0.2
-	github.com/shirou/gopsutil/v3 v3.23.1
+	github.com/shirou/gopsutil/v3 v3.23.2
 	golang.org/x/exp v0.0.0-20230213192124-5e25df0256eb
 	golang.org/x/sync v0.1.0
 	gonum.org/v1/gonum v0.12.0
