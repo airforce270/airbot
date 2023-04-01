@@ -54,7 +54,7 @@ type Arg struct {
 	// BoolValue is the value of the arg, if it is a bool.
 	BoolValue bool
 	// IntValue is the value of the arg, if it is an int.
-	IntValue int
+	IntValue int64
 }
 
 // Parse parses the param it defines from the given message.
@@ -97,7 +97,7 @@ func (a Param) Parse(msg string) (Arg, string) {
 		return Arg{
 			Present:  true,
 			Type:     a.Type,
-			IntValue: int(i),
+			IntValue: i,
 		}, rest
 	case Boolean:
 		if !slices.Contains(booleanStrs, match) {

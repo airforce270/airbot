@@ -24,7 +24,7 @@ func TestParse(t *testing.T) {
 			wantParsed: Arg{
 				Present:  true,
 				Type:     Int,
-				IntValue: int(123),
+				IntValue: int64(123),
 			},
 			wantLeft: "something else",
 		},

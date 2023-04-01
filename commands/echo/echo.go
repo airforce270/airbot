@@ -123,7 +123,7 @@ func spam(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	msgs := make([]*base.Message, msgsCount)
 
 	out := base.Message{Channel: msg.Message.Channel, Text: text}
-	for i := 0; i < count; i++ {
+	for i := int64(0); i < count; i++ {
 		msgs[i] = &out
 	}
 
@@ -152,11 +152,11 @@ func pyramid(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error)
 	msgsCount := width + width - 1
 	msgs := make([]*base.Message, msgsCount)
 
-	for i := 0; i < width; i++ {
+	for i := int64(0); i < width; i++ {
 		msgs[i] = &base.Message{Channel: msg.Message.Channel, Text: repeatJoin(text, i+1, " ")}
 	}
 
-	offset := 1
+	offset := int64(1)
 	for i := width; i < msgsCount; i++ {
 		msgs[i] = &base.Message{Channel: msg.Message.Channel, Text: repeatJoin(text, i-offset, " ")}
 		offset += 2
@@ -180,9 +180,9 @@ func tuck(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 }
 
 // repeatJoin repeats a string and joins it on a delimiter.
-func repeatJoin(s string, n int, delimiter string) string {
+func repeatJoin(s string, n int64, delimiter string) string {
 	var b strings.Builder
-	for i := 0; i < n; i++ {
+	for i := int64(0); i < n; i++ {
 		b.WriteString(s)
 		if i == n-1 {
 			continue
