@@ -76,8 +76,8 @@ func main() {
 		errs = multierror.Append(errs, err)
 	}
 
-	if errs.ErrorOrNil() != nil {
-		fmt.Printf("Errors occurred while generating docs: %v", errs.ErrorOrNil())
+	if err := errs.ErrorOrNil(); err != nil {
+		fmt.Printf("Errors occurred while generating docs: %v", err)
 		os.Exit(1)
 	}
 }
