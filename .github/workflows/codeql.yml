@@ -20,10 +20,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3.5.0
+        uses: actions/checkout@v3.5.2
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2.2.9
+        uses: github/codeql-action/init@v2.3.3
         with:
           languages: go
           # If you wish to specify custom queries, you can do so here or in a config file.
@@ -36,9 +36,9 @@ jobs:
       # Autobuild attempts to build any compiled languages  (C/C++, C#, Go, or Java).
       # If this step fails, then you should remove it and run the build manually
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v2.2.9
+        uses: github/codeql-action/autobuild@v2.3.3
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2.2.9
+        uses: github/codeql-action/analyze@v2.3.3
         with:
           category: "/language:go"
