@@ -15,7 +15,7 @@ require (
 	gonum.org/v1/gonum v0.13.0
 	gorm.io/driver/postgres v1.5.0
 	gorm.io/driver/sqlite v1.5.0
-	gorm.io/gorm v1.25.0
+	gorm.io/gorm v1.25.1
 )
 
 require (
