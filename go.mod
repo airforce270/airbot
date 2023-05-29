@@ -8,7 +8,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/nicklaw5/helix/v2 v2.22.1
 	github.com/pelletier/go-toml/v2 v2.0.7
-	github.com/redis/go-redis/v9 v9.0.4
+	github.com/redis/go-redis/v9 v9.0.5
 	github.com/shirou/gopsutil/v3 v3.23.4
 	golang.org/x/exp v0.0.0-20230425010034-47ecfdc1ba53
 	golang.org/x/sync v0.2.0
