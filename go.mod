@@ -7,15 +7,15 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/nicklaw5/helix/v2 v2.22.1
-	github.com/pelletier/go-toml/v2 v2.0.7
-	github.com/redis/go-redis/v9 v9.0.4
-	github.com/shirou/gopsutil/v3 v3.23.4
-	golang.org/x/exp v0.0.0-20230425010034-47ecfdc1ba53
+	github.com/pelletier/go-toml/v2 v2.0.8
+	github.com/redis/go-redis/v9 v9.0.5
+	github.com/shirou/gopsutil/v3 v3.23.5
+	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1
 	golang.org/x/sync v0.2.0
 	gonum.org/v1/gonum v0.13.0
-	gorm.io/driver/postgres v1.5.0
-	gorm.io/driver/sqlite v1.5.0
-	gorm.io/gorm v1.25.0
+	gorm.io/driver/postgres v1.5.2
+	gorm.io/driver/sqlite v1.5.1
+	gorm.io/gorm v1.25.1
 )
 
 require (
@@ -30,13 +30,13 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/lufia/plan9stats v0.0.0-20230326075908-cb1d2100619a // indirect
-	github.com/mattn/go-sqlite3 v1.14.16 // indirect
+	github.com/mattn/go-sqlite3 v1.14.17 // indirect
 	github.com/power-devops/perfstat v0.0.0-20221212215047-62379fc7944b // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/tklauser/go-sysconf v0.3.11 // indirect
 	github.com/tklauser/numcpus v0.6.0 // indirect
-	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	golang.org/x/crypto v0.8.0 // indirect
+	github.com/yusufpapurcu/wmi v1.2.3 // indirect
+	golang.org/x/crypto v0.9.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 )
