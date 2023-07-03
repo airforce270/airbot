@@ -9,7 +9,7 @@ require (
 	github.com/nicklaw5/helix/v2 v2.22.1
 	github.com/pelletier/go-toml/v2 v2.0.8
 	github.com/redis/go-redis/v9 v9.0.5
-	github.com/shirou/gopsutil/v3 v3.23.5
+	github.com/shirou/gopsutil/v3 v3.23.6
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1
 	golang.org/x/sync v0.2.0
 	gonum.org/v1/gonum v0.13.0
@@ -37,6 +37,6 @@ require (
 	github.com/tklauser/numcpus v0.6.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	golang.org/x/crypto v0.9.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/sys v0.9.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 )
