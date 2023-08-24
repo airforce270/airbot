@@ -2,7 +2,7 @@ package config
 
 import (
 	_ "embed"
-	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -73,7 +73,7 @@ func TestSupinicConfigIsConfigured(t *testing.T) {
 	}
 
 	for i, tc := range tests {
-		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			got := tc.input.IsConfigured()
 
 			if got != tc.want {

@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"time"
 
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/database/models"
 
-	"golang.org/x/exp/slices"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -158,8 +158,14 @@ func getActiveUsers(db *gorm.DB) ([]models.User, error) {
 
 func deduplicateByUser(grants []grant) []grant {
 	sorted := grants
-	slices.SortStableFunc(sorted, func(g1, g2 grant) bool {
-		return g1.IsActive && !g2.IsActive
+	slices.SortStableFunc(sorted, func(g1, g2 grant) int {
+		if g1.IsActive && g2.IsActive {
+			return 0
+		}
+		if g1.IsActive && !g2.IsActive {
+			return -1
+		}
+		return 1
 	})
 	var deduped []grant
 	var grantedIDs []uint

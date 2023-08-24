@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -20,7 +21,6 @@ import (
 
 	twitchirc "github.com/gempir/go-twitch-irc/v3"
 	"github.com/nicklaw5/helix/v2"
-	"golang.org/x/exp/slices"
 	"gorm.io/gorm"
 )
 

@@ -3,6 +3,7 @@ package main
 
 import (
 	_ "embed"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -12,8 +13,6 @@ import (
 
 	"github.com/airforce270/airbot/commands"
 	"github.com/airforce270/airbot/commands/basecommand"
-
-	"github.com/hashicorp/go-multierror"
 )
 
 const (
@@ -66,17 +65,17 @@ func gen(tmpl *template.Template, fileName string, data any) error {
 }
 
 func main() {
-	var errs *multierror.Error
+	var errs []error
 
 	for _, file := range files {
 		err := gen(file.Template, file.Path, file.Data)
 		if err != nil {
 			log.Printf("Failed to generate %s: %v", file.Path, err)
 		}
-		errs = multierror.Append(errs, err)
+		errs = append(errs, err)
 	}
 
-	if err := errs.ErrorOrNil(); err != nil {
+	if err := errors.Join(errs...); err != nil {
 		fmt.Printf("Errors occurred while generating docs: %v", err)
 		os.Exit(1)
 	}

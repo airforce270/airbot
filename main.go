@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/signal"
 	"sync"
-	"syscall"
 
 	"github.com/airforce270/airbot/apiclients/supinic"
 	"github.com/airforce270/airbot/cache"
@@ -31,7 +30,7 @@ var cleanupFuncs []cleanupFunc
 // and runs the cleanup functions before exiting.
 func startListeningForSigterm() {
 	c := make(chan os.Signal, 2)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(c, os.Interrupt)
 	go func() {
 		<-c
 		for _, f := range cleanupFuncs {

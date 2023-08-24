@@ -1,7 +1,7 @@
 package twitchtmi
 
 import (
-	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/airforce270/airbot/apiclients/twitchtmi/twitchtmitest"
@@ -43,7 +43,7 @@ func TestFetchChatters(t *testing.T) {
 
 	for _, tc := range tests {
 		server.Resp = tc.useResp
-		t.Run(fmt.Sprintf("%d", tc.want.ChatterCount), func(t *testing.T) {
+		t.Run(strconv.Itoa(tc.want.ChatterCount), func(t *testing.T) {
 			got, err := FetchChatters("user1")
 			if err != nil {
 				t.Fatalf("FetchChatters() unexpected error: %v", err)

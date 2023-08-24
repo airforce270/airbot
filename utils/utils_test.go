@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -47,7 +47,7 @@ func TestChunk(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		t.Run(fmt.Sprintf("%d", len(tc.input)), func(t *testing.T) {
+		t.Run(strconv.Itoa(len(tc.input)), func(t *testing.T) {
 			got := Chunk(tc.input, tc.size)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Errorf("Chunk() diff (-want +got):\n%s", diff)
