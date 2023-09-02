@@ -12,6 +12,8 @@ import (
 	"github.com/airforce270/airbot/apiclients/bible/bibletest"
 	"github.com/airforce270/airbot/apiclients/ivr"
 	"github.com/airforce270/airbot/apiclients/ivr/ivrtest"
+	"github.com/airforce270/airbot/apiclients/kick"
+	"github.com/airforce270/airbot/apiclients/kick/kicktest"
 	"github.com/airforce270/airbot/apiclients/pastebin"
 	"github.com/airforce270/airbot/apiclients/pastebin/pastebintest"
 	"github.com/airforce270/airbot/apiclients/twitchtest"
@@ -2048,6 +2050,96 @@ func TestCommands(t *testing.T) {
 			},
 		},
 
+		// kick.go commands
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$kickislive brucedropemoff",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			otherTexts: []string{"$kislive brucedropemoff"},
+			apiResp:    kicktest.LargeLiveGetChannelResp,
+			want: []*base.Message{
+				{
+					Text:    "brucedropemoff is currently live on Kick, streaming Just Chatting to 15274 viewers.",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$kickislive xqc",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			otherTexts: []string{"$kislive xqc"},
+			apiResp:    kicktest.LargeOfflineGetChannelResp,
+			want: []*base.Message{
+				{
+					Text:    "xqc is not currently live on Kick.",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$kicktitle brucedropemoff",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			otherTexts: []string{"$ktitle brucedropemoff"},
+			apiResp:    kicktest.LargeLiveGetChannelResp,
+			want: []*base.Message{
+				{
+					Text:    "brucedropemoff's title on Kick: DEO COOKOFF MAY THE BEST DISH WIN! 🗣️ #DEO4L",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$kicktitle xqc",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			otherTexts: []string{"$ktitle xqc"},
+			apiResp:    kicktest.LargeOfflineGetChannelResp,
+			want: []*base.Message{
+				{
+					Text:    "Currently Kick only returns the title for live channels, and xqc is not currently live.",
+					Channel: "user2",
+				},
+			},
+		},
+
 		// moderation.go commands
 		{
 			input: base.IncomingMessage{
@@ -2775,6 +2867,7 @@ func buildTestCases(t *testing.T, tc testCase) []testCase {
 
 var (
 	savedIVRURL   = ivr.BaseURL
+	savedKickURL  = kick.BaseURL
 	savedBibleURL = bible.BaseURL
 )
 
@@ -2789,8 +2882,9 @@ func setFakes(url string, db *gorm.DB) {
 	base.RandReader = bytes.NewBuffer([]byte{3})
 	base.RandSource = fakeExpRandSource{Value: uint64(150)}
 	bible.BaseURL = url
-	cache.Conn = cachetest.NewInMemoryCache()
+	cache.Conn = cachetest.NewInMemory()
 	ivr.BaseURL = url
+	kick.BaseURL = url
 	pastebin.FetchPasteURLOverride = url
 	twitch.Conn = twitch.NewForTesting(url, db)
 }
@@ -2801,6 +2895,7 @@ func resetFakes() {
 	bible.BaseURL = savedBibleURL
 	cache.Conn = nil
 	ivr.BaseURL = savedIVRURL
+	kick.BaseURL = savedKickURL
 	pastebin.FetchPasteURLOverride = ""
 	twitch.Conn = twitch.NewForTesting(helix.DefaultAPIBaseURL, nil)
 }

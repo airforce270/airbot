@@ -7,6 +7,13 @@ log_outgoing_messages = true
 # Platform-specific config data.
 [platforms]
 
+# Kick-specific config data.
+[platforms.kick]
+# JA3 value to use for Kick API calls.
+ja3 = ""
+# User agent to use for Kick API calls.
+user_agent = ""
+
 # Twitch-specific config data.
 [platforms.twitch]
 # Whether Twitch should be connected to and messages handled.

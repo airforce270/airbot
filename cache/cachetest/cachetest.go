@@ -6,43 +6,43 @@ import (
 	"time"
 )
 
-// NewInMemoryCache creates a new InMemoryCache for test.
-func NewInMemoryCache() *InMemoryCache {
+// NewInMemory creates a new InMemoryCache for test.
+func NewInMemory() *InMemory {
 	m := map[string]any{}
-	c := InMemoryCache{d: m}
+	c := InMemory{d: m}
 	return &c
 }
 
-// InMemoryCache implements a simple map-based cache for testing.
-type InMemoryCache struct {
+// InMemory implements a simple map-based cache for testing.
+type InMemory struct {
 	d   map[string]any
 	mtx sync.Mutex
 }
 
-func (c *InMemoryCache) StoreBool(key string, value bool) error {
+func (c *InMemory) StoreBool(key string, value bool) error {
 	c.store(key, value)
 	return nil
 }
-func (c *InMemoryCache) StoreExpiringBool(key string, value bool, expiration time.Duration) error {
+func (c *InMemory) StoreExpiringBool(key string, value bool, expiration time.Duration) error {
 	c.store(key, value)
 	return nil
 }
-func (c *InMemoryCache) FetchBool(key string) (bool, error) {
+func (c *InMemory) FetchBool(key string) (bool, error) {
 	val, found := c.d[key]
 	if !found {
 		return false, nil
 	}
 	return val.(bool), nil
 }
-func (c *InMemoryCache) StoreString(key, value string) error {
+func (c *InMemory) StoreString(key, value string) error {
 	c.store(key, value)
 	return nil
 }
-func (c *InMemoryCache) StoreExpiringString(key, value string, expiration time.Duration) error {
+func (c *InMemory) StoreExpiringString(key, value string, expiration time.Duration) error {
 	c.store(key, value)
 	return nil
 }
-func (c *InMemoryCache) FetchString(key string) (string, error) {
+func (c *InMemory) FetchString(key string) (string, error) {
 	val, found := c.d[key]
 	if !found {
 		return "", nil
@@ -50,7 +50,7 @@ func (c *InMemoryCache) FetchString(key string) (string, error) {
 	return val.(string), nil
 }
 
-func (c *InMemoryCache) store(key string, value any) {
+func (c *InMemory) store(key string, value any) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	c.d[key] = value

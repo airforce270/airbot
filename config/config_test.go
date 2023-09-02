@@ -16,6 +16,10 @@ func TestParse(t *testing.T) {
 		LogIncoming: true,
 		LogOutgoing: true,
 		Platforms: PlatformConfig{
+			Kick: KickConfig{
+				JA3:       "",
+				UserAgent: "",
+			},
 			Twitch: TwitchConfig{
 				Enabled:     true,
 				Username:    "",

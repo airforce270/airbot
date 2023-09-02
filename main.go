@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"sync"
 
+	"github.com/airforce270/airbot/apiclients/kick"
 	"github.com/airforce270/airbot/apiclients/supinic"
 	"github.com/airforce270/airbot/cache"
 	"github.com/airforce270/airbot/config"
@@ -59,6 +60,10 @@ func main() {
 		log.Fatalf("failed to read config from %s: %v", config.Name, err)
 	}
 
+	log.Print("Setting config values...")
+	kick.Token = cfg.Platforms.Kick.JA3
+	kick.UserToken = cfg.Platforms.Kick.UserAgent
+
 	log.Printf("Connecting to database...")
 	db, err := database.Connect(os.Getenv("POSTGRES_DB"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"))
 	if err != nil {
@@ -67,7 +72,7 @@ func main() {
 	database.Conn = db
 
 	log.Printf("Connecting to cache...")
-	cdb := cache.NewRedisCache()
+	cdb := cache.NewRedis()
 	cache.Conn = &cdb
 
 	log.Printf("Performing database migrations...")

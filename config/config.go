@@ -27,8 +27,18 @@ type Config struct {
 
 // PlatformConfig is platform-specific config data.
 type PlatformConfig struct {
+	// Kick contains Kick-specific config data.
+	Kick KickConfig
 	// Twitch contains Twitch-specific config data.
 	Twitch TwitchConfig
+}
+
+// KickConfig is Kick-specific config data.
+type KickConfig struct {
+	// JA3 is the ja3 value to use for Kick calls.
+	JA3 string
+	// UserAgent is the user agent to use for Kick calls.
+	UserAgent string `toml:"user_agent"`
 }
 
 // TwitchConfig is Twitch-specific config data.

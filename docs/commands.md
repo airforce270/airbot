@@ -194,6 +194,20 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - > Per-user cooldown: `5s`
 - > Aliases: `$r`
 
+## Kick
+
+### $kickislive
+
+- Replies with whether the Kick channel is currently live.
+- > Usage: `$kickislive <channel>`
+- > Aliases: `$kislive`
+
+### $kicktitle
+
+- Replies with the title of the Kick channel. Currently only works if the channel is live.
+- > Usage: `$kicktitle <channel>`
+- > Aliases: `$ktitle`
+
 ## Moderation
 
 ### $vanish

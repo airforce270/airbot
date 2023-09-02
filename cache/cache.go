@@ -53,18 +53,18 @@ func GlobalSlowmodeKey(p base.Platform) string {
 	return fmt.Sprintf("global_slowmode_%s", p.Name())
 }
 
-// RedisCache implements Cache for a real Redis database.
-type RedisCache struct {
+// Redis implements Cache for a real Redis database.
+type Redis struct {
 	r *redis.Client
 }
 
-func (c *RedisCache) StoreBool(key string, value bool) error {
+func (c *Redis) StoreBool(key string, value bool) error {
 	return c.StoreExpiringBool(key, value, 0)
 }
-func (c *RedisCache) StoreExpiringBool(key string, value bool, expiration time.Duration) error {
+func (c *Redis) StoreExpiringBool(key string, value bool, expiration time.Duration) error {
 	return c.r.Set(context.Background(), key, value, expiration).Err()
 }
-func (c *RedisCache) FetchBool(key string) (bool, error) {
+func (c *Redis) FetchBool(key string) (bool, error) {
 	resp, err := c.r.Get(context.Background(), key).Bool()
 	if errors.Is(err, redis.Nil) {
 		return false, nil
@@ -74,13 +74,13 @@ func (c *RedisCache) FetchBool(key string) (bool, error) {
 	}
 	return resp, nil
 }
-func (c *RedisCache) StoreString(key, value string) error {
+func (c *Redis) StoreString(key, value string) error {
 	return c.StoreExpiringString(key, value, 0)
 }
-func (c *RedisCache) StoreExpiringString(key, value string, expiration time.Duration) error {
+func (c *Redis) StoreExpiringString(key, value string, expiration time.Duration) error {
 	return c.r.Set(context.Background(), key, value, expiration).Err()
 }
-func (c *RedisCache) FetchString(key string) (string, error) {
+func (c *Redis) FetchString(key string) (string, error) {
 	val, err := c.r.Get(context.Background(), key).Result()
 	if errors.Is(err, redis.Nil) {
 		return "", nil
@@ -88,7 +88,7 @@ func (c *RedisCache) FetchString(key string) (string, error) {
 	return val, err
 }
 
-// NewRedisCache creates a new Redis-backed Cache.
-func NewRedisCache() RedisCache {
-	return RedisCache{r: redis.NewClient(&redis.Options{Addr: "cache:6379"})}
+// NewRedis creates a new Redis-backed Cache.
+func NewRedis() Redis {
+	return Redis{r: redis.NewClient(&redis.Options{Addr: "cache:6379"})}
 }

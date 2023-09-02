@@ -593,7 +593,7 @@ func NewForTesting(url string, db *gorm.DB) *Twitch {
 		i:           nil,
 		h:           helixClient,
 		db:          db,
-		cdb:         cachetest.NewInMemoryCache(),
+		cdb:         cachetest.NewInMemory(),
 	}
 }
 
