@@ -26,7 +26,7 @@ type Client struct {
 	h http.Client
 }
 
-const pingInterval = time.Duration(15) * time.Minute
+const pingInterval = 15 * time.Minute
 
 // StartPinging starts a background task to ping the Supinic API regularly
 // to make sure the API knows the bot is still online.
@@ -64,7 +64,7 @@ type baseAPIResponse struct {
 func (c *Client) updateBotActivity() error {
 	apiResp, err := c.put("bot-program/bot/active")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to call supinic API: %w", err)
 	}
 
 	resp := struct {

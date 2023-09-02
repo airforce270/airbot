@@ -2,6 +2,8 @@
 package bulk
 
 import (
+	"fmt"
+
 	"github.com/airforce270/airbot/apiclients/pastebin"
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/base/arg"
@@ -32,7 +34,7 @@ func filesay(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error)
 
 	paste, err := pastebin.FetchPaste(pastebinURLArg.StringValue)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch paste %s: %w", pastebinURLArg.StringValue, err)
 	}
 
 	msgs := make([]*base.Message, len(paste.Values()))

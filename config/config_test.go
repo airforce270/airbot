@@ -8,15 +8,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-//go:embed "config_example.toml"
+//go:embed config_example.toml
 var configExample []byte
 
 func TestParse(t *testing.T) {
-	got, err := parse(configExample)
-	if err != nil {
-		t.Fatalf("parse() unexpected error: %v", err)
-	}
-
 	want := &Config{
 		LogIncoming: true,
 		LogOutgoing: true,
@@ -34,6 +29,11 @@ func TestParse(t *testing.T) {
 			APIKey:        "you-can-safely-leave-this-as-is",
 			ShouldPingAPI: false,
 		},
+	}
+
+	got, err := parse(configExample)
+	if err != nil {
+		t.Fatalf("parse() unexpected error: %v", err)
 	}
 
 	if diff := cmp.Diff(want, got); diff != "" {
@@ -74,9 +74,7 @@ func TestSupinicConfigIsConfigured(t *testing.T) {
 
 	for i, tc := range tests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			got := tc.input.IsConfigured()
-
-			if got != tc.want {
+			if got := tc.input.IsConfigured(); got != tc.want {
 				t.Errorf("SupinicConfig.IsConfigured() = %t, want %t", got, tc.want)
 			}
 		})

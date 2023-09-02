@@ -64,11 +64,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
-	database.Instance = db
+	database.Conn = db
 
 	log.Printf("Connecting to cache...")
 	cdb := cache.NewRedisCache()
-	cache.Instance = &cdb
+	cache.Conn = &cdb
 
 	log.Printf("Performing database migrations...")
 	if err = database.Migrate(db); err != nil {

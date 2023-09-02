@@ -26,7 +26,7 @@ func FetchPaste(pasteURL string) (Paste, error) {
 
 	resp, err := http.Get(reqURL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch paste from pastebin (URL:%s): %w", reqURL, err)
 	}
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("bad response from Pastebin API (URL:%s): %v", reqURL, resp)

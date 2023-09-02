@@ -2,10 +2,10 @@
 package config
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/pelletier/go-toml/v2"
 )
@@ -79,10 +79,10 @@ func (s *SupinicConfig) IsConfigured() bool {
 }
 
 // Read reads the config data from the given path.
-func Read(path string) (*Config, error) {
-	raw, err := OSReadFile(path)
+func Read(filePath string) (*Config, error) {
+	raw, err := OSReadFile(filePath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read %s: %w", filePath, err)
 	}
 	return parse(raw)
 }
@@ -93,15 +93,14 @@ var (
 
 // parse parses raw bytes into a config.
 func parse(data []byte) (*Config, error) {
-	decoder := toml.NewDecoder(strings.NewReader(string(data)))
-	decoder.DisallowUnknownFields()
+	decoder := toml.NewDecoder(bytes.NewBuffer(data)).DisallowUnknownFields()
 	cfg := Config{}
 	if err := decoder.Decode(&cfg); err != nil {
 		var details *toml.StrictMissingError
 		if errors.As(err, &details) {
 			return nil, fmt.Errorf("failed to decode config (%s): %w", details.String(), details)
 		}
-		return nil, err
+		return nil, fmt.Errorf("failed to decode config: %w", err)
 	}
 	return &cfg, nil
 }

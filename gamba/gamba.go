@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	grantInterval       = time.Duration(10) * time.Minute
+	grantInterval       = 10 * time.Minute
 	activeGrantAmount   = 10
 	inactiveGrantAmount = 3
 )
@@ -44,13 +44,13 @@ func (g grant) Persist(db *gorm.DB) error {
 	if !g.IsActive {
 		amount = inactiveGrantAmount
 	}
-	result := db.Create(&models.GambaTransaction{
+	err := db.Create(&models.GambaTransaction{
 		User:  g.User,
 		Game:  "AutomaticGrant",
 		Delta: int64(amount),
-	})
-	if result.Error != nil {
-		return result.Error
+	}).Error
+	if err != nil {
+		return fmt.Errorf("failed to create automatic grant (user %d, amount %d): %w", g.User.ID, amount, err)
 	}
 	return nil
 }
@@ -58,9 +58,9 @@ func (g grant) Persist(db *gorm.DB) error {
 // OutbboundPendingDuels returns the user's inbound pending duels.
 func OutboundPendingDuels(user *models.User, expire time.Duration, db *gorm.DB) ([]models.Duel, error) {
 	var duels []models.Duel
-	result := db.Where("user_id = ? AND created_at >= ?", user.ID, time.Now().Add(-expire)).Preload(clause.Associations).Find(&duels)
-	if result.Error != nil {
-		return nil, fmt.Errorf("failed to retrieve pending outbound duels for user %d: %w", user.ID, result.Error)
+	err := db.Where("user_id = ? AND created_at >= ?", user.ID, time.Now().Add(-expire)).Preload(clause.Associations).Find(&duels).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve pending outbound duels for user %d: %w", user.ID, err)
 	}
 	return duels, nil
 }
@@ -68,9 +68,9 @@ func OutboundPendingDuels(user *models.User, expire time.Duration, db *gorm.DB) 
 // InboundPendingDuels returns the user's inbound pending duels.
 func InboundPendingDuels(user *models.User, expire time.Duration, db *gorm.DB) ([]models.Duel, error) {
 	var duels []models.Duel
-	result := db.Where("target_id = ? AND created_at >= ?", user.ID, time.Now().Add(-expire)).Preload(clause.Associations).Find(&duels)
-	if result.Error != nil {
-		return nil, fmt.Errorf("failed to retrieve pending inbound duels for user %d: %w", user.ID, result.Error)
+	err := db.Where("target_id = ? AND created_at >= ?", user.ID, time.Now().Add(-expire)).Preload(clause.Associations).Find(&duels).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve pending inbound duels for user %d: %w", user.ID, err)
 	}
 	return duels, nil
 }
@@ -139,9 +139,9 @@ func getInactiveUsers(ps map[string]base.Platform, db *gorm.DB) []models.User {
 // The users returned are guaranteed to be active.
 func getActiveUsers(db *gorm.DB) ([]models.User, error) {
 	var recentMessagesUniqueByUser []models.Message
-	result := db.Select("user_id").Distinct("user_id").Where("time > ?", time.Now().Add(-grantInterval)).Find(&recentMessagesUniqueByUser)
-	if result.Error != nil {
-		return nil, result.Error
+	err := db.Select("user_id").Distinct("user_id").Where("time > ?", time.Now().Add(-grantInterval)).Find(&recentMessagesUniqueByUser).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to select recent user IDs: %w", err)
 	}
 	var recentUserIDs []uint
 	for _, m := range recentMessagesUniqueByUser {
@@ -149,9 +149,8 @@ func getActiveUsers(db *gorm.DB) ([]models.User, error) {
 	}
 
 	var activeUsers []models.User
-	result = db.Where("id IN ?", recentUserIDs).Find(&activeUsers)
-	if result.Error != nil {
-		return nil, result.Error
+	if err := db.Where("id IN ?", recentUserIDs).Find(&activeUsers).Error; err != nil {
+		return nil, fmt.Errorf("failed to select recent users based on %d IDs: %w", len(recentUserIDs), err)
 	}
 	return activeUsers, nil
 }

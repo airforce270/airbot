@@ -21,7 +21,7 @@ func Build(cfg *config.Config, db *gorm.DB, cdb cache.Cache) (map[string]base.Pl
 	if twc := cfg.Platforms.Twitch; twc.Enabled {
 		log.Printf("Building Twitch platform...")
 		tw := twitch.New(twc.Username, twc.Owners, twc.ClientID, twc.AccessToken, db, cdb)
-		twitch.Instance = tw
+		twitch.Conn = tw
 		p[tw.Name()] = tw
 	}
 	return p, nil
@@ -68,7 +68,7 @@ func processMessage(handler *commands.Handler, db *gorm.DB, p base.Platform, out
 	}
 }
 
-const slowmodeSleepDuration = time.Duration(1) * time.Second
+const slowmodeSleepDuration = 1 * time.Second
 
 // startSending sends messages from the queue.
 func startSending(p base.Platform, outC <-chan base.OutgoingMessage, cdb cache.Cache, logOutgoing bool) {

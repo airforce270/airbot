@@ -73,7 +73,7 @@ var (
 			{Name: "text", Type: arg.String, Required: true},
 		},
 		Permission:      permission.Mod,
-		ChannelCooldown: time.Duration(30) * time.Second,
+		ChannelCooldown: 30 * time.Second,
 		DisableReplies:  true,
 		Handler:         pyramid,
 	}
@@ -86,7 +86,7 @@ var (
 			{Name: "text", Type: arg.Variadic, Required: true},
 		},
 		Permission:      permission.Mod,
-		ChannelCooldown: time.Duration(30) * time.Second,
+		ChannelCooldown: 30 * time.Second,
 		DisableReplies:  true,
 		Handler:         spam,
 	}

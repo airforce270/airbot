@@ -2,6 +2,9 @@
 package databasetest
 
 import (
+	"fmt"
+	"testing"
+
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/models"
 
@@ -25,22 +28,23 @@ func NewFakeDBConn() *gorm.DB {
 }
 
 // NewFakeDB creates a new connection to the in-memory database for testing.
-func NewFakeDB() *gorm.DB {
+func NewFakeDB(t *testing.T) *gorm.DB {
+	t.Helper()
 	db := NewFakeDBConn()
 
 	for _, m := range models.AllModels {
 		if err := db.Migrator().DropTable(&m); err != nil {
-			panic(err)
+			t.Fatal(err)
 		}
 	}
 
 	if err := database.Migrate(db); err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	for _, user := range []string{"user1", "user2", "user3"} {
 		if err := seedTwitchUser(db, user); err != nil {
-			panic(err)
+			t.Fatal(err)
 		}
 	}
 
@@ -48,6 +52,9 @@ func NewFakeDB() *gorm.DB {
 }
 
 func seedTwitchUser(db *gorm.DB, user string) error {
-	result := db.Create(&models.User{TwitchID: user, TwitchName: user})
-	return result.Error
+	err := db.Create(&models.User{TwitchID: user, TwitchName: user}).Error
+	if err != nil {
+		return fmt.Errorf("failed to seed user %s: %w", user, err)
+	}
+	return nil
 }

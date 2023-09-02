@@ -141,7 +141,7 @@ func banReason(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, erro
 
 	users, err := ivr.FetchUsers(targetUser)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch IVR user data for %s: %w", targetUser, err)
 	}
 	if len(users) == 0 {
 		return []*base.Message{
@@ -174,10 +174,7 @@ func banReason(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, erro
 func currentGame(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
-	tw := twitchplatform.Instance
-	if tw == nil {
-		return nil, fmt.Errorf("twitch platform connection not initialized")
-	}
+	tw := twitchplatform.Instance()
 
 	channel, err := tw.Channel(targetChannel)
 	if err != nil {
@@ -215,7 +212,7 @@ func founders(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error
 			}, nil
 		}
 
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch founders for %s: %w", targetChannel, err)
 	}
 
 	if len(founders.Founders) == 0 {
@@ -268,7 +265,7 @@ func mods(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 
 	modsAndVIPs, err := ivr.FetchModsAndVIPs(targetChannel)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch mods/vips for %s: %w", targetChannel, err)
 	}
 
 	if len(modsAndVIPs.Mods) == 0 {
@@ -305,7 +302,7 @@ func nameColor(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, erro
 
 	users, err := ivr.FetchUsers(targetUser)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch IVR user data for %s: %w", targetUser, err)
 	}
 	if len(users) == 0 {
 		return []*base.Message{
@@ -352,7 +349,7 @@ func subAge(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 				},
 			}, nil
 		}
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch sub age for %s/%s: %w", channelArg.StringValue, userArg.StringValue, err)
 	}
 
 	if sub.Streak != nil && sub.Cumulative != nil {
@@ -402,10 +399,7 @@ func subAge(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 func title(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
-	tw := twitchplatform.Instance
-	if tw == nil {
-		return nil, fmt.Errorf("twitch platform connection not initialized")
-	}
+	tw := twitchplatform.Instance()
 
 	channel, err := tw.Channel(targetChannel)
 	if err != nil {
@@ -434,7 +428,7 @@ func verifiedBot(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 
 	users, err := ivr.FetchUsers(targetUser)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch user data for %s: %w", targetUser, err)
 	}
 	if len(users) == 0 {
 		return []*base.Message{
@@ -478,7 +472,7 @@ func verifiedBotQuiet(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Messag
 
 	users, err := ivr.FetchUsers(targetUser)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch IVR user data for %s: %w", targetUser, err)
 	}
 	if len(users) == 0 {
 		return []*base.Message{
@@ -513,7 +507,7 @@ func vips(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 
 	modsAndVIPs, err := ivr.FetchModsAndVIPs(targetChannel)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch mods/vips for %s: %w", targetChannel, err)
 	}
 
 	if len(modsAndVIPs.VIPs) == 0 {

@@ -12,8 +12,15 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// Instance is an instance of the cache.
-var Instance Cache = nil
+func Instance() Cache {
+	if Conn == nil {
+		panic("cache.Conn is nil!")
+	}
+	return Conn
+}
+
+// Conn is an instance of the cache.
+var Conn Cache = nil
 
 // A Cache stores and retrieves simple key-value data quickly.
 type Cache interface {

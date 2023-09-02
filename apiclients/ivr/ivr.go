@@ -283,7 +283,7 @@ type SubAgeGiftMetadata struct {
 func FetchUsers(username string) ([]*TwitchUsersResponseItem, error) {
 	body, err := get(fmt.Sprintf("%s/v2/twitch/user?login=%s", BaseURL, username))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch users from IVR: %w", err)
 	}
 
 	resp := []*TwitchUsersResponseItem{}
@@ -297,7 +297,7 @@ func FetchUsers(username string) ([]*TwitchUsersResponseItem, error) {
 func FetchModsAndVIPs(channel string) (*ModsAndVIPsResponse, error) {
 	body, err := get(fmt.Sprintf("%s/v2/twitch/modvip/%s", BaseURL, channel))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch mods and vips from IVR: %w", err)
 	}
 
 	resp := ModsAndVIPsResponse{}
@@ -313,7 +313,7 @@ func FetchFounders(channel string) (*FoundersResponse, error) {
 	reqURL := fmt.Sprintf("%s/v2/twitch/founders/%s", BaseURL, channel)
 	httpResp, err := http.Get(reqURL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch founders from IVR: %w", err)
 	}
 	// The IVR API responds with a 404 when the user has no founders.
 	if httpResp.StatusCode == http.StatusNotFound {
@@ -349,7 +349,7 @@ func FetchSubAge(user, channel string) (*SubAgeResponse, error) {
 	reqURL := fmt.Sprintf("%s/v2/twitch/subage/%s/%s", BaseURL, user, channel)
 	httpResp, err := http.Get(reqURL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch sub age from IVR: %w", err)
 	}
 	// The IVR API responds with a 404 when a user or channel was not found.
 	if httpResp.StatusCode != http.StatusOK && httpResp.StatusCode != http.StatusNotFound {
@@ -388,7 +388,7 @@ func FetchSubAge(user, channel string) (*SubAgeResponse, error) {
 func get(reqURL string) (respBody []byte, err error) {
 	httpResp, err := http.Get(reqURL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get request to IVR failed (URL:%s): %w", reqURL, err)
 	}
 	if httpResp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("bad response from IVR API (URL:%s): %v", reqURL, httpResp)

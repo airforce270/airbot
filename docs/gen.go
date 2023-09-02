@@ -24,7 +24,7 @@ const (
 )
 
 var (
-	//go:embed "commands.md.gtpl"
+	//go:embed commands.md.gtpl
 	commandsTmplData string
 	commandsFilePath = filepath.Join(directory, "commands.md")
 
@@ -59,7 +59,7 @@ type fileToGenerate struct {
 func gen(tmpl *template.Template, fileName string, data any) error {
 	var buf strings.Builder
 	if err := tmpl.Execute(&buf, data); err != nil {
-		return err
+		return fmt.Errorf("tmpl.Execute with data %+v failed: %w", data, err)
 	}
 	return os.WriteFile(fileName, []byte(generatedFileMessage+buf.String()), 0666)
 }

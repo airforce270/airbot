@@ -24,8 +24,15 @@ import (
 	"gorm.io/gorm"
 )
 
-// Instance is a connection to Twitch.
-var Instance *Twitch
+func Instance() *Twitch {
+	if Conn == nil {
+		panic("twitch.Conn is nil!")
+	}
+	return Conn
+}
+
+// Conn is a connection to Twitch.
+var Conn *Twitch
 
 // Twitch implements Platform for a connection to Twitch chat.
 type Twitch struct {
@@ -148,12 +155,15 @@ func (t *Twitch) Join(channel string, prefix string) error {
 
 	// Wait for ban messages to come in.
 	// If we're banned, the IRC server will send a ban message about 150ms after we try to join.
-	time.Sleep(time.Duration(250) * time.Millisecond)
+	time.Sleep(250 * time.Millisecond)
 
 	var banCount int64
-	t.db.Model(&models.BotBan{}).Where("platform = ? AND channel = ? AND banned_at > ?", t.Name(), strings.ToLower(channel), startTime).Count(&banCount)
+	err = t.db.Model(&models.BotBan{}).Where("platform = ? AND channel = ? AND banned_at > ?", t.Name(), strings.ToLower(channel), startTime).Count(&banCount).Error
+	if err != nil {
+		return fmt.Errorf("failed to retrieve %s channels bot is banned in: %w", t.Name(), err)
+	}
 	if isBanned := banCount > 0; isBanned {
-		return ErrBotIsBanned
+		return fmt.Errorf("bot is banned from %s/%s: %w", t.Name(), channel, ErrBotIsBanned)
 	}
 
 	t.channels = append(t.channels, &twitchChannel{Name: channelInfo.BroadcasterName, Prefix: prefix})
@@ -217,13 +227,13 @@ func (t *Twitch) Connect() error {
 		UserAccessToken: t.accessToken,
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to connect to Twitch API: %w", err)
 	}
 	t.h = h
 
 	botUser, err := t.FetchUser(t.username)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to fetch user %s: %w", t.username, err)
 	}
 	if botUser == nil {
 		return fmt.Errorf("no user returned for bot (%s): %w", t.username, err)
@@ -273,9 +283,9 @@ func (t *Twitch) SetPrefix(channel, prefix string) error {
 
 func (t *Twitch) User(username string) (models.User, error) {
 	var user models.User
-	result := t.db.Where("LOWER(twitch_name) = ?", strings.ToLower(username)).Limit(1).Find(&user)
-	if result.Error != nil {
-		return models.User{}, fmt.Errorf("failed to retrieve twitch user %s from db: %w", username, result.Error)
+	err := t.db.Where("LOWER(twitch_name) = ?", strings.ToLower(username)).Limit(1).Find(&user).Error
+	if err != nil {
+		return models.User{}, fmt.Errorf("failed to retrieve twitch user %s from db: %w", username, err)
 	}
 	if user.ID == 0 {
 		return models.User{}, fmt.Errorf("twitch user %s has never been seen by the bot: %w", username, base.ErrUserUnknown)
@@ -310,13 +320,13 @@ func (t *Twitch) Timeout(username, channel string, duration time.Duration) error
 func (t *Twitch) FetchUser(channel string) (*helix.User, error) {
 	users, err := t.h.GetUsers(&helix.UsersParams{Logins: []string{channel}})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get user %s from Helix: %w", channel, err)
 	}
 	if users.StatusCode != 200 {
 		return nil, fmt.Errorf("twitch GetUsers call for %q failed, resp:%v", channel, users)
 	}
 	if len(users.Data.Users) != 1 {
-		return nil, fmt.Errorf("wrong number of users returned (should be 1): %v", err)
+		return nil, fmt.Errorf("wrong number of users returned (should be 1): %w", err)
 	}
 	return &users.Data.Users[0], nil
 }
@@ -326,11 +336,11 @@ var ErrChannelNotFound = errors.New("channel not found")
 func (t *Twitch) Channel(channel string) (*helix.ChannelInformation, error) {
 	user, err := t.FetchUser(channel)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch user %s: %w", channel, err)
 	}
 	resp, err := t.h.GetChannelInformation(&helix.GetChannelInformationParams{BroadcasterIDs: []string{user.ID}})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get info for channel %s from Helix: %w", channel, err)
 	}
 	if len(resp.Data.Channels) == 0 {
 		return nil, fmt.Errorf("channel %s not found: %w", channel, ErrChannelNotFound)
@@ -345,7 +355,10 @@ func (t *Twitch) Channel(channel string) (*helix.ChannelInformation, error) {
 // using the latest joined channel data from the database.
 func (t *Twitch) updateCachedJoinedChannels() {
 	var dbChannels []models.JoinedChannel
-	t.db.Where(models.JoinedChannel{Platform: t.Name()}).Find(&dbChannels)
+	if err := t.db.Where(models.JoinedChannel{Platform: t.Name()}).Find(&dbChannels).Error; err != nil {
+		log.Printf("Failed to fetch channels for %s from DB: %v", t.Name(), err)
+		return
+	}
 
 	var channels []*twitchChannel
 	for _, dbChannel := range dbChannels {
@@ -390,16 +403,23 @@ func (t *Twitch) level(msg *twitchirc.PrivateMessage) permission.Level {
 
 func (t *Twitch) initializeJoinedChannels() {
 	var botChannel models.JoinedChannel
-	botChannelResp := t.db.FirstOrCreate(&botChannel, models.JoinedChannel{
+	result := t.db.FirstOrCreate(&botChannel, models.JoinedChannel{
 		Platform: t.Name(),
 		Channel:  strings.ToLower(t.username),
 	})
+	if err := result.Error; err != nil {
+		log.Printf("failed to fetch/create DB row for %s/%s: %v", t.Name(), strings.ToLower(t.username), err)
+		return
+	}
 
-	if botChannelResp.RowsAffected != 0 {
-		t.db.Model(&botChannel).Updates(models.JoinedChannel{
+	if result.RowsAffected != 0 {
+		err := t.db.Model(&botChannel).Updates(models.JoinedChannel{
 			Prefix:   defaultBotPrefix,
 			JoinedAt: time.Now(),
-		})
+		}).Error
+		if err != nil {
+			log.Printf("failed to make updates for bot channel: %v", err)
+		}
 	}
 
 	t.updateCachedJoinedChannels()
@@ -458,22 +478,20 @@ func (t *Twitch) setUpIRCHandlers() {
 
 func (t *Twitch) persistUserAndMessage(twitchID, twitchName, message, channel string, sentTime time.Time) {
 	var user models.User
-	result := t.db.FirstOrCreate(&user, models.User{TwitchID: twitchID})
-	if result.Error != nil {
-		log.Printf("[Twitch.persistUserAndMessage]: Failed to find/create user, twitchName:%q %v", twitchName, result.Error)
+	if err := t.db.FirstOrCreate(&user, models.User{TwitchID: twitchID}).Error; err != nil {
+		log.Printf("[Twitch.persistUserAndMessage]: Failed to find/create user, twitchName:%q %v", twitchName, err)
 	}
-	result = t.db.Model(&user).Updates(models.User{TwitchName: twitchName})
-	if result.Error != nil {
-		log.Printf("[Twitch.persistUserAndMessage]: Failed to update user, twitchName:%q %v", twitchName, result.Error)
+	if err := t.db.Model(&user).Updates(models.User{TwitchName: twitchName}).Error; err != nil {
+		log.Printf("[Twitch.persistUserAndMessage]: Failed to update user, twitchName:%q %v", twitchName, err)
 	}
-	result = t.db.Create(&models.Message{
+	err := t.db.Create(&models.Message{
 		Text:    message,
 		Channel: channel,
 		User:    user,
 		Time:    sentTime,
-	})
-	if result.Error != nil {
-		log.Printf("[Twitch.persistUserAndMessage]: Failed to persist message in database, %q/%q: %v", channel, message, result.Error)
+	}).Error
+	if err != nil {
+		log.Printf("[Twitch.persistUserAndMessage]: Failed to persist message in database, %q/%q: %v", channel, message, err)
 	}
 }
 
@@ -516,11 +534,14 @@ func (t *Twitch) updateVIPStatusForChannel(channel *twitchChannel, vips []*ivr.M
 func (t *Twitch) handleBannedFromChannel(channel string) {
 	log.Printf("[%s] Banned from channel %s, leaving it", t.Name(), channel)
 	go func() {
-		t.db.Create(&models.BotBan{
+		err := t.db.Create(&models.BotBan{
 			Platform: t.Name(),
 			Channel:  strings.ToLower(channel),
 			BannedAt: time.Now(),
-		})
+		}).Error
+		if err != nil {
+			log.Printf("failed to create bot ban DB entry: %v", err)
+		}
 	}()
 	go func() {
 		if err := database.LeaveChannel(t.db, t.Name(), channel); err != nil {
@@ -595,7 +616,7 @@ const messageSpaceSuffix = " \U000E0000"
 
 // lastSentTwitchMessageExpiration is the duration the last sent message should remain in the cache.
 // (Twitch blocks messages that are twice in a row in a 30-second period of time)
-const lastSentTwitchMessageExpiration = time.Duration(30) * time.Second
+const lastSentTwitchMessageExpiration = 30 * time.Second
 
 // bypassSameMessageDetection manipulates the whitespace in a message
 // in such a way to bypass Twitch's 30-second same message detection/blocking.

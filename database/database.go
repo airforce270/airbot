@@ -11,9 +11,16 @@ import (
 	"gorm.io/gorm"
 )
 
-// Instance is the connection to the database.
+func Instance() *gorm.DB {
+	if Conn == nil {
+		panic("database.Conn is nil!")
+	}
+	return Conn
+}
+
+// Conn is the connection to the database.
 // It should be set by main.
-var Instance *gorm.DB
+var Conn *gorm.DB
 
 // Connect creates a connection to the database.
 func Connect(dbname, user, password string) (*gorm.DB, error) {
@@ -29,12 +36,12 @@ func Connect(dbname, user, password string) (*gorm.DB, error) {
 	dsn := formatDSN(settings)
 	gormDB, err := gorm.Open(postgres.Open(dsn))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open DB connection: %w", err)
 	}
 
 	db, err := gormDB.DB()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get sql.DB handle: %w", err)
 	}
 	db.SetMaxOpenConns(100)
 
@@ -53,14 +60,19 @@ func Migrate(db *gorm.DB) error {
 
 func LeaveChannel(db *gorm.DB, platformName, channel string) error {
 	var channels []models.JoinedChannel
-	db.Where(models.JoinedChannel{Platform: platformName, Channel: strings.ToLower(channel)}).Find(&channels)
+	err := db.Where(models.JoinedChannel{Platform: platformName, Channel: strings.ToLower(channel)}).Find(&channels).Error
+	if err != nil {
+		return fmt.Errorf("failed to leave %s/%s: %w", platformName, channel, err)
+	}
 
 	if len(channels) == 0 {
 		return fmt.Errorf("bot is not in channel %s", channel)
 	}
 
 	for _, c := range channels {
-		db.Delete(&c)
+		if err := db.Delete(&c).Error; err != nil {
+			return fmt.Errorf("failed to delete channel %s: %w", c.Channel, err)
+		}
 	}
 	return nil
 }

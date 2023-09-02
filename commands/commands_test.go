@@ -87,9 +87,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Owner,
 				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
-			runBefore: []func() error{
-				enableBotSlowmode,
-			},
+			runBefore: []func() error{enableBotSlowmode},
 			want: []*base.Message{
 				{
 					Text:    "Disabled bot slowmode on Twitch",
@@ -648,7 +646,7 @@ func TestCommands(t *testing.T) {
 			},
 			want: []*base.Message{
 				{
-					Text:    "Source code for airbot available at https://github.com/airforce270/airbot",
+					Text:    "Source code for Airbot available at https://github.com/airforce270/airbot",
 					Channel: "user2",
 				},
 			},
@@ -2729,8 +2727,8 @@ func TestCommands(t *testing.T) {
 		for _, tc := range buildTestCases(t, unbuiltTC) {
 			t.Run(fmt.Sprintf("[%s] %s", tc.input.PermissionLevel.Name(), tc.input.Message.Text), func(t *testing.T) {
 				server.Resp = tc.apiResp
-				db := databasetest.NewFakeDB()
-				database.Instance = db
+				db := databasetest.NewFakeDB(t)
+				database.Conn = db
 				setFakes(server.URL(), db)
 				for i, f := range tc.runBefore {
 					if err := f(); err != nil {
@@ -2791,20 +2789,20 @@ func setFakes(url string, db *gorm.DB) {
 	base.RandReader = bytes.NewBuffer([]byte{3})
 	base.RandSource = fakeExpRandSource{Value: uint64(150)}
 	bible.BaseURL = url
-	cache.Instance = cachetest.NewInMemoryCache()
+	cache.Conn = cachetest.NewInMemoryCache()
 	ivr.BaseURL = url
 	pastebin.FetchPasteURLOverride = url
-	twitch.Instance = twitch.NewForTesting(url, db)
+	twitch.Conn = twitch.NewForTesting(url, db)
 }
 
 func resetFakes() {
 	base.RandReader = rand.Reader
 	base.RandSource = nil
 	bible.BaseURL = savedBibleURL
-	cache.Instance = nil
+	cache.Conn = nil
 	ivr.BaseURL = savedIVRURL
 	pastebin.FetchPasteURLOverride = ""
-	twitch.Instance = twitch.NewForTesting(helix.DefaultAPIBaseURL, nil)
+	twitch.Conn = twitch.NewForTesting(helix.DefaultAPIBaseURL, nil)
 }
 
 func joinOtherUser1() error {
@@ -2822,7 +2820,10 @@ func joinOtherUser1() error {
 		PermissionLevel: permission.Owner,
 		Platform:        twitch.NewForTesting("forsen", db),
 	})
-	return err
+	if err != nil {
+		return fmt.Errorf("failed to joinother user1: %w", err)
+	}
+	return nil
 }
 
 func enableBotSlowmode() error {
@@ -2840,7 +2841,10 @@ func enableBotSlowmode() error {
 		PermissionLevel: permission.Owner,
 		Platform:        twitch.NewForTesting("forsen", db),
 	})
-	return err
+	if err != nil {
+		return fmt.Errorf("failed to enable bot slowmode: %w", err)
+	}
+	return nil
 }
 
 func setRandValueTo0() error {
@@ -2854,39 +2858,42 @@ func setRandValueTo1() error {
 }
 
 func waitForMessagesToSend() error {
-	time.Sleep(time.Duration(20) * time.Millisecond)
+	time.Sleep(20 * time.Millisecond)
 	return nil
 }
 
 func waitForTransactionsToSettle() error {
-	time.Sleep(time.Duration(20) * time.Millisecond)
+	time.Sleep(20 * time.Millisecond)
 	return nil
 }
 
 func deleteAllGambaTransactions() error {
 	db := databasetest.NewFakeDBConn()
-	result := db.Where("1=1").Delete(&models.GambaTransaction{})
-	return result.Error
+	err := db.Where("1=1").Delete(&models.GambaTransaction{}).Error
+	if err != nil {
+		return fmt.Errorf("failed to delete all gamba txns: %w", err)
+	}
+	return nil
 }
 
 func startDuel() error {
 	db := databasetest.NewFakeDBConn()
 	var user1, user2 models.User
-	result := db.First(&user1, models.User{
+	err := db.First(&user1, models.User{
 		TwitchID:   "user1",
 		TwitchName: "user1",
-	})
-	if result.Error != nil {
-		return fmt.Errorf("failed to find user1: %v", result.Error)
+	}).Error
+	if err != nil {
+		return fmt.Errorf("failed to find user1: %w", err)
 	}
-	result = db.First(&user2, models.User{
+	err = db.First(&user2, models.User{
 		TwitchID:   "user2",
 		TwitchName: "user2",
-	})
-	if result.Error != nil {
-		return fmt.Errorf("failed to find user2: %v", result.Error)
+	}).Error
+	if err != nil {
+		return fmt.Errorf("failed to find user2: %w", err)
 	}
-	result = db.Create(&models.Duel{
+	err = db.Create(&models.Duel{
 		UserID:   user1.ID,
 		User:     user1,
 		TargetID: user2.ID,
@@ -2894,19 +2901,22 @@ func startDuel() error {
 		Amount:   25,
 		Pending:  true,
 		Accepted: false,
-	})
-	return result.Error
+	}).Error
+	if err != nil {
+		return fmt.Errorf("failed to create duel: %w", err)
+	}
+	return nil
 }
 
 func add50PointsToUser1() error {
 	db := databasetest.NewFakeDBConn()
 	var user models.User
-	result := db.First(&user, models.User{
+	err := db.First(&user, models.User{
 		TwitchID:   "user1",
 		TwitchName: "user1",
-	})
-	if result.Error != nil {
-		return fmt.Errorf("failed to find user1: %v", result.Error)
+	}).Error
+	if err != nil {
+		return fmt.Errorf("failed to find user1: %w", err)
 	}
 	return add50PointsToUser(user, db)
 }
@@ -2914,12 +2924,12 @@ func add50PointsToUser1() error {
 func add50PointsToUser2() error {
 	db := databasetest.NewFakeDBConn()
 	var user models.User
-	result := db.First(&user, models.User{
+	err := db.First(&user, models.User{
 		TwitchID:   "user2",
 		TwitchName: "user2",
-	})
-	if result.Error != nil {
-		return fmt.Errorf("failed to find/create user2: %v", result.Error)
+	}).Error
+	if err != nil {
+		return fmt.Errorf("failed to find/create user2: %w", err)
 	}
 	return add50PointsToUser(user, db)
 }
@@ -2927,12 +2937,12 @@ func add50PointsToUser2() error {
 func add50PointsToUser3() error {
 	db := databasetest.NewFakeDBConn()
 	var user models.User
-	result := db.First(&user, models.User{
+	err := db.First(&user, models.User{
 		TwitchID:   "user3",
 		TwitchName: "user3",
-	})
-	if result.Error != nil {
-		return fmt.Errorf("failed to find/create user3: %v", result.Error)
+	}).Error
+	if err != nil {
+		return fmt.Errorf("failed to find/create user3: %w", err)
 	}
 	return add50PointsToUser(user, db)
 }
@@ -2943,9 +2953,8 @@ func add50PointsToUser(user models.User, db *gorm.DB) error {
 		User:  user,
 		Delta: 50,
 	}
-	result := db.Create(&txn)
-	if result.Error != nil {
-		return fmt.Errorf("failed to insert gamba transaction: %v", result.Error)
+	if err := db.Create(&txn).Error; err != nil {
+		return fmt.Errorf("failed to insert gamba transaction: %w", err)
 	}
 	return nil
 }

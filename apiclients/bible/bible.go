@@ -56,7 +56,7 @@ type Verse struct {
 func get(reqURL string) (respBody []byte, err error) {
 	httpResp, err := http.Get(reqURL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get request to Bible API (URL:%s) failed: %w", reqURL, err)
 	}
 	if httpResp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("bad response from Bible API (URL:%s): %v", reqURL, httpResp)
@@ -74,7 +74,7 @@ func get(reqURL string) (respBody []byte, err error) {
 func FetchVerses(verse string) (*GetVersesResponse, error) {
 	body, err := get(fmt.Sprintf("%s/%s", BaseURL, url.QueryEscape(verse)))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch verses for %q: %w", verse, err)
 	}
 
 	resp := GetVersesResponse{}

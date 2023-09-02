@@ -68,7 +68,7 @@ func FetchChatters(channel string) (*FetchChattersResponse, error) {
 func get(reqURL string) (respBody []byte, err error) {
 	httpResp, err := http.Get(reqURL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get request to TMI failed (URL:%s): %w", reqURL, err)
 	}
 	if httpResp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("bad response from Twitch TMI API (URL:%s): %v", reqURL, httpResp)

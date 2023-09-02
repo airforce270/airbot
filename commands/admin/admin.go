@@ -139,17 +139,15 @@ var (
 )
 
 func botSlowmode(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
-	cdb := cache.Instance
-	if cdb == nil {
-		return nil, fmt.Errorf("cache instance not initialized")
-	}
+	cdb := cache.Instance()
 
 	enableArg := args[0]
+	key := cache.GlobalSlowmodeKey(msg.Platform)
 
 	if !enableArg.Present {
-		enabled, err := cdb.FetchBool(cache.GlobalSlowmodeKey(msg.Platform))
+		enabled, err := cdb.FetchBool(key)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to fetch cache key %s (bool): %w", key, err)
 		}
 		enabledMsg := "enabled"
 		if !enabled {
@@ -165,8 +163,7 @@ func botSlowmode(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 
 	enable := enableArg.BoolValue
 
-	err := cdb.StoreBool(cache.GlobalSlowmodeKey(msg.Platform), enable)
-	if err != nil {
+	if err := cdb.StoreBool(key, enable); err != nil {
 		failureMsgStart := "Failed to enable"
 		if !enable {
 			failureMsgStart = "Failed to disable"
@@ -194,10 +191,7 @@ func botSlowmode(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 const defaultPrefix = "$"
 
 func joinChannel(msg *base.IncomingMessage, targetChannel, prefix string) ([]*base.Message, error) {
-	db := database.Instance
-	if db == nil {
-		return nil, fmt.Errorf("database instance not initialized")
-	}
+	db := database.Instance()
 
 	var channels []models.JoinedChannel
 	db.Where(models.JoinedChannel{
@@ -220,9 +214,8 @@ func joinChannel(msg *base.IncomingMessage, targetChannel, prefix string) ([]*ba
 		Prefix:   prefix,
 		JoinedAt: time.Now(),
 	}
-	result := db.Create(&channelRecord)
-	if result.Error != nil {
-		return nil, fmt.Errorf("failed to join channel %s: %w", targetChannel, result.Error)
+	if err := db.Create(&channelRecord).Error; err != nil {
+		return nil, fmt.Errorf("failed to join channel %s: %w", targetChannel, err)
 	}
 
 	err := msg.Platform.Join(targetChannel, prefix)
@@ -262,15 +255,11 @@ func joinChannel(msg *base.IncomingMessage, targetChannel, prefix string) ([]*ba
 const maxUsersPerMessage = 15
 
 func joined(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
-	db := database.Instance
-	if db == nil {
-		return nil, fmt.Errorf("database instance not initialized")
-	}
+	db := database.Instance()
 
 	var joinedChannels []*models.JoinedChannel
-	result := db.Find(&joinedChannels)
-	if result.Error != nil {
-		return nil, fmt.Errorf("failed to find channels: %w", result.Error)
+	if err := db.Find(&joinedChannels).Error; err != nil {
+		return nil, fmt.Errorf("failed to find channels: %w", err)
 	}
 	var channels []string
 	for _, c := range joinedChannels {
@@ -298,10 +287,7 @@ func joined(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 }
 
 func leaveChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Message, error) {
-	db := database.Instance
-	if db == nil {
-		return nil, fmt.Errorf("database instance not initialized")
-	}
+	db := database.Instance()
 
 	err := database.LeaveChannel(db, msg.Platform.Name(), targetChannel)
 
@@ -343,18 +329,21 @@ func setPrefix(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, erro
 	}
 	newPrefix := prefixArg.StringValue
 
-	db := database.Instance
-	if db == nil {
-		return nil, fmt.Errorf("database instance not initialized")
-	}
+	db := database.Instance()
 
 	var channels []models.JoinedChannel
-	db.Where("platform = ? AND LOWER(channel) = ?", msg.Platform.Name(), strings.ToLower(msg.Message.Channel)).Find(&channels)
+	err := db.Where("platform = ? AND LOWER(channel) = ?", msg.Platform.Name(), strings.ToLower(msg.Message.Channel)).Find(&channels).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch channels matching %s/%s: %w", msg.Platform.Name(), strings.ToLower(msg.Message.Channel), err)
+	}
 
 	for _, channel := range channels {
 		channel.Prefix = newPrefix
 
 		result := db.Save(&channel)
+		if err := result.Error; err != nil {
+			return nil, fmt.Errorf("failed to save new prefix %s for channel %s: %w", newPrefix, channel.Channel, err)
+		}
 
 		if result.RowsAffected == 0 {
 			log.Printf("Failed to update prefix: %v", result.Error)

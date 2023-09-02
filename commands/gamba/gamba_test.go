@@ -9,22 +9,22 @@ import (
 )
 
 func TestFetchUserPoints(t *testing.T) {
-	db := databasetest.NewFakeDB()
+	db := databasetest.NewFakeDB(t)
 	var user1 models.User
-	result := db.FirstOrCreate(&user1, models.User{
+	err := db.FirstOrCreate(&user1, models.User{
 		TwitchID:   "user1",
 		TwitchName: "user1",
-	})
-	if result.Error != nil {
-		t.Fatalf("failed to find/create user1: %v", result.Error)
+	}).Error
+	if err != nil {
+		t.Fatalf("failed to find/create user1: %v", err)
 	}
 	var user2 models.User
-	result = db.FirstOrCreate(&user2, models.User{
+	err = db.FirstOrCreate(&user2, models.User{
 		TwitchID:   "user2",
 		TwitchName: "user2",
-	})
-	if result.Error != nil {
-		t.Fatalf("failed to find/create user2: %v", result.Error)
+	}).Error
+	if err != nil {
+		t.Fatalf("failed to find/create user2: %v", err)
 	}
 
 	tests := []struct {
@@ -159,13 +159,16 @@ func TestFetchUserPoints(t *testing.T) {
 			}
 
 			for _, txn := range tc.transactions {
-				result = db.Create(&txn)
-				if result.Error != nil {
-					t.Fatalf("failed to insert gamba transaction: %v", result.Error)
+				if err := db.Create(&txn).Error; err != nil {
+					t.Fatalf("failed to insert gamba transaction: %v", err)
 				}
 			}
 
-			if got := fetchUserPoints(db, user1); got != tc.want {
+			got, err := fetchUserPoints(db, user1)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got != tc.want {
 				t.Errorf("fetchUserPoints() = %d, want %d", got, tc.want)
 			}
 		})

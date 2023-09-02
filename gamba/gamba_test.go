@@ -22,16 +22,18 @@ import (
 )
 
 func TestHasOutboundPendingDuels(t *testing.T) {
-	db := databasetest.NewFakeDB()
-	db.Where("1 = 1").Delete(&models.Duel{})
+	db := databasetest.NewFakeDB(t)
+	if err := db.Where("1 = 1").Delete(&models.Duel{}).Error; err != nil {
+		t.Fatal(err)
+	}
 
 	var user1 models.User
-	result := db.First(&user1, models.User{
+	err := db.First(&user1, models.User{
 		TwitchID:   "user1",
 		TwitchName: "user1",
-	})
-	if result.Error != nil {
-		t.Fatalf("failed to find user1: %v", result.Error)
+	}).Error
+	if err != nil {
+		t.Fatalf("failed to find user1: %v", err)
 	}
 
 	tests := []struct {
@@ -63,7 +65,7 @@ func TestHasOutboundPendingDuels(t *testing.T) {
 				}
 			}
 
-			got, err := OutboundPendingDuels(&user1, time.Duration(30)*time.Second, db)
+			got, err := OutboundPendingDuels(&user1, 30*time.Second, db)
 			if err != nil {
 				t.Fatalf("OutboundPendingDuels() unexpected err: %v", err)
 			}
@@ -75,16 +77,18 @@ func TestHasOutboundPendingDuels(t *testing.T) {
 }
 
 func TestInboundPendingDuels(t *testing.T) {
-	db := databasetest.NewFakeDB()
-	db.Where("1 = 1").Delete(&models.Duel{})
+	db := databasetest.NewFakeDB(t)
+	if err := db.Where("1 = 1").Delete(&models.Duel{}).Error; err != nil {
+		t.Fatal(err)
+	}
 
 	var user2 models.User
-	result := db.First(&user2, models.User{
+	err := db.First(&user2, models.User{
 		TwitchID:   "user2",
 		TwitchName: "user2",
-	})
-	if result.Error != nil {
-		t.Fatalf("failed to find user2: %v", result.Error)
+	}).Error
+	if err != nil {
+		t.Fatalf("failed to find user2: %v", err)
 	}
 
 	tests := []struct {
@@ -116,7 +120,7 @@ func TestInboundPendingDuels(t *testing.T) {
 				}
 			}
 
-			got, err := InboundPendingDuels(&user2, time.Duration(30)*time.Second, db)
+			got, err := InboundPendingDuels(&user2, 30*time.Second, db)
 			if err != nil {
 				t.Fatalf("InboundPendingDuels() unexpected err: %v", err)
 			}
@@ -128,22 +132,22 @@ func TestInboundPendingDuels(t *testing.T) {
 }
 
 func TestGrantPoints(t *testing.T) {
-	db := databasetest.NewFakeDB()
+	db := databasetest.NewFakeDB(t)
 	server := newTestServer()
 	setFakes(server.URL)
 	defer resetFakes()
 
-	db.Where("1 = 1").Delete(&models.User{})
+	if err := db.Where("1 = 1").Delete(&models.User{}).Error; err != nil {
+		t.Fatal(err)
+	}
 
 	user1 := models.User{TwitchID: "user1", TwitchName: "user1"}
-	result := db.Create(&user1)
-	if result.Error != nil {
-		t.Fatalf("failed to create user1: %v", result.Error)
+	if err := db.Create(&user1).Error; err != nil {
+		t.Fatalf("failed to create user1: %v", err)
 	}
 	user2 := models.User{TwitchID: "user2", TwitchName: "user2"}
-	result = db.Create(&user2)
-	if result.Error != nil {
-		t.Fatalf("failed to create user2: %v", result.Error)
+	if err := db.Create(&user2).Error; err != nil {
+		t.Fatalf("failed to create user2: %v", err)
 	}
 
 	messages := []models.Message{
@@ -151,19 +155,19 @@ func TestGrantPoints(t *testing.T) {
 			User:    user1,
 			Channel: "channel1",
 			Text:    "something",
-			Time:    time.Now().Add(time.Duration(-1) * time.Minute),
+			Time:    time.Now().Add(-1 * time.Minute),
 		},
 		{
 			User:    user2,
 			Channel: "channel1",
 			Text:    "something else",
-			Time:    time.Now().Add(time.Duration(-50) * time.Minute),
+			Time:    time.Now().Add(-50 * time.Minute),
 		},
 	}
 	for i, m := range messages {
-		result := db.Create(&m)
-		if result.Error != nil {
-			t.Fatalf("failed to create message %d: %v", i, result.Error)
+
+		if err := db.Create(&m).Error; err != nil {
+			t.Fatalf("failed to create message %d: %v", i, err)
 		}
 	}
 
@@ -174,9 +178,8 @@ func TestGrantPoints(t *testing.T) {
 	grantPoints(ps, db)
 
 	var transactions []models.GambaTransaction
-	result = db.Find(&transactions)
-	if result.Error != nil {
-		panic(result.Error)
+	if err := db.Find(&transactions).Error; err != nil {
+		t.Fatal(err)
 	}
 	if len(transactions) != 2 {
 		t.Fatalf("expected 2 gamba transactions, found %d: %v", len(transactions), transactions)
@@ -197,22 +200,22 @@ func TestGrantPoints(t *testing.T) {
 }
 
 func TestGetInactiveUsers(t *testing.T) {
-	db := databasetest.NewFakeDB()
+	db := databasetest.NewFakeDB(t)
 	server := newTestServer()
 	setFakes(server.URL)
 	defer resetFakes()
 
-	db.Where("1 = 1").Delete(&models.User{})
+	if err := db.Where("1 = 1").Delete(&models.User{}).Error; err != nil {
+		t.Fatal(err)
+	}
 
 	user1 := models.User{TwitchID: "user1", TwitchName: "user1"}
-	result := db.Create(&user1)
-	if result.Error != nil {
-		t.Fatalf("failed to create user1: %v", result.Error)
+	if err := db.Create(&user1).Error; err != nil {
+		t.Fatalf("failed to create user1: %v", err)
 	}
 	user2 := models.User{TwitchID: "user2", TwitchName: "user2"}
-	result = db.Create(&user2)
-	if result.Error != nil {
-		t.Fatalf("failed to create user2: %v", result.Error)
+	if err := db.Create(&user2).Error; err != nil {
+		t.Fatalf("failed to create user2: %v", err)
 	}
 
 	ps := map[string]base.Platform{
@@ -225,24 +228,21 @@ func TestGetInactiveUsers(t *testing.T) {
 	if len(got) != len(want) {
 		t.Fatalf("getInactiveUsers() got %d users, want %d: got: %v, want: %v", len(got), len(want), got, want)
 	}
-
 	if got[0].ID != want[0].ID {
 		t.Errorf("getInactiveUsers()[0].ID = %d want %d", got[0].ID, want[0].ID)
 	}
 }
 
 func TestGetActiveUsers(t *testing.T) {
-	db := databasetest.NewFakeDB()
+	db := databasetest.NewFakeDB(t)
 
 	user1 := models.User{TwitchID: "user1", TwitchName: "user1"}
-	result := db.Create(&user1)
-	if result.Error != nil {
-		t.Fatalf("failed to create user1: %v", result.Error)
+	if err := db.Create(&user1).Error; err != nil {
+		t.Fatalf("failed to create user1: %v", err)
 	}
 	user2 := models.User{TwitchID: "user2", TwitchName: "user2"}
-	result = db.Create(&user2)
-	if result.Error != nil {
-		t.Fatalf("failed to create user2: %v", result.Error)
+	if err := db.Create(&user2).Error; err != nil {
+		t.Fatalf("failed to create user2: %v", err)
 	}
 
 	messages := []models.Message{
@@ -250,19 +250,18 @@ func TestGetActiveUsers(t *testing.T) {
 			User:    user1,
 			Channel: "channel1",
 			Text:    "something",
-			Time:    time.Now().Add(time.Duration(-1) * time.Minute),
+			Time:    time.Now().Add(-1 * time.Minute),
 		},
 		{
 			User:    user2,
 			Channel: "channel1",
 			Text:    "something else",
-			Time:    time.Now().Add(time.Duration(-50) * time.Minute),
+			Time:    time.Now().Add(-50 * time.Minute),
 		},
 	}
 	for i, m := range messages {
-		result := db.Create(&m)
-		if result.Error != nil {
-			t.Fatalf("failed to create message %d: %v", i, result.Error)
+		if err := db.Create(&m).Error; err != nil {
+			t.Fatalf("failed to create message %d: %v", i, err)
 		}
 	}
 
@@ -415,21 +414,21 @@ func TestDeduplicateByUser(t *testing.T) {
 func startDuel() error {
 	db := databasetest.NewFakeDBConn()
 	var user1, user2 models.User
-	result := db.First(&user1, models.User{
+	err := db.First(&user1, models.User{
 		TwitchID:   "user1",
 		TwitchName: "user1",
-	})
-	if result.Error != nil {
-		return fmt.Errorf("failed to find user1: %v", result.Error)
+	}).Error
+	if err != nil {
+		return fmt.Errorf("failed to find user1: %w", err)
 	}
-	result = db.First(&user2, models.User{
+	err = db.First(&user2, models.User{
 		TwitchID:   "user2",
 		TwitchName: "user2",
-	})
-	if result.Error != nil {
-		return fmt.Errorf("failed to find user2: %v", result.Error)
+	}).Error
+	if err != nil {
+		return fmt.Errorf("failed to find user2: %w", err)
 	}
-	result = db.Create(&models.Duel{
+	err = db.Create(&models.Duel{
 		UserID:   user1.ID,
 		User:     user1,
 		TargetID: user2.ID,
@@ -437,19 +436,22 @@ func startDuel() error {
 		Amount:   25,
 		Pending:  true,
 		Accepted: false,
-	})
-	return result.Error
+	}).Error
+	if err != nil {
+		return fmt.Errorf("failed to create duel: %w", err)
+	}
+	return nil
 }
 
 func add50PointsToUser1() error {
 	db := databasetest.NewFakeDBConn()
 	var user models.User
-	result := db.First(&user, models.User{
+	err := db.First(&user, models.User{
 		TwitchID:   "user1",
 		TwitchName: "user1",
-	})
-	if result.Error != nil {
-		return fmt.Errorf("failed to find user1: %v", result.Error)
+	}).Error
+	if err != nil {
+		return fmt.Errorf("failed to find user1: %w", err)
 	}
 	return add50PointsToUser(user, db)
 }
@@ -457,12 +459,12 @@ func add50PointsToUser1() error {
 func add50PointsToUser2() error {
 	db := databasetest.NewFakeDBConn()
 	var user models.User
-	result := db.First(&user, models.User{
+	err := db.First(&user, models.User{
 		TwitchID:   "user2",
 		TwitchName: "user2",
-	})
-	if result.Error != nil {
-		return fmt.Errorf("failed to find/create user2: %v", result.Error)
+	}).Error
+	if err != nil {
+		return fmt.Errorf("failed to find/create user2: %w", err)
 	}
 	return add50PointsToUser(user, db)
 }
@@ -473,9 +475,8 @@ func add50PointsToUser(user models.User, db *gorm.DB) error {
 		User:  user,
 		Delta: 50,
 	}
-	result := db.Create(&txn)
-	if result.Error != nil {
-		return fmt.Errorf("failed to insert gamba transaction: %v", result.Error)
+	if err := db.Create(&txn).Error; err != nil {
+		return fmt.Errorf("failed to insert gamba transaction: %w", err)
 	}
 	return nil
 }

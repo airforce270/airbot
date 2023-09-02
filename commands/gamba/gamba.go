@@ -56,7 +56,7 @@ var (
 			{Name: "amount", Type: arg.Int, Required: true},
 		},
 		Permission:   permission.Normal,
-		UserCooldown: time.Duration(5) * time.Second,
+		UserCooldown: 5 * time.Second,
 		Handler:      duel,
 	}
 
@@ -87,30 +87,27 @@ var (
 		Desc:         "Roulettes some points.",
 		Params:       []arg.Param{{Name: "amount", Type: arg.String, Required: true, Usage: "amount|percent%|all"}},
 		Permission:   permission.Normal,
-		UserCooldown: time.Duration(5) * time.Second,
+		UserCooldown: 5 * time.Second,
 		Handler:      roulette,
 	}
 )
 
 const (
 	duelPendingSecs     = 30
-	duelPendingDuration = time.Duration(duelPendingSecs) * time.Second
+	duelPendingDuration = duelPendingSecs * time.Second
 )
 
 func accept(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
-	db := database.Instance
-	if db == nil {
-		return nil, fmt.Errorf("database connection not initialized")
-	}
+	db := database.Instance()
 
 	user, err := msg.Platform.User(msg.Message.User)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch %s user %s: %w", msg.Platform.Name(), msg.Message.User, err)
 	}
 
 	pendingDuels, err := gamba.InboundPendingDuels(&user, duelPendingDuration, db)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch inbound pending duels for %s user %s: %w", msg.Platform.Name(), msg.Message.User, err)
 	}
 	if len(pendingDuels) == 0 {
 		return []*base.Message{
@@ -142,12 +139,11 @@ func accept(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 
 		pendingDuel.Accepted = true
 		pendingDuel.Pending = false
-		result := db.Save(&pendingDuel)
-		if result.Error != nil {
-			log.Printf("failed to persist duel acceptance: %v", result.Error)
+		if err := db.Save(&pendingDuel).Error; err != nil {
+			log.Printf("failed to persist duel acceptance: %v", err)
 		}
 
-		result = db.Create(&[]models.GambaTransaction{
+		err = db.Create(&[]models.GambaTransaction{
 			{
 				Game:  "Duel",
 				User:  *winner,
@@ -158,9 +154,9 @@ func accept(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 				User:  *loser,
 				Delta: -pendingDuel.Amount,
 			},
-		})
-		if result.Error != nil {
-			log.Printf("failed to insert gamba transactions: %v", result.Error)
+		}).Error
+		if err != nil {
+			log.Printf("failed to insert gamba transactions: %v", err)
 		}
 
 		outMsgs = append(outMsgs, &base.Message{
@@ -173,19 +169,16 @@ func accept(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 }
 
 func decline(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
-	db := database.Instance
-	if db == nil {
-		return nil, fmt.Errorf("database connection not initialized")
-	}
+	db := database.Instance()
 
 	user, err := msg.Platform.User(msg.Message.User)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch %s user %s: %w", msg.Platform.Name(), msg.Message.User, err)
 	}
 
 	pendingDuels, err := gamba.InboundPendingDuels(&user, duelPendingDuration, db)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch inbound pending duels for %s user %s: %w", msg.Platform.Name(), msg.Message.User, err)
 	}
 	if len(pendingDuels) == 0 {
 		return []*base.Message{
@@ -199,9 +192,8 @@ func decline(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error)
 	for _, pendingDuel := range pendingDuels {
 		pendingDuel.Accepted = false
 		pendingDuel.Pending = false
-		result := db.Save(&pendingDuel)
-		if result.Error != nil {
-			log.Printf("failed to persist duel declining: %v", result.Error)
+		if err := db.Save(&pendingDuel).Error; err != nil {
+			log.Printf("failed to persist duel declining: %v", err)
 		}
 	}
 
@@ -214,10 +206,7 @@ func decline(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error)
 }
 
 func duel(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
-	db := database.Instance
-	if db == nil {
-		return nil, fmt.Errorf("database connection not initialized")
-	}
+	db := database.Instance()
 
 	targetArg, pointsArg := args[0], args[1]
 	if !targetArg.Present || !pointsArg.Present {
@@ -261,7 +250,7 @@ func duel(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 				},
 			}, nil
 		}
-		return nil, err
+		return nil, fmt.Errorf("user %s on %s is unknown to the bot: %w", target, msg.Platform.Name(), err)
 	}
 	user, err := msg.Platform.User(msg.Message.User)
 	if err != nil {
@@ -273,10 +262,13 @@ func duel(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 				},
 			}, nil
 		}
-		return nil, err
+		return nil, fmt.Errorf("user %s on %s is unknown to the bot: %w", msg.Message.User, msg.Platform.Name(), err)
 	}
 
-	userPoints := fetchUserPoints(db, user)
+	userPoints, err := fetchUserPoints(db, user)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch user points for user %d: %w", user.ID, err)
+	}
 	if int64(points) > userPoints {
 		return []*base.Message{
 			{
@@ -286,7 +278,10 @@ func duel(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 		}, nil
 	}
 
-	targetUserPoints := fetchUserPoints(db, targetUser)
+	targetUserPoints, err := fetchUserPoints(db, targetUser)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch user points for user %d: %w", targetUser.ID, err)
+	}
 	if int64(points) > targetUserPoints {
 		return []*base.Message{
 			{
@@ -298,7 +293,7 @@ func duel(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 
 	outboundPendingDuels, err := gamba.OutboundPendingDuels(&user, duelPendingDuration, db)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch outbound pending duels for user %d: %w", user.ID, err)
 	}
 	if len(outboundPendingDuels) > 0 {
 		return []*base.Message{
@@ -311,7 +306,7 @@ func duel(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 
 	inboundPendingDuels, err := gamba.InboundPendingDuels(&targetUser, duelPendingDuration, db)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch inbound pending duels for user %d: %w", targetUser.ID, err)
 	}
 	if len(inboundPendingDuels) > 0 {
 		return []*base.Message{
@@ -322,7 +317,7 @@ func duel(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 		}, nil
 	}
 
-	result := db.Create(&models.Duel{
+	err = db.Create(&models.Duel{
 		UserID:   user.ID,
 		User:     user,
 		TargetID: targetUser.ID,
@@ -331,9 +326,9 @@ func duel(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 		Pending:  true,
 		Accepted: false,
 		Won:      false,
-	})
-	if result.Error != nil {
-		return nil, fmt.Errorf("failed to create pending duel: %w", result.Error)
+	}).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to create pending duel: %w", err)
 	}
 
 	return []*base.Message{
@@ -345,10 +340,7 @@ func duel(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 }
 
 func givePoints(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
-	db := database.Instance
-	if db == nil {
-		return nil, fmt.Errorf("database connection not initialized")
-	}
+	db := database.Instance()
 
 	targetArg, pointsArg := args[0], args[1]
 	if !targetArg.Present || !pointsArg.Present {
@@ -396,7 +388,7 @@ func givePoints(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, err
 				},
 			}, nil
 		}
-		return nil, err
+		return nil, fmt.Errorf("user %s on %s is unknown to the bot: %w", target, msg.Platform.Name(), err)
 	}
 	user, err := msg.Platform.User(msg.Message.User)
 	if err != nil {
@@ -408,10 +400,13 @@ func givePoints(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, err
 				},
 			}, nil
 		}
-		return nil, err
+		return nil, fmt.Errorf("failed to retrieve db user %s: %w", msg.Message.User, err)
 	}
 
-	userPoints := fetchUserPoints(db, user)
+	userPoints, err := fetchUserPoints(db, user)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch points for user %d: %w", user.ID, err)
+	}
 	if int64(points) > userPoints {
 		return []*base.Message{
 			{
@@ -421,7 +416,7 @@ func givePoints(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, err
 		}, nil
 	}
 
-	result := db.Create(&[]models.GambaTransaction{
+	err = db.Create(&[]models.GambaTransaction{
 		{
 			Game:  "GivePoints",
 			User:  user,
@@ -432,9 +427,9 @@ func givePoints(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, err
 			User:  targetUser,
 			Delta: int64(points),
 		},
-	})
-	if result.Error != nil {
-		log.Printf("failed to insert gamba transactions: %v", result.Error)
+	}).Error
+	if err != nil {
+		log.Printf("failed to insert gamba transactions: %v", err)
 	}
 
 	return []*base.Message{
@@ -446,10 +441,7 @@ func givePoints(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, err
 }
 
 func points(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
-	db := database.Instance
-	if db == nil {
-		return nil, fmt.Errorf("database connection not initialized")
-	}
+	db := database.Instance()
 
 	target := basecommand.FirstArgOrUsername(args, msg)
 	user, err := msg.Platform.User(target)
@@ -462,10 +454,13 @@ func points(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 				},
 			}, nil
 		}
-		return nil, err
+		return nil, fmt.Errorf("user %s on %s is unknown to the bot: %w", target, msg.Platform.Name(), err)
 	}
 
-	pointsCount := fetchUserPoints(db, user)
+	pointsCount, err := fetchUserPoints(db, user)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch points for user %d: %w", user.ID, err)
+	}
 
 	return []*base.Message{
 		{
@@ -481,10 +476,7 @@ func roulette(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error
 		return nil, basecommand.ErrBadUsage
 	}
 
-	db := database.Instance
-	if db == nil {
-		return nil, fmt.Errorf("database connection not initialized")
-	}
+	db := database.Instance()
 
 	user, err := msg.Platform.User(msg.Message.User)
 	if err != nil {
@@ -497,10 +489,13 @@ func roulette(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error
 				},
 			}, nil
 		}
-		return nil, err
+		return nil, fmt.Errorf("user %s on %s is unknown to the bot: %w", msg.Message.User, msg.Platform.Name(), err)
 	}
 
-	points := fetchUserPoints(db, user)
+	points, err := fetchUserPoints(db, user)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch points for user %d: %w", user.ID, err)
+	}
 
 	var amount int64
 	amountStr := amountArg.StringValue
@@ -553,9 +548,8 @@ func roulette(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error
 			User:  user,
 			Delta: delta,
 		}
-		result := db.Create(&txn)
-		if result.Error != nil {
-			log.Printf("failed to insert gamba transaction: %v", result.Error)
+		if err := db.Create(&txn).Error; err != nil {
+			log.Printf("failed to insert gamba transaction: %v", err)
 		}
 	}()
 
@@ -568,14 +562,16 @@ func roulette(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error
 	return []*base.Message{outMsg}, nil
 }
 
-func fetchUserPoints(db *gorm.DB, user models.User) int64 {
+func fetchUserPoints(db *gorm.DB, user models.User) (int64, error) {
 	var transactions []*models.GambaTransaction
-	db.Where(models.GambaTransaction{UserID: user.ID}).Find(&transactions)
+	if err := db.Where(models.GambaTransaction{UserID: user.ID}).Find(&transactions).Error; err != nil {
+		return 0, fmt.Errorf("failed to fetch points for user %d: %w", user.ID, err)
+	}
 
 	var points int64
 	for _, txn := range transactions {
 		points += txn.Delta
 	}
 
-	return points
+	return points, nil
 }

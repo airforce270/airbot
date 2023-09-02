@@ -85,12 +85,12 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, er
 		}
 
 		channelCooldown := models.ChannelCommandCooldown{}
-		dbResult := h.db.FirstOrCreate(&channelCooldown, models.ChannelCommandCooldown{
+		err := h.db.FirstOrCreate(&channelCooldown, models.ChannelCommandCooldown{
 			Channel: msg.Message.Channel,
 			Command: command.Name,
-		})
-		if dbResult.Error != nil {
-			return nil, fmt.Errorf("[%s] failed to get/create channel cooldown for channel %q, command %q", msg.Platform.Name(), msg.Message.Channel, command.Name)
+		}).Error
+		if err != nil {
+			return nil, fmt.Errorf("[%s] failed to get/create channel cooldown for channel %q, command %q: %w", msg.Platform.Name(), msg.Message.Channel, command.Name, err)
 		}
 		if command.ChannelCooldown > time.Since(channelCooldown.LastRun) {
 			log.Printf("Skipping %s%s: channel cooldown is %s but it has only been %s", msg.Prefix, command.Name, command.ChannelCooldown, time.Since(channelCooldown.LastRun))
@@ -99,19 +99,19 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, er
 
 		user, err := msg.Platform.User(msg.Message.User)
 		if err != nil && !errors.Is(err, base.ErrUserUnknown) {
-			return nil, fmt.Errorf("failed to fetch user %q: %v", msg.Message.User, err)
+			return nil, fmt.Errorf("failed to fetch user %q: %w", msg.Message.User, err)
 		}
 		userCooldown := models.UserCommandCooldown{}
 		shouldSetUserCooldown := false
 		if err == nil || errors.Is(err, base.ErrUserUnknown) {
 			shouldSetUserCooldown = true
-			dbResult = h.db.FirstOrCreate(&userCooldown, models.UserCommandCooldown{
+			err := h.db.FirstOrCreate(&userCooldown, models.UserCommandCooldown{
 				UserID:  user.ID,
 				User:    user,
 				Command: command.Name,
-			})
-			if dbResult.Error != nil {
-				return nil, fmt.Errorf("[%s] failed to get/create user cooldown for user %q, command %q", msg.Platform.Name(), msg.Message.User, command.Name)
+			}).Error
+			if err != nil {
+				return nil, fmt.Errorf("[%s] failed to get/create user cooldown for user %q, command %q, %w", msg.Platform.Name(), msg.Message.User, command.Name, err)
 			}
 			if command.UserCooldown > time.Since(userCooldown.LastRun) {
 				log.Printf("Skipping %s%s: user cooldown is %s but it has only been %s", msg.Prefix, command.Name, command.UserCooldown, time.Since(userCooldown.LastRun))
@@ -124,7 +124,7 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, er
 		respMsgs, err := command.Handler(msg, args)
 		if err != nil {
 			if !errors.Is(err, basecommand.ErrBadUsage) {
-				return nil, err
+				return nil, fmt.Errorf("failed to handle message: %w", err)
 			}
 			outMsg := &base.OutgoingMessage{
 				Message: base.Message{
@@ -147,10 +147,14 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, er
 		}
 
 		channelCooldown.LastRun = time.Now()
-		h.db.Save(&channelCooldown)
+		if err := h.db.Save(&channelCooldown).Error; err != nil {
+			log.Printf("failed to save new channel cooldown: %v", err)
+		}
 		if shouldSetUserCooldown {
 			userCooldown.LastRun = time.Now()
-			h.db.Save(&userCooldown)
+			if err := h.db.Save(&userCooldown).Error; err != nil {
+				log.Printf("failed to save new user cooldown: %v", err)
+			}
 		}
 	}
 	return outMsgs, nil
