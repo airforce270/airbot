@@ -52,10 +52,10 @@ type Twitch struct {
 	// accessToken is the OAuth token to use when connecting.
 	// See https://dev.twitch.tv/docs/irc/authenticate-bot#getting-an-access-token
 	accessToken string
-	// i is the Twitch IRC client.
-	i *twitchirc.Client
-	// h is the Twitch API client.
-	h *helix.Client
+	// irc is the Twitch IRC client.
+	irc *twitchirc.Client
+	// helix is the Twitch API client.
+	helix *helix.Client
 	// db is a reference to the database connection.
 	db *gorm.DB
 	// cdb is a reference to the cache.
@@ -100,11 +100,11 @@ func (t *Twitch) Reply(msg base.Message, replyToID string) error {
 
 	go t.persistUserAndMessage(t.id, t.username, text, msg.Channel, msg.Time)
 
-	if t.i != nil {
+	if t.irc != nil {
 		if replyToID != "" {
-			t.i.Reply(msg.Channel, replyToID, text)
+			t.irc.Reply(msg.Channel, replyToID, text)
 		} else {
-			t.i.Say(msg.Channel, text)
+			t.irc.Say(msg.Channel, text)
 		}
 	} else {
 		log.Print("Didn't actually send message - IRC client is nil. This is expected in test, but if you see this in production, something's broken!")
@@ -118,7 +118,7 @@ func (t *Twitch) Reply(msg base.Message, replyToID string) error {
 
 func (t *Twitch) Listen() <-chan base.IncomingMessage {
 	c := make(chan base.IncomingMessage)
-	t.i.OnPrivateMessage(func(msg twitchirc.PrivateMessage) {
+	t.irc.OnPrivateMessage(func(msg twitchirc.PrivateMessage) {
 		go t.persistUserAndMessage(msg.User.ID, msg.User.DisplayName, msg.Message, msg.Channel, msg.Time)
 		c <- base.IncomingMessage{
 			Message: base.Message{
@@ -147,8 +147,8 @@ func (t *Twitch) Join(channel string, prefix string) error {
 
 	startTime := time.Now()
 
-	if t.i != nil {
-		t.i.Join(channelInfo.BroadcasterName)
+	if t.irc != nil {
+		t.irc.Join(channelInfo.BroadcasterName)
 	} else {
 		log.Printf("Didn't actually join channel %s - IRC client is nil. This is expected in test, but if you see this in production, something's broken!", channelInfo.BroadcasterName)
 	}
@@ -171,8 +171,8 @@ func (t *Twitch) Join(channel string, prefix string) error {
 }
 
 func (t *Twitch) Leave(channel string) error {
-	if t.i != nil {
-		t.i.Depart(channel)
+	if t.irc != nil {
+		t.irc.Depart(channel)
 	} else {
 		log.Printf("Didn't actually depart channel %s - IRC client is nil. This is expected in test, but if you see this in production, something's broken!", channel)
 	}
@@ -198,7 +198,7 @@ func (t *Twitch) Connect() error {
 
 	log.Printf("Creating Twitch IRC client...")
 	i := twitchirc.NewClient(t.username, fmt.Sprintf("oauth:%s", t.accessToken))
-	t.i = i
+	t.irc = i
 
 	t.setUpIRCHandlers()
 
@@ -215,7 +215,7 @@ func (t *Twitch) Connect() error {
 
 	if t.isVerifiedBot {
 		log.Printf("[%s] Bot user %s is a verified bot, using increased rate limit", t.Name(), t.username)
-		t.i.SetJoinRateLimiter(twitchirc.CreateVerifiedRateLimiter())
+		t.irc.SetJoinRateLimiter(twitchirc.CreateVerifiedRateLimiter())
 	}
 
 	log.Printf("Connecting to Twitch IRC...")
@@ -229,7 +229,7 @@ func (t *Twitch) Connect() error {
 	if err != nil {
 		return fmt.Errorf("failed to connect to Twitch API: %w", err)
 	}
-	t.h = h
+	t.helix = h
 
 	botUser, err := t.FetchUser(t.username)
 	if err != nil {
@@ -248,9 +248,9 @@ func (t *Twitch) Connect() error {
 func (t *Twitch) connectIRC() {
 	var wg sync.WaitGroup
 	wg.Add(1)
-	t.i.OnConnect(func() { wg.Done() })
+	t.irc.OnConnect(func() { wg.Done() })
 	go func() {
-		if err := t.i.Connect(); err != nil {
+		if err := t.irc.Connect(); err != nil {
 			log.Fatalf("failed to connect to twitch IRC: %v", err)
 		}
 	}()
@@ -258,17 +258,17 @@ func (t *Twitch) connectIRC() {
 
 	for _, channel := range t.channels {
 		log.Printf("Joining Twitch channel %s...", channel.Name)
-		t.i.Join(channel.Name)
+		t.irc.Join(channel.Name)
 	}
 }
 
 func (t *Twitch) Disconnect() error {
 	for _, channel := range t.channels {
 		log.Printf("Leaving Twitch channel %s...", channel.Name)
-		t.i.Depart(channel.Name)
+		t.irc.Depart(channel.Name)
 	}
 	log.Printf("Disconnecting from Twitch IRC...")
-	return t.i.Disconnect()
+	return t.irc.Disconnect()
 }
 
 func (t *Twitch) SetPrefix(channel, prefix string) error {
@@ -318,7 +318,7 @@ func (t *Twitch) Timeout(username, channel string, duration time.Duration) error
 }
 
 func (t *Twitch) FetchUser(channel string) (*helix.User, error) {
-	users, err := t.h.GetUsers(&helix.UsersParams{Logins: []string{channel}})
+	users, err := t.helix.GetUsers(&helix.UsersParams{Logins: []string{channel}})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user %s from Helix: %w", channel, err)
 	}
@@ -338,7 +338,7 @@ func (t *Twitch) Channel(channel string) (*helix.ChannelInformation, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch user %s: %w", channel, err)
 	}
-	resp, err := t.h.GetChannelInformation(&helix.GetChannelInformationParams{BroadcasterIDs: []string{user.ID}})
+	resp, err := t.helix.GetChannelInformation(&helix.GetChannelInformationParams{BroadcasterIDs: []string{user.ID}})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get info for channel %s from Helix: %w", channel, err)
 	}
@@ -426,15 +426,15 @@ func (t *Twitch) initializeJoinedChannels() {
 }
 
 func (t *Twitch) setUpIRCHandlers() {
-	t.i.OnClearMessage(func(msg twitchirc.ClearMessage) {
+	t.irc.OnClearMessage(func(msg twitchirc.ClearMessage) {
 		log.Printf("[%s] CLEAR: %s", t.Name(), msg.Raw)
 	})
-	t.i.OnClearChatMessage(func(msg twitchirc.ClearChatMessage) {
+	t.irc.OnClearChatMessage(func(msg twitchirc.ClearChatMessage) {
 		log.Printf("[%s] CLEARCHAT: %s", t.Name(), msg.Raw)
 	})
 	// OnConnect is set within Twitch.Connect()
-	t.i.OnGlobalUserStateMessage(func(msg twitchirc.GlobalUserStateMessage) {})
-	t.i.OnNoticeMessage(func(msg twitchirc.NoticeMessage) {
+	t.irc.OnGlobalUserStateMessage(func(msg twitchirc.GlobalUserStateMessage) {})
+	t.irc.OnNoticeMessage(func(msg twitchirc.NoticeMessage) {
 		log.Printf("[%s] NOTICE: %s", t.Name(), msg.Raw)
 
 		// This fires when we the bot tries to join a channel it's banned in.
@@ -442,35 +442,35 @@ func (t *Twitch) setUpIRCHandlers() {
 			t.handleBannedFromChannel(msg.Channel)
 		}
 	})
-	t.i.OnPingMessage(func(msg twitchirc.PingMessage) {})
+	t.irc.OnPingMessage(func(msg twitchirc.PingMessage) {})
 	// OnPrivateMessage is set within Twitch.Connect()
-	t.i.OnPongMessage(func(msg twitchirc.PongMessage) {})
-	t.i.OnReconnectMessage(func(msg twitchirc.ReconnectMessage) {
+	t.irc.OnPongMessage(func(msg twitchirc.PongMessage) {})
+	t.irc.OnReconnectMessage(func(msg twitchirc.ReconnectMessage) {
 		log.Printf("[%s] Reconnect requested, reconnecting...", t.Name())
 		if err := t.Disconnect(); err != nil {
 			log.Printf("[%s] Disconnect failed: %v", t.Name(), err)
 		}
 		t.connectIRC()
 	})
-	t.i.OnRoomStateMessage(func(msg twitchirc.RoomStateMessage) {})
-	t.i.OnSelfJoinMessage(func(msg twitchirc.UserJoinMessage) {})
-	t.i.OnSelfPartMessage(func(msg twitchirc.UserPartMessage) {
+	t.irc.OnRoomStateMessage(func(msg twitchirc.RoomStateMessage) {})
+	t.irc.OnSelfJoinMessage(func(msg twitchirc.UserJoinMessage) {})
+	t.irc.OnSelfPartMessage(func(msg twitchirc.UserPartMessage) {
 		log.Printf("[%s] SELFPART: %s", t.Name(), msg.Raw)
 	})
-	t.i.OnUnsetMessage(func(msg twitchirc.RawMessage) {
+	t.irc.OnUnsetMessage(func(msg twitchirc.RawMessage) {
 		log.Printf("[%s] UNSET: %s", t.Name(), msg.Raw)
 	})
-	t.i.OnUserJoinMessage(func(msg twitchirc.UserJoinMessage) {
+	t.irc.OnUserJoinMessage(func(msg twitchirc.UserJoinMessage) {
 		log.Printf("[%s] USERJOIN: %s", t.Name(), msg.Raw)
 	})
-	t.i.OnUserNoticeMessage(func(msg twitchirc.UserNoticeMessage) {
+	t.irc.OnUserNoticeMessage(func(msg twitchirc.UserNoticeMessage) {
 		log.Printf("[%s] USERNOTICE: %s", t.Name(), msg.Raw)
 	})
-	t.i.OnUserPartMessage(func(msg twitchirc.UserPartMessage) {
+	t.irc.OnUserPartMessage(func(msg twitchirc.UserPartMessage) {
 		log.Printf("[%s] USERPART: %s", t.Name(), msg.Raw)
 	})
-	t.i.OnUserStateMessage(func(msg twitchirc.UserStateMessage) {})
-	t.i.OnWhisperMessage(func(msg twitchirc.WhisperMessage) {
+	t.irc.OnUserStateMessage(func(msg twitchirc.UserStateMessage) {})
+	t.irc.OnWhisperMessage(func(msg twitchirc.WhisperMessage) {
 		log.Printf("[%s] WHISPER: %s", t.Name(), msg.Raw)
 		t.persistUserAndMessage(msg.User.ID, msg.User.Name, msg.Message, fmt.Sprintf("whisper-%s", t.Username()), time.Now())
 	})
@@ -590,8 +590,8 @@ func NewForTesting(url string, db *gorm.DB) *Twitch {
 		owners:      nil,
 		clientID:    "fake-client-id",
 		accessToken: "fake-access-token",
-		i:           nil,
-		h:           helixClient,
+		irc:         nil,
+		helix:       helixClient,
 		db:          db,
 		cdb:         cachetest.NewInMemory(),
 	}
