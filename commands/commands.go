@@ -141,7 +141,7 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, er
 		} else {
 			for _, respMsg := range respMsgs {
 				outMsg := &base.OutgoingMessage{Message: *respMsg}
-				if !command.DisableReplies {
+				if !command.DisableReplies && respMsg.Channel == msg.Message.Channel {
 					outMsg.ReplyToID = msg.Message.ID
 				}
 				outMsgs = append(outMsgs, outMsg)
