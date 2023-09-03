@@ -20,7 +20,7 @@ func Build(cfg *config.Config, db *gorm.DB, cdb cache.Cache) (map[string]base.Pl
 	p := map[string]base.Platform{}
 	if twc := cfg.Platforms.Twitch; twc.Enabled {
 		log.Printf("Building Twitch platform...")
-		tw := twitch.New(twc.Username, twc.Owners, twc.ClientID, twc.AccessToken, db, cdb)
+		tw := twitch.New(twc.Username, twc.Owners, twc.ClientID, twc.ClientSecret, twc.AccessToken, twc.RefreshToken, db, cdb)
 		twitch.Conn = tw
 		p[tw.Name()] = tw
 	}

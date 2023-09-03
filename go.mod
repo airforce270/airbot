@@ -7,6 +7,9 @@ go 1.21
 // For example:
 // replace github.com/nicklaw5/helix/v2 => ../helix
 
+// Temporary until https://github.com/nicklaw5/helix/pull/200 is merged.
+replace github.com/nicklaw5/helix/v2 => github.com/airforce270/helix/v2 v2.0.0-20230903034401-94771e2b98d9
+
 require (
 	github.com/Danny-Dasilva/CycleTLS/cycletls v0.0.0-20220620102923-c84d740b4757
 	github.com/gempir/go-twitch-irc/v3 v3.3.0
