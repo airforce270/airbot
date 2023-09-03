@@ -43,9 +43,10 @@ var Commands = [...]basecommand.Command{
 	pyramidCommand,
 	spamCommand,
 	{
-		Name:       "TriHard",
+		Name:       "trihard",
 		Desc:       "Replies with TriHard 7.",
 		Permission: permission.Normal,
+		Aliases:    []string{"TriHard"},
 		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return []*base.Message{
 				{
