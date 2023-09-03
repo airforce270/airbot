@@ -21,11 +21,13 @@ func TestParse(t *testing.T) {
 				UserAgent: "",
 			},
 			Twitch: TwitchConfig{
-				Enabled:     true,
-				Username:    "",
-				ClientID:    "",
-				AccessToken: "",
-				Owners:      []string{""},
+				Enabled:      true,
+				Username:     "",
+				ClientID:     "",
+				ClientSecret: "",
+				AccessToken:  "",
+				RefreshToken: "",
+				Owners:       []string{""},
 			},
 		},
 		Supinic: SupinicConfig{

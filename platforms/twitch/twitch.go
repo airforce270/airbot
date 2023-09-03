@@ -51,9 +51,13 @@ type Twitch struct {
 	owners []string
 	// clientID is the OAuth Client ID to use when connecting.
 	clientID string
+	// clientSecret is the OAuth client secret to use when connecting.
+	clientSecret string
 	// accessToken is the OAuth token to use when connecting.
 	// See https://dev.twitch.tv/docs/irc/authenticate-bot#getting-an-access-token
 	accessToken string
+	// refreshToken is the refresh token to use to refresh the access token.
+	refreshToken string
 	// irc is the Twitch IRC client.
 	irc *twitchirc.Client
 	// helix is the Twitch API client.
@@ -199,8 +203,38 @@ func (t *Twitch) Connect() error {
 	t.initializeJoinedChannels()
 
 	log.Printf("Creating Twitch IRC client...")
-	i := twitchirc.NewClient(t.username, fmt.Sprintf("oauth:%s", t.accessToken))
+	i := twitchirc.NewClient(t.username, "oauth:"+t.accessToken)
 	t.irc = i
+
+	log.Printf("Connecting to Twitch API...")
+	h, err := helix.NewClient(&helix.Options{
+		ClientID:        t.clientID,
+		ClientSecret:    t.clientSecret,
+		UserAccessToken: t.accessToken,
+		RefreshToken:    t.refreshToken,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to connect to Twitch API: %w", err)
+	}
+	t.helix = h
+
+	t.helix.OnUserAccessTokenRefreshed(func(userAccessToken, refreshToken string) {
+		t.accessToken = userAccessToken
+		t.refreshToken = refreshToken
+		t.irc.SetIRCToken("oauth:" + userAccessToken)
+	})
+
+	// Make sure to do this before connecting to IRC.
+	// This makes an API call to Twitch which automatically refreshes the token if needed.
+	// That way we have a valid token before connecting to IRC.
+	botUser, err := t.FetchUser(t.username)
+	if err != nil {
+		return fmt.Errorf("failed to fetch user %s: %w", t.username, err)
+	}
+	if botUser == nil {
+		return fmt.Errorf("no user returned for bot (%s): %w", t.username, err)
+	}
+	t.id = botUser.ID
 
 	t.setUpIRCHandlers()
 
@@ -222,25 +256,6 @@ func (t *Twitch) Connect() error {
 
 	log.Printf("Connecting to Twitch IRC...")
 	t.connectIRC()
-
-	log.Printf("Connecting to Twitch API...")
-	h, err := helix.NewClient(&helix.Options{
-		ClientID:        t.clientID,
-		UserAccessToken: t.accessToken,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to connect to Twitch API: %w", err)
-	}
-	t.helix = h
-
-	botUser, err := t.FetchUser(t.username)
-	if err != nil {
-		return fmt.Errorf("failed to fetch user %s: %w", t.username, err)
-	}
-	if botUser == nil {
-		return fmt.Errorf("no user returned for bot (%s): %w", t.username, err)
-	}
-	t.id = botUser.ID
 
 	go t.listenForModAndVIPChanges()
 
@@ -571,14 +586,16 @@ func (t *Twitch) handleBannedFromChannel(channel string) {
 const defaultBotPrefix = "$"
 
 // New creates a new Twitch connection.
-func New(username string, owners []string, clientID, accessToken string, db *gorm.DB, cdb cache.Cache) *Twitch {
+func New(username string, owners []string, clientID, clientSecret, accessToken, refreshToken string, db *gorm.DB, cdb cache.Cache) *Twitch {
 	return &Twitch{
-		username:    username,
-		owners:      lowercaseAll(owners),
-		clientID:    clientID,
-		accessToken: accessToken,
-		db:          db,
-		cdb:         cdb,
+		username:     username,
+		owners:       lowercaseAll(owners),
+		clientID:     clientID,
+		clientSecret: clientSecret,
+		accessToken:  accessToken,
+		refreshToken: refreshToken,
+		db:           db,
+		cdb:          cdb,
 	}
 }
 

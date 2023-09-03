@@ -8,6 +8,8 @@ github.com/Danny-Dasilva/utls v0.0.0-20220418175931-f38e470e04f2/go.mod h1:A2g8g
 github.com/Danny-Dasilva/utls v0.0.0-20220604023528-30cb107b834e h1:tqiguW0yAcIwQBQtD+d2rjBnboqB7CwG1OZ12F8avX8=
 github.com/Danny-Dasilva/utls v0.0.0-20220604023528-30cb107b834e/go.mod h1:ssfbVNUfWJVRfW41RTpedOUlGXSq3J6aLmirUVkDgJk=
 github.com/PuerkitoBio/goquery v1.8.0/go.mod h1:ypIiRMtY7COPGk+I/YbZLbxsxn9g5ejnI2HSMtkjZvI=
+github.com/airforce270/helix/v2 v2.0.0-20230903034401-94771e2b98d9 h1:HCPIH7wAPysJbKkFRzKZ+O2D1gQf60HBwt4g7ALkiPs=
+github.com/airforce270/helix/v2 v2.0.0-20230903034401-94771e2b98d9/go.mod h1:zZcKsyyBWDli34x3QleYsVMiiNGMXPAEU5NjsiZDtvY=
 github.com/andybalholm/brotli v1.0.4/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
 github.com/andybalholm/brotli v1.0.5/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
@@ -55,8 +57,6 @@ github.com/lufia/plan9stats v0.0.0-20230326075908-cb1d2100619a h1:N9zuLhTvBSRt0g
 github.com/lufia/plan9stats v0.0.0-20230326075908-cb1d2100619a/go.mod h1:JKx41uQRwqlTZabZc+kILPrO/3jlKnQ2Z8b7YiVw5cE=
 github.com/mattn/go-sqlite3 v1.14.17 h1:mCRHCLDUBXgpKAqIKsaAaAsrAlbkeomtRFKXh2L6YIM=
 github.com/mattn/go-sqlite3 v1.14.17/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
-github.com/nicklaw5/helix/v2 v2.24.1 h1:e/dVEm+QuDaomJ+0Z+Xp/Uj/DNbc9Ogr2FX2LPdXVVs=
-github.com/nicklaw5/helix/v2 v2.24.1/go.mod h1:zZcKsyyBWDli34x3QleYsVMiiNGMXPAEU5NjsiZDtvY=
 github.com/pelletier/go-toml/v2 v2.1.0 h1:FnwAJ4oYMvbT/34k9zzHuZNrhlz48GB3/s6at6/MHO4=
 github.com/pelletier/go-toml/v2 v2.1.0/go.mod h1:tJU2Z3ZkXwnxa4DPO899bsyIoywizdUvyaeZurnPPDc=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
