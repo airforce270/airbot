@@ -24,8 +24,8 @@ services:
       - redis-data:/data
   server:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../
+      dockerfile: airbot/Dockerfile
     env_file: .env
     environment:
       - RUNNING_IN_DOCKER=true

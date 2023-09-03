@@ -32,16 +32,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3.6.0
+        with:
+          path: airbot
 
       - name: Set up Go
         uses: actions/setup-go@v4.1.0
         with:
-          go-version: "1.21"
+          go-version-file: airbot/go.mod
+          cache-dependency-path: airbot/go.sum
 
       - name: Build Docker image
         uses: docker/build-push-action@v4.1.1
         with:
           context: .
+          file: airbot/Dockerfile
           push: false
 
   lint:

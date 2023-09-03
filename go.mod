@@ -2,6 +2,11 @@ module github.com/airforce270/airbot
 
 go 1.21
 
+// To use local copies of dependencies here (for development),
+// add a `replace` directive.
+// For example:
+// replace github.com/nicklaw5/helix/v2 => ../helix
+
 require (
 	github.com/Danny-Dasilva/CycleTLS/cycletls v0.0.0-20220620102923-c84d740b4757
 	github.com/gempir/go-twitch-irc/v3 v3.3.0
