@@ -1,10 +1,33 @@
 package twitch
 
 import (
+	"fmt"
+	"log"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 
+	"github.com/airforce270/airbot/apiclients/twitchtest"
+	"github.com/airforce270/airbot/database/databasetest"
 	"github.com/google/go-cmp/cmp"
 )
+
+func TestTwitch_CurrentUsers(t *testing.T) {
+	db := databasetest.NewFakeDB(t)
+	server := newTestServer()
+	tw := NewForTesting(server.URL, db)
+
+	got, err := tw.CurrentUsers()
+	if err != nil {
+		t.Fatalf("CurrentUsers unexpected error: %v", err)
+	}
+
+	want := []string{"user1", "user2"}
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("CurrentUsers() diff (-want +got):\n%s", diff)
+	}
+}
 
 func TestLowercaseAll(t *testing.T) {
 	input := []string{
@@ -71,4 +94,14 @@ func TestBypassSameMessageDetection(t *testing.T) {
 			}
 		})
 	}
+}
+
+func newTestServer() *httptest.Server {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "/chat/chatters") {
+			fmt.Fprint(w, twitchtest.GetChannelChatChattersResp)
+		} else {
+			log.Printf("Unknown URL sent to test server: %s", r.URL.Path)
+		}
+	}))
 }
