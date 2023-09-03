@@ -7,9 +7,9 @@ require (
 	github.com/gempir/go-twitch-irc/v3 v3.3.0
 	github.com/google/go-cmp v0.5.9
 	github.com/nicklaw5/helix/v2 v2.24.1
-	github.com/pelletier/go-toml/v2 v2.0.9
+	github.com/pelletier/go-toml/v2 v2.1.0
 	github.com/redis/go-redis/v9 v9.1.0
-	github.com/shirou/gopsutil/v3 v3.23.7
+	github.com/shirou/gopsutil/v3 v3.23.8
 	golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63
 	golang.org/x/sync v0.3.0
 	gonum.org/v1/gonum v0.14.0
@@ -21,7 +21,7 @@ require (
 require (
 	github.com/Danny-Dasilva/fhttp v0.0.0-20220524230104-f801520157d6 // indirect
 	github.com/Danny-Dasilva/utls v0.0.0-20220604023528-30cb107b834e // indirect
-	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dsnet/compress v0.0.1 // indirect
@@ -41,7 +41,7 @@ require (
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	golang.org/x/crypto v0.12.0 // indirect
-	golang.org/x/net v0.10.0 // indirect
-	golang.org/x/sys v0.11.0 // indirect
-	golang.org/x/text v0.12.0 // indirect
+	golang.org/x/net v0.14.0 // indirect
+	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 )
