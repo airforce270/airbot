@@ -894,7 +894,7 @@ func TestCommands(t *testing.T) {
 		{
 			input: base.IncomingMessage{
 				Message: base.Message{
-					Text:    "$TriHard",
+					Text:    "$trihard",
 					UserID:  "user1",
 					User:    "user1",
 					Channel: "user2",
@@ -904,6 +904,7 @@ func TestCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
+			otherTexts: []string{"$TriHard"},
 			want: []*base.Message{
 				{
 					Text:    "TriHard 7",

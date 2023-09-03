@@ -124,10 +124,11 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - > Minimum permission level: `Mod`
 - > Per-channel cooldown: `30s`
 
-### $TriHard
+### $trihard
 
 - Replies with TriHard 7.
-- > Usage: `$TriHard`
+- > Usage: `$trihard`
+- > Aliases: `$TriHard`
 
 ### $tuck
 
