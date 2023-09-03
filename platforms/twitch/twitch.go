@@ -5,13 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
+	"net/http"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/airforce270/airbot/apiclients/ivr"
-	"github.com/airforce270/airbot/apiclients/twitchtmi"
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/cache"
 	"github.com/airforce270/airbot/cache/cachetest"
@@ -296,15 +298,26 @@ func (t *Twitch) User(username string) (models.User, error) {
 func (t *Twitch) CurrentUsers() ([]string, error) {
 	var allChatters []string
 	for _, c := range t.channels {
-		chatters, err := twitchtmi.FetchChatters(c.Name)
-		if err != nil {
-			return nil, fmt.Errorf("[%s] failed to fetch chatters for %s: %w", t.Name(), c.Name, err)
-		}
-		for _, chatter := range chatters.AllChatters() {
-			if slices.Contains(allChatters, chatter) {
-				continue
+		pageToken := "<unset>" + strconv.Itoa(rand.Int())
+		for pageToken != "" {
+			req := &helix.GetChatChattersParams{
+				BroadcasterID: c.Name,
+				ModeratorID:   t.username,
+				First:         "1000", // maximum is 1000
+				After:         pageToken,
 			}
-			allChatters = append(allChatters, chatter)
+			resp, err := t.helix.GetChannelChatChatters(req)
+			if err != nil {
+				return nil, fmt.Errorf("[%s] failed to fetch chatters for %s: %w", t.Name(), c.Name, err)
+			}
+			pageToken = resp.Data.Pagination.Cursor
+
+			for _, chatter := range resp.Data.Chatters {
+				if slices.Contains(allChatters, chatter.Username) {
+					continue
+				}
+				allChatters = append(allChatters, chatter.Username)
+			}
 		}
 	}
 	return allChatters, nil
@@ -322,7 +335,7 @@ func (t *Twitch) FetchUser(channel string) (*helix.User, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user %s from Helix: %w", channel, err)
 	}
-	if users.StatusCode != 200 {
+	if users.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("twitch GetUsers call for %q failed, resp:%v", channel, users)
 	}
 	if len(users.Data.Users) != 1 {

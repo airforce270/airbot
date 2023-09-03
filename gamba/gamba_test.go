@@ -10,8 +10,6 @@ import (
 	"time"
 
 	"github.com/airforce270/airbot/apiclients/twitchtest"
-	"github.com/airforce270/airbot/apiclients/twitchtmi"
-	"github.com/airforce270/airbot/apiclients/twitchtmi/twitchtmitest"
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/database/databasetest"
 	"github.com/airforce270/airbot/database/models"
@@ -134,8 +132,6 @@ func TestInboundPendingDuels(t *testing.T) {
 func TestGrantPoints(t *testing.T) {
 	db := databasetest.NewFakeDB(t)
 	server := newTestServer()
-	setFakes(server.URL)
-	defer resetFakes()
 
 	if err := db.Where("1 = 1").Delete(&models.User{}).Error; err != nil {
 		t.Fatal(err)
@@ -202,8 +198,6 @@ func TestGrantPoints(t *testing.T) {
 func TestGetInactiveUsers(t *testing.T) {
 	db := databasetest.NewFakeDB(t)
 	server := newTestServer()
-	setFakes(server.URL)
-	defer resetFakes()
 
 	if err := db.Where("1 = 1").Delete(&models.User{}).Error; err != nil {
 		t.Fatal(err)
@@ -223,10 +217,10 @@ func TestGetInactiveUsers(t *testing.T) {
 	}
 
 	got := getInactiveUsers(ps, db)
-	want := []models.User{user2}
+	want := []models.User{user1, user2}
 
 	if len(got) != len(want) {
-		t.Fatalf("getInactiveUsers() got %d users, want %d: got: %v, want: %v", len(got), len(want), got, want)
+		t.Fatalf("getInactiveUsers() got %d users, want %d: diff (-want +got):\n%s", len(got), len(want), cmp.Diff(want, got))
 	}
 	if got[0].ID != want[0].ID {
 		t.Errorf("getInactiveUsers()[0].ID = %d want %d", got[0].ID, want[0].ID)
@@ -483,24 +477,12 @@ func add50PointsToUser(user models.User, db *gorm.DB) error {
 
 func newTestServer() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.Contains(r.URL.Path, "/group/user/user1/chatters") {
-			fmt.Fprint(w, twitchtmitest.FetchChattersSingleChatterResp)
-		} else if strings.Contains(r.URL.Path, "/group/user/user2/chatters") {
-			fmt.Fprint(w, twitchtmitest.FetchChattersSingleChatterResp)
+		if strings.Contains(r.URL.Path, "/chat/chatters") {
+			fmt.Fprint(w, twitchtest.GetChannelChatChattersResp)
 		} else if strings.Contains(r.URL.Path, "/users") {
 			fmt.Fprint(w, twitchtest.GetUsersResp)
 		} else {
 			log.Printf("Unknown URL sent to test server: %s", r.URL.Path)
 		}
 	}))
-}
-
-var savedTwitchTmiBaseURL = twitchtmi.BaseURL
-
-func setFakes(url string) {
-	twitchtmi.BaseURL = url
-}
-
-func resetFakes() {
-	twitchtmi.BaseURL = savedTwitchTmiBaseURL
 }
