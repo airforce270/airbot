@@ -42,7 +42,7 @@ jobs:
           cache-dependency-path: airbot/go.sum
 
       - name: Build Docker image
-        uses: docker/build-push-action@v4.1.1
+        uses: docker/build-push-action@v4.2.1
         with:
           context: .
           file: airbot/Dockerfile
