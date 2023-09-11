@@ -272,6 +272,7 @@ func (t *Twitch) connectIRC() {
 		}
 	}()
 	wg.Wait()
+	t.irc.OnConnect(nil)
 
 	for _, channel := range t.channels {
 		log.Printf("Joining Twitch channel %s...", channel.Name)
