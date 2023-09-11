@@ -7,18 +7,15 @@ go 1.21
 // For example:
 // replace github.com/nicklaw5/helix/v2 => ../helix
 
-// Temporary until https://github.com/nicklaw5/helix/pull/200 is merged.
-replace github.com/nicklaw5/helix/v2 => github.com/airforce270/helix/v2 v2.0.0-20230903034401-94771e2b98d9
-
 require (
 	github.com/Danny-Dasilva/CycleTLS/cycletls v0.0.0-20220620102923-c84d740b4757
 	github.com/gempir/go-twitch-irc/v3 v3.3.0
 	github.com/google/go-cmp v0.5.9
-	github.com/nicklaw5/helix/v2 v2.24.1
+	github.com/nicklaw5/helix/v2 v2.25.0
 	github.com/pelletier/go-toml/v2 v2.1.0
 	github.com/redis/go-redis/v9 v9.1.0
 	github.com/shirou/gopsutil/v3 v3.23.8
-	golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63
+	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 	golang.org/x/sync v0.3.0
 	gonum.org/v1/gonum v0.14.0
 	gorm.io/driver/postgres v1.5.2
@@ -48,8 +45,8 @@ require (
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
-	golang.org/x/crypto v0.12.0 // indirect
-	golang.org/x/net v0.14.0 // indirect
+	golang.org/x/crypto v0.13.0 // indirect
+	golang.org/x/net v0.15.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 )
