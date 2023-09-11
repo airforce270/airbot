@@ -1,6 +1,6 @@
 module github.com/airforce270/airbot
 
-go 1.21
+go 1.21.1
 
 // To use local copies of dependencies here (for development),
 // add a `replace` directive.
