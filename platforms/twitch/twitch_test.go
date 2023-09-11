@@ -14,6 +14,7 @@ import (
 )
 
 func TestTwitch_CurrentUsers(t *testing.T) {
+	t.Parallel()
 	db := databasetest.NewFakeDB(t)
 	server := newTestServer()
 	tw := NewForTesting(server.URL, db)
@@ -30,6 +31,7 @@ func TestTwitch_CurrentUsers(t *testing.T) {
 }
 
 func TestLowercaseAll(t *testing.T) {
+	t.Parallel()
 	input := []string{
 		"lower",
 		"lower-with-symbols",
@@ -55,6 +57,7 @@ func TestLowercaseAll(t *testing.T) {
 }
 
 func TestBypassSameMessageDetection(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		desc  string
 		input string
@@ -88,7 +91,9 @@ func TestBypassSameMessageDetection(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
+			t.Parallel()
 			if got := bypassSameMessageDetection(tc.input); got != tc.want {
 				t.Errorf("bypassSameMessageDetection() = %q, want %q", got, tc.want)
 			}

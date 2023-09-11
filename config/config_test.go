@@ -12,6 +12,7 @@ import (
 var configExample []byte
 
 func TestParse(t *testing.T) {
+	t.Parallel()
 	want := &Config{
 		LogIncoming: true,
 		LogOutgoing: true,
@@ -48,6 +49,7 @@ func TestParse(t *testing.T) {
 }
 
 func TestSupinicConfigIsConfigured(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		input SupinicConfig
 		want  bool
@@ -79,7 +81,9 @@ func TestSupinicConfigIsConfigured(t *testing.T) {
 	}
 
 	for i, tc := range tests {
+		tc := tc
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			t.Parallel()
 			if got := tc.input.IsConfigured(); got != tc.want {
 				t.Errorf("SupinicConfig.IsConfigured() = %t, want %t", got, tc.want)
 			}

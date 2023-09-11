@@ -10,9 +10,7 @@ import (
 )
 
 func TestFetchPaste(t *testing.T) {
-	server := fakeserver.New()
-	defer server.Close()
-
+	t.Parallel()
 	tests := []struct {
 		desc    string
 		useResp string
@@ -31,8 +29,12 @@ func TestFetchPaste(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		server.Resp = tc.useResp
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
+			t.Parallel()
+			server := fakeserver.New()
+			defer server.Close()
+			server.Resp = tc.useResp
 			got, err := FetchPaste(server.URL())
 			if err != nil {
 				t.Fatalf("FetchPaste() unexpected error: %v", err)
@@ -42,6 +44,5 @@ func TestFetchPaste(t *testing.T) {
 				t.Errorf("FetchPaste() diff (-want +got):\n%s", diff)
 			}
 		})
-		server.Reset()
 	}
 }

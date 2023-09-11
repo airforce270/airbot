@@ -7,6 +7,7 @@ import (
 )
 
 func TestParse(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		desc       string
 		inputArg   Param
@@ -279,7 +280,9 @@ func TestParse(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
+			t.Parallel()
 			gotParsed, gotLeft := tc.inputArg.Parse(tc.inputMsg)
 
 			if diff := cmp.Diff(tc.wantParsed, gotParsed); diff != "" {

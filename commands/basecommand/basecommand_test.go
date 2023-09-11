@@ -9,6 +9,7 @@ import (
 )
 
 func TestCommandUsage(t *testing.T) {
+	t.Parallel()
 	prefix := "$"
 	tests := []struct {
 		desc  string
@@ -51,7 +52,9 @@ func TestCommandUsage(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
+			t.Parallel()
 			if got := tc.input.Usage(prefix); got != tc.want {
 				t.Errorf("Usage() = %s, want %s", got, tc.want)
 			}
@@ -60,6 +63,7 @@ func TestCommandUsage(t *testing.T) {
 }
 
 func TestArgumentUsageForDocString(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		desc  string
 		input arg.Param
@@ -150,7 +154,9 @@ func TestFirstArgOrUsername(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc
 		t.Run(fmt.Sprintf("len(args)=%d", len(tc.args)), func(t *testing.T) {
+			t.Parallel()
 			if got := FirstArgOrUsername(tc.args, tc.msg); got != tc.want {
 				t.Errorf("FirstArgOrUsername() = %s, want %s", got, tc.want)
 			}
@@ -159,6 +165,7 @@ func TestFirstArgOrUsername(t *testing.T) {
 }
 
 func TestFirstArgOrChannel(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		args []arg.Arg
 		msg  *base.IncomingMessage
@@ -214,7 +221,9 @@ func TestFirstArgOrChannel(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc
 		t.Run(fmt.Sprintf("len(args)=%d", len(tc.args)), func(t *testing.T) {
+			t.Parallel()
 			if got := FirstArgOrChannel(tc.args, tc.msg); got != tc.want {
 				t.Errorf("FirstArgOrChannel() = %s, want %s", got, tc.want)
 			}

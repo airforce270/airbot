@@ -8,8 +8,7 @@ import (
 )
 
 func TestUpdateBotActivity(t *testing.T) {
-	server := fakeserver.New()
-	defer server.Close()
+	t.Parallel()
 
 	tests := []struct {
 		desc    string
@@ -29,8 +28,12 @@ func TestUpdateBotActivity(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		server.Resp = tc.useResp
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
+			t.Parallel()
+			server := fakeserver.New()
+			defer server.Close()
+			server.Resp = tc.useResp
 			client := NewClientForTesting(server.URL())
 
 			err := client.updateBotActivity()
@@ -42,6 +45,5 @@ func TestUpdateBotActivity(t *testing.T) {
 				t.Errorf("updateBotActivity() want error, but returned none")
 			}
 		})
-		server.Reset()
 	}
 }

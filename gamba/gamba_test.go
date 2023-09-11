@@ -271,6 +271,7 @@ func TestGetActiveUsers(t *testing.T) {
 }
 
 func TestDeduplicateByUser(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		desc  string
 		input []grant
@@ -396,7 +397,9 @@ func TestDeduplicateByUser(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
+			t.Parallel()
 			got := deduplicateByUser(tc.input)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Errorf("deduplicateByUser() diff (-want +got):\n%s", diff)

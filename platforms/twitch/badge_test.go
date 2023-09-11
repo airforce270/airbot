@@ -7,6 +7,7 @@ import (
 )
 
 func TestUserHasBadge(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		desc string
 		user twitchirc.User
@@ -122,7 +123,9 @@ func TestUserHasBadge(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
+			t.Parallel()
 			if got := userHasBadge(tc.user, tc.b); got != tc.want {
 				t.Errorf("userHasBadge() = %v, want %v", got, tc.want)
 			}

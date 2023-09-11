@@ -1,13 +1,16 @@
-package utils
+package utils_test
 
 import (
 	"strconv"
 	"testing"
 
+	"github.com/airforce270/airbot/utils"
+
 	"github.com/google/go-cmp/cmp"
 )
 
 func TestChunk(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		input []int
 		size  int
@@ -47,8 +50,10 @@ func TestChunk(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc
 		t.Run(strconv.Itoa(len(tc.input)), func(t *testing.T) {
-			got := Chunk(tc.input, tc.size)
+			t.Parallel()
+			got := utils.Chunk(tc.input, tc.size)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Errorf("Chunk() diff (-want +got):\n%s", diff)
 			}
