@@ -8,15 +8,13 @@ import (
 
 // NewInMemory creates a new InMemoryCache for test.
 func NewInMemory() *InMemory {
-	m := map[string]any{}
-	c := InMemory{d: m}
-	return &c
+	return &InMemory{d: map[string]any{}}
 }
 
 // InMemory implements a simple map-based cache for testing.
 type InMemory struct {
+	mtx sync.Mutex // protects writes to d
 	d   map[string]any
-	mtx sync.Mutex
 }
 
 func (c *InMemory) StoreBool(key string, value bool) error {
@@ -52,6 +50,6 @@ func (c *InMemory) FetchString(key string) (string, error) {
 
 func (c *InMemory) store(key string, value any) {
 	c.mtx.Lock()
-	defer c.mtx.Unlock()
 	c.d[key] = value
+	c.mtx.Unlock()
 }
