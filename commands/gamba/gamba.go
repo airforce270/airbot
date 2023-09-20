@@ -563,15 +563,9 @@ func roulette(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error
 }
 
 func fetchUserPoints(db *gorm.DB, user models.User) (int64, error) {
-	var transactions []*models.GambaTransaction
-	if err := db.Where(models.GambaTransaction{UserID: user.ID}).Find(&transactions).Error; err != nil {
+	var points int64
+	if err := db.Model(&models.GambaTransaction{}).Select("COALESCE(SUM(delta), 0)").Where(models.GambaTransaction{UserID: user.ID}).Scan(&points).Error; err != nil {
 		return 0, fmt.Errorf("failed to fetch points for user %d: %w", user.ID, err)
 	}
-
-	var points int64
-	for _, txn := range transactions {
-		points += txn.Delta
-	}
-
 	return points, nil
 }
