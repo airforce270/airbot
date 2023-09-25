@@ -11,7 +11,7 @@ require (
 	github.com/Danny-Dasilva/CycleTLS/cycletls v0.0.0-20220620102923-c84d740b4757
 	github.com/gempir/go-twitch-irc/v3 v3.3.0
 	github.com/google/go-cmp v0.5.9
-	github.com/nicklaw5/helix/v2 v2.25.0
+	github.com/nicklaw5/helix/v2 v2.25.1
 	github.com/pelletier/go-toml/v2 v2.1.0
 	github.com/redis/go-redis/v9 v9.1.0
 	github.com/shirou/gopsutil/v3 v3.23.8
