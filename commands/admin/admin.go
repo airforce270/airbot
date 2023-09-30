@@ -12,6 +12,7 @@ import (
 	"github.com/airforce270/airbot/base/arg"
 	"github.com/airforce270/airbot/cache"
 	"github.com/airforce270/airbot/commands/basecommand"
+	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
@@ -28,6 +29,7 @@ var Commands = [...]basecommand.Command{
 	joinedCommand,
 	leaveCommand,
 	leaveOtherCommand,
+	reloadConfigCommand,
 	setPrefixCommand,
 }
 
@@ -127,6 +129,13 @@ var (
 			}
 			return leaveChannel(msg, channelArg.StringValue)
 		},
+	}
+
+	reloadConfigCommand = basecommand.Command{
+		Name:       "reloadconfig",
+		Desc:       "Reloads the bot's config after a config change.",
+		Permission: permission.Admin,
+		Handler:    reloadConfig,
 	}
 
 	setPrefixCommand = basecommand.Command{
@@ -320,6 +329,21 @@ func leaveChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Mess
 		})
 	}
 	return msgs, nil
+}
+
+func reloadConfig(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+	cfg, err := config.Read()
+	if err != nil {
+		return nil, err
+	}
+	config.StoreGlobals(cfg)
+
+	return []*base.Message{
+		{
+			Channel: msg.Message.Channel,
+			Text:    "Reloaded config.",
+		},
+	}, nil
 }
 
 func setPrefix(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {

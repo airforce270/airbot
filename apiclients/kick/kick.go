@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/Danny-Dasilva/CycleTLS/cycletls"
@@ -17,14 +18,21 @@ var (
 	BaseURL = "https://kick.com"
 	// ErrChannelNotFound is returned when a channel is not found.
 	ErrChannelNotFound = errors.New("channel not found")
-	// Token to use for Kick calls.
-	Token string
-	// UserToken to use for Kick calls.
-	UserToken string
+	// JA3 to use for Kick calls.
+	JA3 atomic.Pointer[string]
+	// UserAgent to use for Kick calls.
+	UserAgent atomic.Pointer[string]
 
 	cycleTLSClient = cycletls.Init()
 	errNotFound    = errors.New("404 not found")
 )
+
+// To avoid a nil pointer, just store an empty string by default.
+func init() {
+	empty := ""
+	JA3.Store(&empty)
+	UserAgent.Store(&empty)
+}
 
 // Channel represents a Kick channel.
 type Channel struct {
@@ -316,7 +324,7 @@ func FetchChannel(channel string) (*Channel, error) {
 }
 
 func get(reqURL string) (respBody []byte, err error) {
-	httpResp, err := cycleTLSClient.Do(reqURL, cycletls.Options{Ja3: Token, UserAgent: UserToken}, "GET")
+	httpResp, err := cycleTLSClient.Do(reqURL, cycletls.Options{Ja3: *JA3.Load(), UserAgent: *UserAgent.Load()}, "GET")
 	if err != nil {
 		return nil, fmt.Errorf("get request to Kick API failed (URL:%s): %w", reqURL, err)
 	}

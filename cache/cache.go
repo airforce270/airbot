@@ -4,7 +4,7 @@ package cache
 import (
 	"context"
 	"errors"
-	"fmt"
+	"sync"
 	"time"
 
 	"github.com/airforce270/airbot/base"
@@ -13,14 +13,26 @@ import (
 )
 
 func Instance() Cache {
-	if Conn == nil {
+	connMtx.RLock()
+	defer connMtx.RUnlock()
+	if conn == nil {
 		panic("cache.Conn is nil!")
 	}
-	return Conn
+	return conn
 }
 
-// Conn is an instance of the cache.
-var Conn Cache = nil
+func SetInstance(c Cache) {
+	connMtx.Lock()
+	conn = c
+	connMtx.Unlock()
+}
+
+var (
+	// Conn is an instance of the cache.
+	conn Cache = nil
+
+	connMtx sync.RWMutex // protects Conn
+)
 
 // A Cache stores and retrieves simple key-value data quickly.
 type Cache interface {
@@ -50,7 +62,7 @@ const (
 
 // GlobalSlowmodeKey returns the global slowmode cache key for a platform.
 func GlobalSlowmodeKey(p base.Platform) string {
-	return fmt.Sprintf("global_slowmode_%s", p.Name())
+	return "global_slowmode_" + p.Name()
 }
 
 // Redis implements Cache for a real Redis database.

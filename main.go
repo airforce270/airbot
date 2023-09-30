@@ -7,7 +7,6 @@ import (
 	"os/signal"
 	"sync"
 
-	"github.com/airforce270/airbot/apiclients/kick"
 	"github.com/airforce270/airbot/apiclients/supinic"
 	"github.com/airforce270/airbot/cache"
 	"github.com/airforce270/airbot/config"
@@ -54,26 +53,25 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 	startListeningForSigterm()
 
-	log.Printf("Reading config from %s...", config.Name)
-	cfg, err := config.Read(config.Name)
+	log.Print("Reading config...")
+	cfg, err := config.Read()
 	if err != nil {
-		log.Fatalf("failed to read config from %s: %v", config.Name, err)
+		log.Fatalf("failed to read config: %v", err)
 	}
 
 	log.Print("Setting config values...")
-	kick.Token = cfg.Platforms.Kick.JA3
-	kick.UserToken = cfg.Platforms.Kick.UserAgent
+	config.StoreGlobals(cfg)
 
 	log.Printf("Connecting to database...")
 	db, err := database.Connect(os.Getenv("POSTGRES_DB"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"))
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
-	database.Conn = db
+	database.SetInstance(db)
 
 	log.Printf("Connecting to cache...")
 	cdb := cache.NewRedis()
-	cache.Conn = &cdb
+	cache.SetInstance(&cdb)
 
 	log.Printf("Performing database migrations...")
 	if err = database.Migrate(db); err != nil {

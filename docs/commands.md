@@ -56,6 +56,12 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - > Usage: `$leaveother <channel>`
 - > Minimum permission level: `Owner`
 
+### $reloadconfig
+
+- Reloads the bot's config after a config change.
+- > Usage: `$reloadconfig`
+- > Minimum permission level: `Admin`
+
 ### $setprefix
 
 - Sets the bot's prefix in the channel.

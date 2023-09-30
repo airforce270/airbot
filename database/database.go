@@ -4,6 +4,7 @@ package database
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/airforce270/airbot/database/models"
 
@@ -12,15 +13,27 @@ import (
 )
 
 func Instance() *gorm.DB {
-	if Conn == nil {
+	connMtx.RLock()
+	defer connMtx.RUnlock()
+	if conn == nil {
 		panic("database.Conn is nil!")
 	}
-	return Conn
+	return conn
 }
 
-// Conn is the connection to the database.
-// It should be set by main.
-var Conn *gorm.DB
+func SetInstance(c *gorm.DB) {
+	connMtx.Lock()
+	conn = c
+	connMtx.Unlock()
+}
+
+var (
+	// Conn is the connection to the database.
+	// It should be set by main.
+	conn *gorm.DB
+
+	connMtx sync.RWMutex // protects conn
+)
 
 // Connect creates a connection to the database.
 func Connect(dbname, user, password string) (*gorm.DB, error) {

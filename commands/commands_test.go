@@ -30,6 +30,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/nicklaw5/helix/v2"
+	"github.com/pelletier/go-toml/v2"
 	"gorm.io/gorm"
 )
 
@@ -51,8 +52,14 @@ func TestCommands(t *testing.T) {
 	defer server.Close()
 
 	config.OSReadFile = func(name string) ([]byte, error) {
-		return []byte("blahblah"), nil
+		var buf bytes.Buffer
+		enc := toml.NewEncoder(&buf)
+		if err := enc.Encode(&config.Config{}); err != nil {
+			return nil, err
+		}
+		return buf.Bytes(), nil
 	}
+	defer func() { config.OSReadFile = os.ReadFile }()
 
 	tests := []testCase{
 		// admin.go commands
@@ -449,6 +456,41 @@ func TestCommands(t *testing.T) {
 				},
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
+			},
+			want: nil,
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$reloadconfig",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Owner,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
+			},
+			want: []*base.Message{
+				{
+					Text:    "Reloaded config.",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$reloadconfig",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
 			},
 			want: nil,
 		},
@@ -2821,7 +2863,7 @@ func TestCommands(t *testing.T) {
 			t.Run(fmt.Sprintf("[%s] %s", tc.input.PermissionLevel.Name(), tc.input.Message.Text), func(t *testing.T) {
 				server.Resp = tc.apiResp
 				db := databasetest.NewFakeDB(t)
-				database.Conn = db
+				database.SetInstance(db)
 				setFakes(server.URL(), db)
 				for i, f := range tc.runBefore {
 					if err := f(); err != nil {
@@ -2849,8 +2891,6 @@ func TestCommands(t *testing.T) {
 			})
 		}
 	}
-
-	config.OSReadFile = os.ReadFile
 }
 
 func buildTestCases(t *testing.T, tc testCase) []testCase {
@@ -2883,7 +2923,7 @@ func setFakes(url string, db *gorm.DB) {
 	base.RandReader = bytes.NewBuffer([]byte{3})
 	base.RandSource = fakeExpRandSource{Value: uint64(150)}
 	bible.BaseURL = url
-	cache.Conn = cachetest.NewInMemory()
+	cache.SetInstance(cachetest.NewInMemory())
 	ivr.BaseURL = url
 	kick.BaseURL = url
 	pastebin.FetchPasteURLOverride = url
@@ -2894,7 +2934,7 @@ func resetFakes() {
 	base.RandReader = rand.Reader
 	base.RandSource = nil
 	bible.BaseURL = savedBibleURL
-	cache.Conn = nil
+	cache.SetInstance(nil)
 	ivr.BaseURL = savedIVRURL
 	kick.BaseURL = savedKickURL
 	pastebin.FetchPasteURLOverride = ""

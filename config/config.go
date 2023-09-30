@@ -7,11 +7,14 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/airforce270/airbot/apiclients/kick"
 	"github.com/pelletier/go-toml/v2"
 )
 
-// Name contains the name of the config file to be read (when referenced by the binary).
-const Name = "config.toml"
+// fileName contains the name of the config file to be read (when referenced by the binary).
+const fileName = "config.toml"
+
+var OSReadFile = os.ReadFile
 
 // Config is the top-level config object.
 type Config struct {
@@ -96,18 +99,19 @@ func (s *SupinicConfig) IsConfigured() bool {
 	return !hasDefaultValue && !isUnset
 }
 
-// Read reads the config data from the given path.
-func Read(filePath string) (*Config, error) {
-	raw, err := OSReadFile(filePath)
+// Read reads the config data from the config file.
+func Read() (*Config, error) {
+	raw, err := OSReadFile(fileName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read %s: %w", filePath, err)
+		return nil, fmt.Errorf("failed to read %s: %w", fileName, err)
 	}
 	return parse(raw)
 }
 
-var (
-	OSReadFile = os.ReadFile
-)
+func StoreGlobals(cfg *Config) {
+	kick.JA3.Store(&cfg.Platforms.Kick.JA3)
+	kick.UserAgent.Store(&cfg.Platforms.Kick.UserAgent)
+}
 
 // parse parses raw bytes into a config.
 func parse(data []byte) (*Config, error) {
