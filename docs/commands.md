@@ -13,6 +13,13 @@ If the parameter is wrapped in `<angle brackets>`, it's a **required** parameter
 
 If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
+## 7TV
+
+### $7tv emotecount
+
+- Counts emotes in a channel.
+- > Usage: `$7tv emotecount [channel]`
+
 ## Admin
 
 ### $botslowmode

@@ -20,6 +20,7 @@ import (
 	"github.com/airforce270/airbot/commands/gamba"
 	"github.com/airforce270/airbot/commands/kick"
 	"github.com/airforce270/airbot/commands/moderation"
+	"github.com/airforce270/airbot/commands/seventv"
 	"github.com/airforce270/airbot/commands/twitch"
 	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
@@ -29,6 +30,7 @@ import (
 
 // CommandGroups contains all groups of commands.
 var CommandGroups = map[string][]basecommand.Command{
+	"7TV":        seventv.Commands[:],
 	"Admin":      admin.Commands[:],
 	"Bot info":   append([]basecommand.Command{helpCommand}, botinfo.Commands[:]...),
 	"Bulk":       bulk.Commands[:],

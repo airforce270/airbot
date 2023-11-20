@@ -16,6 +16,8 @@ import (
 	"github.com/airforce270/airbot/apiclients/kick/kicktest"
 	"github.com/airforce270/airbot/apiclients/pastebin"
 	"github.com/airforce270/airbot/apiclients/pastebin/pastebintest"
+	"github.com/airforce270/airbot/apiclients/seventv"
+	"github.com/airforce270/airbot/apiclients/seventv/seventvtest"
 	"github.com/airforce270/airbot/apiclients/twitchtest"
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/cache"
@@ -38,6 +40,7 @@ type testCase struct {
 	input      base.IncomingMessage
 	otherTexts []string
 	apiResp    string
+	apiResps   []string
 	runBefore  []func() error
 	runAfter   []func() error
 	want       []*base.Message
@@ -2203,6 +2206,56 @@ func TestCommands(t *testing.T) {
 			want: nil,
 		},
 
+		// seventv.go commands
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$7tv emotecount",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			apiResps: []string{
+				twitchtest.GetUsersResp,
+				seventvtest.FetchUserConnectionByTwitchUserIdSmallNonSubResp,
+			},
+			want: []*base.Message{
+				{
+					Text:    "user1 has 3 emotes on 7TV",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$7tv emotecount airforce2700",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting(server.URL(), databasetest.NewFakeDBConn()),
+			},
+			apiResps: []string{
+				twitchtest.GetUsersResp,
+				seventvtest.FetchUserConnectionByTwitchUserIdSmallNonSubResp,
+			},
+			want: []*base.Message{
+				{
+					Text:    "airforce2700 has 3 emotes on 7TV",
+					Channel: "user2",
+				},
+			},
+		},
+
 		// twitch.go commands
 		{
 			input: base.IncomingMessage{
@@ -2862,6 +2915,7 @@ func TestCommands(t *testing.T) {
 		for _, tc := range buildTestCases(t, unbuiltTC) {
 			t.Run(fmt.Sprintf("[%s] %s", tc.input.PermissionLevel.Name(), tc.input.Message.Text), func(t *testing.T) {
 				server.Resp = tc.apiResp
+				server.Resps = tc.apiResps
 				db := databasetest.NewFakeDB(t)
 				database.SetInstance(db)
 				setFakes(server.URL(), db)
@@ -2907,9 +2961,10 @@ func buildTestCases(t *testing.T, tc testCase) []testCase {
 }
 
 var (
+	savedBibleURL = bible.BaseURL
 	savedIVRURL   = ivr.BaseURL
 	savedKickURL  = kick.BaseURL
-	savedBibleURL = bible.BaseURL
+	saved7TVURL   = seventv.BaseURL
 )
 
 type fakeExpRandSource struct {
@@ -2927,6 +2982,7 @@ func setFakes(url string, db *gorm.DB) {
 	ivr.BaseURL = url
 	kick.BaseURL = url
 	pastebin.FetchPasteURLOverride = url
+	seventv.BaseURL = url
 	twitch.Conn = twitch.NewForTesting(url, db)
 }
 
@@ -2938,6 +2994,7 @@ func resetFakes() {
 	ivr.BaseURL = savedIVRURL
 	kick.BaseURL = savedKickURL
 	pastebin.FetchPasteURLOverride = ""
+	seventv.BaseURL = saved7TVURL
 	twitch.Conn = twitch.NewForTesting(helix.DefaultAPIBaseURL, nil)
 }
 

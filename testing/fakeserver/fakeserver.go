@@ -12,12 +12,24 @@ import (
 func New() *FakeServer {
 	s := FakeServer{}
 	s.Reset()
+	respIndex := 0
 	httpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// yes, this is hacky
 		if strings.Contains(s.Resp, `"statusCode": 404`) {
 			w.WriteHeader(http.StatusNotFound)
 		}
-		fmt.Fprint(w, s.Resp)
+
+		if len(s.Resps) == 0 {
+			fmt.Fprint(w, s.Resp)
+			return
+		}
+
+		fmt.Fprint(w, s.Resps[respIndex])
+
+		respIndex++
+		if respIndex >= len(s.Resps) {
+			respIndex = 0
+		}
 	}))
 	s.s = httpServer
 	return &s
@@ -29,6 +41,10 @@ type FakeServer struct {
 	s *httptest.Server
 	// onClose contains functions to be run when Close() is called.
 	onClose []func()
+
+	// Resps will be returned in order when calls are made to the server.
+	// If this is set, Resp is ignored.
+	Resps []string
 
 	// Resp is the response to be returned when calls are made to the server.
 	Resp string
