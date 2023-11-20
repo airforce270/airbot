@@ -1,0 +1,59 @@
+[
+  {
+    "banned": false,
+    "displayName": "xQt0001",
+    "login": "xqt0001",
+    "id": "591140996",
+    "bio": "GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA GAMBA ",
+    "follows": 144,
+    "followers": 1940,
+    "profileViewCount": 190,
+    "chatColor": "#FDFF00",
+    "logo": "https://static-cdn.jtvnw.net/jtv_user_pictures/a5fecb44-bb38-4739-aa04-371cc1ea4152-profile_image-600x600.png",
+    "banner": "https://static-cdn.jtvnw.net/jtv_user_pictures/fb78db5c-0078-4e85-bfe1-f527f19d9a22-profile_banner-480.jpeg",
+    "verifiedBot": false,
+    "createdAt": "2020-10-02T16:25:47.819212Z",
+    "updatedAt": "2022-10-09T03:41:23.622605Z",
+    "emotePrefix": "xqt000",
+    "roles": {
+      "isAffiliate": true,
+      "isPartner": false,
+      "isStaff": null
+    },
+    "badges": [
+      {
+        "setID": "premium",
+        "title": "Prime Gaming",
+        "description": "Prime Gaming",
+        "version": "1"
+      }
+    ],
+    "chatSettings": {
+      "chatDelayMs": 0,
+      "followersOnlyDurationMinutes": null,
+      "slowModeDurationSeconds": null,
+      "blockLinks": false,
+      "isSubscribersOnlyModeEnabled": false,
+      "isEmoteOnlyModeEnabled": false,
+      "isFastSubsModeEnabled": false,
+      "isUniqueChatModeEnabled": false,
+      "requireVerifiedAccount": false,
+      "rules": []
+    },
+    "stream": {
+      "title": "tiktok esport #228 i guess",
+      "id": "39929884600",
+      "createdAt": "2022-10-09T22:00:33Z",
+      "type": "live",
+      "viewersCount": 77,
+      "game": {
+        "displayName": "Just Chatting"
+      }
+    },
+    "lastBroadcast": {
+      "startedAt": "2022-10-09T22:00:37.637909Z",
+      "title": "tiktok esport #228 i guess"
+    },
+    "panels": []
+  }
+]

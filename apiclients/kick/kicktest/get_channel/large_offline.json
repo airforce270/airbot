@@ -1,0 +1,231 @@
+{
+  "id": 668,
+  "user_id": 676,
+  "slug": "xqc",
+  "is_banned": false,
+  "playback_url": "<redacted>",
+  "vod_enabled": true,
+  "subscription_enabled": true,
+  "followers_count": 530229,
+  "subscriber_badges": [
+    {
+      "id": 97968,
+      "channel_id": 668,
+      "months": 1,
+      "badge_image": {
+        "srcset": "",
+        "src": "https:\/\/files.kick.com\/channel_subscriber_badges\/97968\/original"
+      }
+    },
+    {
+      "id": 97975,
+      "channel_id": 668,
+      "months": 2,
+      "badge_image": {
+        "srcset": "",
+        "src": "https:\/\/files.kick.com\/channel_subscriber_badges\/97975\/original"
+      }
+    },
+    {
+      "id": 97977,
+      "channel_id": 668,
+      "months": 3,
+      "badge_image": {
+        "srcset": "",
+        "src": "https:\/\/files.kick.com\/channel_subscriber_badges\/97977\/original"
+      }
+    },
+    {
+      "id": 97978,
+      "channel_id": 668,
+      "months": 6,
+      "badge_image": {
+        "srcset": "",
+        "src": "https:\/\/files.kick.com\/channel_subscriber_badges\/97978\/original"
+      }
+    },
+    {
+      "id": 97982,
+      "channel_id": 668,
+      "months": 9,
+      "badge_image": {
+        "srcset": "",
+        "src": "https:\/\/files.kick.com\/channel_subscriber_badges\/97982\/original"
+      }
+    },
+    {
+      "id": 97985,
+      "channel_id": 668,
+      "months": 12,
+      "badge_image": {
+        "srcset": "",
+        "src": "https:\/\/files.kick.com\/channel_subscriber_badges\/97985\/original"
+      }
+    },
+    {
+      "id": 97987,
+      "channel_id": 668,
+      "months": 18,
+      "badge_image": {
+        "srcset": "",
+        "src": "https:\/\/files.kick.com\/channel_subscriber_badges\/97987\/original"
+      }
+    },
+    {
+      "id": 97988,
+      "channel_id": 668,
+      "months": 24,
+      "badge_image": {
+        "srcset": "",
+        "src": "https:\/\/files.kick.com\/channel_subscriber_badges\/97988\/original"
+      }
+    },
+    {
+      "id": 97989,
+      "channel_id": 668,
+      "months": 30,
+      "badge_image": {
+        "srcset": "",
+        "src": "https:\/\/files.kick.com\/channel_subscriber_badges\/97989\/original"
+      }
+    }
+  ],
+  "banner_image": {
+    "url": "https:\/\/files.kick.com\/images\/channel\/668\/banner_image\/6fcf7418-df00-460b-9467-1fa95b8eb981"
+  },
+  "livestream": null,
+  "role": null,
+  "muted": false,
+  "follower_badges": [],
+  "offline_banner_image": null,
+  "verified": true,
+  "recent_categories": [
+    {
+      "id": 28,
+      "category_id": 4,
+      "name": "Slots & Casino",
+      "slug": "slots",
+      "tags": [
+        "Gambling"
+      ],
+      "description": null,
+      "deleted_at": null,
+      "viewers": 17443,
+      "banner": {
+        "responsive": "https:\/\/files.kick.com\/images\/subcategories\/28\/banner\/responsives\/5d5a7c84-0791-4e4c-9e9e-2ff031c88f8f___banner_600_800.webp 600w, https:\/\/files.kick.com\/images\/subcategories\/28\/banner\/responsives\/5d5a7c84-0791-4e4c-9e9e-2ff031c88f8f___banner_501_668.webp 501w, https:\/\/files.kick.com\/images\/subcategories\/28\/banner\/responsives\/5d5a7c84-0791-4e4c-9e9e-2ff031c88f8f___banner_420_560.webp 420w, https:\/\/files.kick.com\/images\/subcategories\/28\/banner\/responsives\/5d5a7c84-0791-4e4c-9e9e-2ff031c88f8f___banner_351_468.webp 351w, https:\/\/files.kick.com\/images\/subcategories\/28\/banner\/responsives\/5d5a7c84-0791-4e4c-9e9e-2ff031c88f8f___banner_294_392.webp 294w, https:\/\/files.kick.com\/images\/subcategories\/28\/banner\/responsives\/5d5a7c84-0791-4e4c-9e9e-2ff031c88f8f___banner_245_327.webp 245w, https:\/\/files.kick.com\/images\/subcategories\/28\/banner\/responsives\/5d5a7c84-0791-4e4c-9e9e-2ff031c88f8f___banner_205_273.webp 205w, https:\/\/files.kick.com\/images\/subcategories\/28\/banner\/responsives\/5d5a7c84-0791-4e4c-9e9e-2ff031c88f8f___banner_172_229.webp 172w, data:image\/svg+xml;base64,PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbDpzcGFjZT0icHJlc2VydmUiIHg9IjAiCiB5PSIwIiB2aWV3Qm94PSIwIDAgNjAwIDgwMCI+Cgk8aW1hZ2Ugd2lkdGg9IjYwMCIgaGVpZ2h0PSI4MDAiIHhsaW5rOmhyZWY9ImRhdGE6aW1hZ2UvanBlZztiYXNlNjQsLzlqLzRBQVFTa1pKUmdBQkFRRUFZQUJnQUFELy9nQTdRMUpGUVZSUFVqb2daMlF0YW5CbFp5QjJNUzR3SUNoMWMybHVaeUJKU2tjZ1NsQkZSeUIyT0RBcExDQnhkV0ZzYVhSNUlEMGdPVEFLLzlzQVF3QURBZ0lEQWdJREF3TURCQU1EQkFVSUJRVUVCQVVLQndjR0NBd0tEQXdMQ2dzTERRNFNFQTBPRVE0TEN4QVdFQkVURkJVVkZRd1BGeGdXRkJnU0ZCVVUvOXNBUXdFREJBUUZCQVVKQlFVSkZBMExEUlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVS84QUFFUWdBS3dBZ0F3RWlBQUlSQVFNUkFmL0VBQjhBQUFFRkFRRUJBUUVCQUFBQUFBQUFBQUFCQWdNRUJRWUhDQWtLQy8vRUFMVVFBQUlCQXdNQ0JBTUZCUVFFQUFBQmZRRUNBd0FFRVFVU0lURkJCaE5SWVFjaWNSUXlnWkdoQ0NOQ3NjRVZVdEh3SkROaWNvSUpDaFlYR0JrYUpTWW5LQ2txTkRVMk56ZzVPa05FUlVaSFNFbEtVMVJWVmxkWVdWcGpaR1ZtWjJocGFuTjBkWFozZUhsNmc0U0Zob2VJaVlxU2s1U1ZscGVZbVpxaW82U2xwcWVvcWFxeXM3UzF0cmU0dWJyQ3c4VEZ4c2ZJeWNyUzA5VFYxdGZZMmRyaDR1UGs1ZWJuNk9ucThmTHo5UFgyOS9qNSt2L0VBQjhCQUFNQkFRRUJBUUVCQVFFQUFBQUFBQUFCQWdNRUJRWUhDQWtLQy8vRUFMVVJBQUlCQWdRRUF3UUhCUVFFQUFFQ2R3QUJBZ01SQkFVaE1RWVNRVkVIWVhFVElqS0JDQlJDa2FHeHdRa2pNMUx3RldKeTBRb1dKRFRoSmZFWEdCa2FKaWNvS1NvMU5qYzRPVHBEUkVWR1IwaEpTbE5VVlZaWFdGbGFZMlJsWm1kb2FXcHpkSFYyZDNoNWVvS0RoSVdHaDRpSmlwS1RsSldXbDVpWm1xS2pwS1dtcDZpcHFyS3p0TFcydDdpNXVzTER4TVhHeDhqSnl0TFQxTlhXMTlqWjJ1TGo1T1htNStqcDZ2THo5UFgyOS9qNSt2L2FBQXdEQVFBQ0VRTVJBRDhBNVhSZmcxZkd6M2JTVDdDcUduZkQvVVg4UUd5Wml2UFExN2Y0VThXeUhTaHRqREVEdUt3TG05TCtMSXJvWWpkajByeS9yTDBsZlZuMVZDaGlPV2FxL0QzT0c4Ui9DYS8wMmFCOStBU0s2alVmQzBtaytGbFNmREJsNjEyM2pDVnB0TlNTVjhrWU5ZM2lCbnUvQzR5U1J0NHJHclhsaXBScDR0M2ltZE5DOUtIdE1QZm1TKzhqOEQzbW5XZGlWdVpBQ08yYTUzeDc0czB1dzFlM250NUYyb2VRRFhDNmpwK3VHNyt5Mk82UnNjNHJEbCtHZmlEVkxwelA1bkhVR3FvMFAzYWJlaDZGSER4K3N5ZFdYdTlqMUh4VDhaZE12dERXR0lBeVk3VjV2cmZ4MmUyMG43THR5RjRCcHVuL0FBdnY3V0p6UEV6QUhBTmVmZkVEd2JlNmJkR09hUHkwYmtaRmE0WENxcFVsRGxQbzhSUXdlSHdFS25OZlh2cWZTUGc3VTFzTmJXZWNncXc1SnIwcE5YME9WV1pwa1YyNjRyeGM4QmFpZVJnVGhpUHhyc3BlN0ZJckU1ZlNyUzV0bWU2d1h2aHVTM2FFVHFYNjgxNHg4WU5IdGRkMUpUSGg0MEdCaXFsbEl3blg1aitkYkY2Z2FJRWpKOTY3NkZaVW5kTFV4cDVUVHFRZk83MlAvOWs9Ij4KCTwvaW1hZ2U+Cjwvc3ZnPg== 32w",
+        "url": "https:\/\/files.kick.com\/images\/subcategories\/28\/banner\/5d5a7c84-0791-4e4c-9e9e-2ff031c88f8f"
+      },
+      "category": {
+        "id": 4,
+        "name": "Gambling",
+        "slug": "gambling",
+        "icon": "\ud83c\udfb0"
+      }
+    },
+    {
+      "id": 15,
+      "category_id": 2,
+      "name": "Just Chatting",
+      "slug": "just-chatting",
+      "tags": [
+        "IRL"
+      ],
+      "description": null,
+      "deleted_at": null,
+      "viewers": 101354,
+      "banner": {
+        "responsive": "https:\/\/files.kick.com\/images\/subcategories\/15\/banner\/responsives\/8f43401b-0d59-4802-8f70-cd5e259adc9b___banner_600_800.webp 600w, https:\/\/files.kick.com\/images\/subcategories\/15\/banner\/responsives\/8f43401b-0d59-4802-8f70-cd5e259adc9b___banner_501_668.webp 501w, https:\/\/files.kick.com\/images\/subcategories\/15\/banner\/responsives\/8f43401b-0d59-4802-8f70-cd5e259adc9b___banner_420_560.webp 420w, https:\/\/files.kick.com\/images\/subcategories\/15\/banner\/responsives\/8f43401b-0d59-4802-8f70-cd5e259adc9b___banner_351_468.webp 351w, https:\/\/files.kick.com\/images\/subcategories\/15\/banner\/responsives\/8f43401b-0d59-4802-8f70-cd5e259adc9b___banner_293_391.webp 293w, https:\/\/files.kick.com\/images\/subcategories\/15\/banner\/responsives\/8f43401b-0d59-4802-8f70-cd5e259adc9b___banner_245_327.webp 245w, data:image\/svg+xml;base64,PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbDpzcGFjZT0icHJlc2VydmUiIHg9IjAiCiB5PSIwIiB2aWV3Qm94PSIwIDAgNjAwIDgwMCI+Cgk8aW1hZ2Ugd2lkdGg9IjYwMCIgaGVpZ2h0PSI4MDAiIHhsaW5rOmhyZWY9ImRhdGE6aW1hZ2UvanBlZztiYXNlNjQsLzlqLzRBQVFTa1pKUmdBQkFRRUFZQUJnQUFELy9nQTdRMUpGUVZSUFVqb2daMlF0YW5CbFp5QjJNUzR3SUNoMWMybHVaeUJKU2tjZ1NsQkZSeUIyT0RBcExDQnhkV0ZzYVhSNUlEMGdPVEFLLzlzQVF3QURBZ0lEQWdJREF3TURCQU1EQkFVSUJRVUVCQVVLQndjR0NBd0tEQXdMQ2dzTERRNFNFQTBPRVE0TEN4QVdFQkVURkJVVkZRd1BGeGdXRkJnU0ZCVVUvOXNBUXdFREJBUUZCQVVKQlFVSkZBMExEUlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVS84QUFFUWdBS3dBZ0F3RWlBQUlSQVFNUkFmL0VBQjhBQUFFRkFRRUJBUUVCQUFBQUFBQUFBQUFCQWdNRUJRWUhDQWtLQy8vRUFMVVFBQUlCQXdNQ0JBTUZCUVFFQUFBQmZRRUNBd0FFRVFVU0lURkJCaE5SWVFjaWNSUXlnWkdoQ0NOQ3NjRVZVdEh3SkROaWNvSUpDaFlYR0JrYUpTWW5LQ2txTkRVMk56ZzVPa05FUlVaSFNFbEtVMVJWVmxkWVdWcGpaR1ZtWjJocGFuTjBkWFozZUhsNmc0U0Zob2VJaVlxU2s1U1ZscGVZbVpxaW82U2xwcWVvcWFxeXM3UzF0cmU0dWJyQ3c4VEZ4c2ZJeWNyUzA5VFYxdGZZMmRyaDR1UGs1ZWJuNk9ucThmTHo5UFgyOS9qNSt2L0VBQjhCQUFNQkFRRUJBUUVCQVFFQUFBQUFBQUFCQWdNRUJRWUhDQWtLQy8vRUFMVVJBQUlCQWdRRUF3UUhCUVFFQUFFQ2R3QUJBZ01SQkFVaE1RWVNRVkVIWVhFVElqS0JDQlJDa2FHeHdRa2pNMUx3RldKeTBRb1dKRFRoSmZFWEdCa2FKaWNvS1NvMU5qYzRPVHBEUkVWR1IwaEpTbE5VVlZaWFdGbGFZMlJsWm1kb2FXcHpkSFYyZDNoNWVvS0RoSVdHaDRpSmlwS1RsSldXbDVpWm1xS2pwS1dtcDZpcHFyS3p0TFcydDdpNXVzTER4TVhHeDhqSnl0TFQxTlhXMTlqWjJ1TGo1T1htNStqcDZ2THo5UFgyOS9qNSt2L2FBQXdEQVFBQ0VRTVJBRDhBdGZGNVJlZUg1WEErWWpqTmZPM2duVmg0VDE4STBnekszTmV2ZkZqeHdvZ2UyNEFJcjVjbTFPWC9BSVNoWmQyVTNldFoxNlBKTDJhWjE0Vit6WE16Mi80aytOSUZhM2dnYmZKS1FUaXZiUGhXelM2TmF5Tndkb3I0N3Zid2FoNGl0OE1YQzRyNmkrRW11VEpiUndOekdCeFhER2krYmtXNTIxNSswWE1mTTN4eDF6VVgxdnk0M2FPUEhXdk0vRHR4TkxyQ3BLNWZKcjNMNDErR3BMejk1QW1XUEhBclArRnY3UEdzNnJISHFiUU1VemtjVjlIaUkya3p5WXB0bUhwbW5ycG1waWFjWkRkSytnL2gzcU1jY0VZUTRKRllPdWZCUFZtbGpab2ZMamo2bkZQczNUdzVjcEZuN2d3Y1Y1dENsSjFuTG9qMDVTU3AyUFl6NEc4TzZ4QWpYY28zZWhyMEhSYm5SdkMraHJhMmpvUW80RmVRNzJEamsxZWpkaUFOeHI2aVdHVXRXeUZoMGVwTHFtbWVJSVdpdUdXTU1NWkZjZHJYd3Q4T3RISk1rb2VRblBXc0JaWFJ2bFlqNkdwbnVaVEhneU1meHFJNFZMWmx1aXI3bi8vWiI+Cgk8L2ltYWdlPgo8L3N2Zz4= 32w",
+        "url": "https:\/\/files.kick.com\/images\/subcategories\/15\/banner\/8f43401b-0d59-4802-8f70-cd5e259adc9b"
+      },
+      "category": {
+        "id": 2,
+        "name": "IRL",
+        "slug": "irl",
+        "icon": "\ud83c\udf99\ufe0f"
+      }
+    },
+    {
+      "id": 459,
+      "category_id": 1,
+      "name": "Dark and Darker",
+      "slug": "dark-and-darker",
+      "tags": [
+        "Adventure",
+        "FPS",
+        "Shooter",
+        "RPG"
+      ],
+      "description": null,
+      "deleted_at": null,
+      "viewers": 448,
+      "banner": {
+        "responsive": "https:\/\/files.kick.com\/images\/subcategories\/459\/banner\/responsives\/547b9032-52b1-40c7-a822-5bf39502abfa___banner_600_800.webp 600w, https:\/\/files.kick.com\/images\/subcategories\/459\/banner\/responsives\/547b9032-52b1-40c7-a822-5bf39502abfa___banner_501_668.webp 501w, https:\/\/files.kick.com\/images\/subcategories\/459\/banner\/responsives\/547b9032-52b1-40c7-a822-5bf39502abfa___banner_420_560.webp 420w, https:\/\/files.kick.com\/images\/subcategories\/459\/banner\/responsives\/547b9032-52b1-40c7-a822-5bf39502abfa___banner_351_468.webp 351w, https:\/\/files.kick.com\/images\/subcategories\/459\/banner\/responsives\/547b9032-52b1-40c7-a822-5bf39502abfa___banner_294_392.webp 294w, https:\/\/files.kick.com\/images\/subcategories\/459\/banner\/responsives\/547b9032-52b1-40c7-a822-5bf39502abfa___banner_245_327.webp 245w, data:image\/svg+xml;base64,PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbDpzcGFjZT0icHJlc2VydmUiIHg9IjAiCiB5PSIwIiB2aWV3Qm94PSIwIDAgNjAwIDgwMCI+Cgk8aW1hZ2Ugd2lkdGg9IjYwMCIgaGVpZ2h0PSI4MDAiIHhsaW5rOmhyZWY9ImRhdGE6aW1hZ2UvanBlZztiYXNlNjQsLzlqLzRBQVFTa1pKUmdBQkFRRUFZQUJnQUFELy9nQTdRMUpGUVZSUFVqb2daMlF0YW5CbFp5QjJNUzR3SUNoMWMybHVaeUJKU2tjZ1NsQkZSeUIyT0RBcExDQnhkV0ZzYVhSNUlEMGdPVEFLLzlzQVF3QURBZ0lEQWdJREF3TURCQU1EQkFVSUJRVUVCQVVLQndjR0NBd0tEQXdMQ2dzTERRNFNFQTBPRVE0TEN4QVdFQkVURkJVVkZRd1BGeGdXRkJnU0ZCVVUvOXNBUXdFREJBUUZCQVVKQlFVSkZBMExEUlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVS84QUFFUWdBS3dBZ0F3RWlBQUlSQVFNUkFmL0VBQjhBQUFFRkFRRUJBUUVCQUFBQUFBQUFBQUFCQWdNRUJRWUhDQWtLQy8vRUFMVVFBQUlCQXdNQ0JBTUZCUVFFQUFBQmZRRUNBd0FFRVFVU0lURkJCaE5SWVFjaWNSUXlnWkdoQ0NOQ3NjRVZVdEh3SkROaWNvSUpDaFlYR0JrYUpTWW5LQ2txTkRVMk56ZzVPa05FUlVaSFNFbEtVMVJWVmxkWVdWcGpaR1ZtWjJocGFuTjBkWFozZUhsNmc0U0Zob2VJaVlxU2s1U1ZscGVZbVpxaW82U2xwcWVvcWFxeXM3UzF0cmU0dWJyQ3c4VEZ4c2ZJeWNyUzA5VFYxdGZZMmRyaDR1UGs1ZWJuNk9ucThmTHo5UFgyOS9qNSt2L0VBQjhCQUFNQkFRRUJBUUVCQVFFQUFBQUFBQUFCQWdNRUJRWUhDQWtLQy8vRUFMVVJBQUlCQWdRRUF3UUhCUVFFQUFFQ2R3QUJBZ01SQkFVaE1RWVNRVkVIWVhFVElqS0JDQlJDa2FHeHdRa2pNMUx3RldKeTBRb1dKRFRoSmZFWEdCa2FKaWNvS1NvMU5qYzRPVHBEUkVWR1IwaEpTbE5VVlZaWFdGbGFZMlJsWm1kb2FXcHpkSFYyZDNoNWVvS0RoSVdHaDRpSmlwS1RsSldXbDVpWm1xS2pwS1dtcDZpcHFyS3p0TFcydDdpNXVzTER4TVhHeDhqSnl0TFQxTlhXMTlqWjJ1TGo1T1htNStqcDZ2THo5UFgyOS9qNSt2L2FBQXdEQVFBQ0VRTVJBRDhBd1BodHE4Qm1qK1laRFY5WjZONDN0TFh3MnNlOGJ0bnJYNTQvQzdYNUh5UTUzanRtdlo0Zkg4bHJhb2tqa2R1YS9IY3h5ajZ4UFZINkhHdEdVRXBNN3J4L3JQOEFhTnhJdzVHVFh6eDQwMXBMaTlhQmNZQnIwR2J4aWJ4THJJM0RhY1Y0TnIyb0dYVlpXSi9pTmZmY1BZSDZyU1RQbU0zeENxUzVGME9ZOE02emNlRzdneXFDVS9TdlcvQ0Y5TjQ1a0NBYmNjOFY1djRSMGxmRU53YlpqZ0VkYTlsOEFlQzd6UUg4eTBjZVdlSzlLdmhGSmMwRnFjRkhHT1B1eWVoUnU1NHRCdXByYWRqbnBYbDNpdVNKYjFwRVB5c2E5MThVL0NtNzFoSnRRODM1Z3U0aXZuanhUYnRiVFNRRjh1alk1cjA4TkhralpuQlhxYzhqYitEdHdsdjRoQm1BS1k2R3ZvaTBSemRSU1EzQ1IyeDUyWnI1VDBTZVMzdVEwVGxHOVJYVUpyK29xMkJlU2dmNzFaYzdIeUkrbUl0YmtpMUY0cExoRGJNdUNNMTh3L0dDS0JmRk54OW14c1k1K1dwcGRlMUE1SnU1U2Y4QWVybE5YdUpMbTVMU3VaRzlXcHFiRTRKbi85az0iPgoJPC9pbWFnZT4KPC9zdmc+ 32w",
+        "url": "https:\/\/files.kick.com\/images\/subcategories\/459\/banner\/547b9032-52b1-40c7-a822-5bf39502abfa"
+      },
+      "category": {
+        "id": 1,
+        "name": "Games",
+        "slug": "games",
+        "icon": "\ud83d\udd79\ufe0f"
+      }
+    },
+    {
+      "id": 12,
+      "category_id": 1,
+      "name": "Counter-Strike: Global Offensive",
+      "slug": "counter-strike-global-offensive",
+      "tags": [
+        "FPS",
+        "Shooter",
+        "Action"
+      ],
+      "description": "CS:GO is the fourth iteration of Valve's team-based modern-military first-person shooter that features new and updated versions of the classic CS content. While expanding the franchise, the game also introduces new gameplay modes, matchmaking and leader boards.",
+      "deleted_at": null,
+      "viewers": 369,
+      "banner": {
+        "responsive": "https:\/\/files.kick.com\/images\/subcategories\/12\/banner\/responsives\/csgo___banner_600_800.webp 600w, https:\/\/files.kick.com\/images\/subcategories\/12\/banner\/responsives\/csgo___banner_501_668.webp 501w, https:\/\/files.kick.com\/images\/subcategories\/12\/banner\/responsives\/csgo___banner_420_560.webp 420w, https:\/\/files.kick.com\/images\/subcategories\/12\/banner\/responsives\/csgo___banner_351_468.webp 351w, https:\/\/files.kick.com\/images\/subcategories\/12\/banner\/responsives\/csgo___banner_294_392.webp 294w, data:image\/svg+xml;base64,PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbDpzcGFjZT0icHJlc2VydmUiIHg9IjAiCiB5PSIwIiB2aWV3Qm94PSIwIDAgNjAwIDgwMCI+Cgk8aW1hZ2Ugd2lkdGg9IjYwMCIgaGVpZ2h0PSI4MDAiIHhsaW5rOmhyZWY9ImRhdGE6aW1hZ2UvanBlZztiYXNlNjQsLzlqLzRBQVFTa1pKUmdBQkFRRUFZQUJnQUFELy9nQTdRMUpGUVZSUFVqb2daMlF0YW5CbFp5QjJNUzR3SUNoMWMybHVaeUJKU2tjZ1NsQkZSeUIyT0RBcExDQnhkV0ZzYVhSNUlEMGdPVEFLLzlzQVF3QURBZ0lEQWdJREF3TURCQU1EQkFVSUJRVUVCQVVLQndjR0NBd0tEQXdMQ2dzTERRNFNFQTBPRVE0TEN4QVdFQkVURkJVVkZRd1BGeGdXRkJnU0ZCVVUvOXNBUXdFREJBUUZCQVVKQlFVSkZBMExEUlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVS84QUFFUWdBS3dBZ0F3RWlBQUlSQVFNUkFmL0VBQjhBQUFFRkFRRUJBUUVCQUFBQUFBQUFBQUFCQWdNRUJRWUhDQWtLQy8vRUFMVVFBQUlCQXdNQ0JBTUZCUVFFQUFBQmZRRUNBd0FFRVFVU0lURkJCaE5SWVFjaWNSUXlnWkdoQ0NOQ3NjRVZVdEh3SkROaWNvSUpDaFlYR0JrYUpTWW5LQ2txTkRVMk56ZzVPa05FUlVaSFNFbEtVMVJWVmxkWVdWcGpaR1ZtWjJocGFuTjBkWFozZUhsNmc0U0Zob2VJaVlxU2s1U1ZscGVZbVpxaW82U2xwcWVvcWFxeXM3UzF0cmU0dWJyQ3c4VEZ4c2ZJeWNyUzA5VFYxdGZZMmRyaDR1UGs1ZWJuNk9ucThmTHo5UFgyOS9qNSt2L0VBQjhCQUFNQkFRRUJBUUVCQVFFQUFBQUFBQUFCQWdNRUJRWUhDQWtLQy8vRUFMVVJBQUlCQWdRRUF3UUhCUVFFQUFFQ2R3QUJBZ01SQkFVaE1RWVNRVkVIWVhFVElqS0JDQlJDa2FHeHdRa2pNMUx3RldKeTBRb1dKRFRoSmZFWEdCa2FKaWNvS1NvMU5qYzRPVHBEUkVWR1IwaEpTbE5VVlZaWFdGbGFZMlJsWm1kb2FXcHpkSFYyZDNoNWVvS0RoSVdHaDRpSmlwS1RsSldXbDVpWm1xS2pwS1dtcDZpcHFyS3p0TFcydDdpNXVzTER4TVhHeDhqSnl0TFQxTlhXMTlqWjJ1TGo1T1htNStqcDZ2THo5UFgyOS9qNSt2L2FBQXdEQVFBQ0VRTVJBRDhBOVErRFB4dWx1STVOSXZpQmNBWVZqWHUvZ2hielYya1c2dzZPZmtJcjg2ZFAxeThzOWNrdUltTVRkUml2b2o0Sy90R3o2SGZwYjZrVElvNHlhY2Fya1hPaHluMXJOb2RucFVvRnhJRko2QW10dlRkS3RMdGYzTGhqNlpyNFkvYUMvYlN0OUo4VHdwYW5kR091RFhVL3M1ZnRUbnhoNGkvMGlZUldtT1N4NEZhT1pncWJQS1BHbndqdWRBa2FiSDNSWG0xN3JsdjRlRWtoNW5IR0srdnZpSHBkMXJsdklzU0U1SFhGZk5TL0FUVlBFbmpGTGQxWlluYmtrY1lyeDF6Sis2ZlJSbENVZmZQQnZGMmp3K01KVGV5c1VJT2NHcmZnN1V4NGZpTnJhWEp0bVBWZ2NHdlQvakI4TFQ0SnZqWTJxdE93R0R0Rlpmd3ErQXN2aW0vTW1wYjRFYmxjOFZTclNYeGhLalMrS0dwK2dkcmR4Zlo5a2tRSjl4VEo1TFNDUmJpQ0FMTW82Z1ZxZVJIL0FIQlRIZ2o1K1FWaHp0SE1vSkhuV3Y2Rlk2dGVOY1hOb0paR09TU00wV09ndzI2cjVGdUk4ZE1DdS9hMWlKLzFhL2xVa2R0RU9pQ3NtM0xjMXZaV1AvL1oiPgoJPC9pbWFnZT4KPC9zdmc+ 32w",
+        "url": "https:\/\/files.kick.com\/images\/subcategories\/12\/banner\/csgo.jpg"
+      },
+      "category": {
+        "id": 1,
+        "name": "Games",
+        "slug": "games",
+        "icon": "\ud83d\udd79\ufe0f"
+      }
+    }
+  ],
+  "can_host": true,
+  "user": {
+    "id": 676,
+    "username": "xQc",
+    "agreed_to_terms": true,
+    "email_verified_at": "2022-10-22T07:00:10.000000Z",
+    "bio": "THE BEST AT ABSOLUTELY EVERYTHING. THE JUICER. LEADER OF THE JUICERS.",
+    "country": "",
+    "state": "",
+    "city": "",
+    "instagram": "xqcow1\/",
+    "twitter": "xqc",
+    "youtube": "channel\/UCmDTrq0LNgPodDOFZiSbsww",
+    "discord": "xqcow",
+    "tiktok": "",
+    "facebook": "",
+    "profile_pic": "https:\/\/files.kick.com\/images\/user\/676\/profile_image\/conversion\/931b4e8f-5445-427c-bd82-b473530390cc-fullsize.webp"
+  },
+  "chatroom": {
+    "id": 668,
+    "chatable_type": "App\\Models\\Channel",
+    "channel_id": 668,
+    "created_at": "2022-10-22T06:59:51.000000Z",
+    "updated_at": "2023-08-13T03:05:55.000000Z",
+    "chat_mode_old": "public",
+    "chat_mode": "public",
+    "slow_mode": true,
+    "chatable_id": 668,
+    "followers_mode": true,
+    "subscribers_mode": false,
+    "emotes_mode": false,
+    "message_interval": 5,
+    "following_min_duration": 10
+  }
+}

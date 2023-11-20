@@ -1,0 +1,7 @@
+{
+  "statusCode": 404,
+  "requestID": "6e26880e-7b25-448d-bef5-f35c1f41afab",
+  "error": {
+    "message": "Specified user has no founders."
+  }
+}

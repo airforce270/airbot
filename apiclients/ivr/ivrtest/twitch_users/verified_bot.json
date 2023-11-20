@@ -1,0 +1,54 @@
+[
+  {
+    "banned": false,
+    "displayName": "iP0G",
+    "login": "ip0g",
+    "id": "429509069",
+    "bio": "very p0g",
+    "follows": 136,
+    "followers": 63,
+    "profileViewCount": 658,
+    "chatColor": "#00FFFF",
+    "logo": "https://static-cdn.jtvnw.net/jtv_user_pictures/dd669686-7694-418f-bd83-5ad418b5bb3b-profile_image-600x600.png",
+    "banner": null,
+    "verifiedBot": true,
+    "createdAt": "2019-04-12T05:34:52.280629Z",
+    "updatedAt": "2022-09-16T00:10:21.56657Z",
+    "emotePrefix": "",
+    "roles": {
+      "isAffiliate": false,
+      "isPartner": false,
+      "isStaff": null
+    },
+    "badges": [
+      {
+        "setID": "game-developer",
+        "title": "Game Developer",
+        "description": "Game Developer for:",
+        "version": "1"
+      }
+    ],
+    "chatSettings": {
+      "chatDelayMs": 0,
+      "followersOnlyDurationMinutes": 0,
+      "slowModeDurationSeconds": null,
+      "blockLinks": false,
+      "isSubscribersOnlyModeEnabled": false,
+      "isEmoteOnlyModeEnabled": false,
+      "isFastSubsModeEnabled": false,
+      "isUniqueChatModeEnabled": false,
+      "requireVerifiedAccount": false,
+      "rules": []
+    },
+    "stream": null,
+    "lastBroadcast": {
+      "startedAt": "2022-03-04T05:45:02.37469Z",
+      "title": null
+    },
+    "panels": [
+      {
+        "id": "123839619"
+      }
+    ]
+  }
+]

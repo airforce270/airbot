@@ -1,0 +1,8 @@
+{
+  "statusCode": 401,
+  "timestamp": 1667031962798,
+  "data": {
+    "success": false
+  },
+  "error": "Authorization failed"
+}

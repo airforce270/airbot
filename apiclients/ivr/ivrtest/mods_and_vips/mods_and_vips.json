@@ -1,0 +1,73 @@
+{
+  "mods": [
+    {
+      "id": "100135110",
+      "login": "streamelements",
+      "displayName": "StreamElements",
+      "grantedAt": "2018-07-24T08:29:21.757709759Z"
+    },
+    {
+      "id": "237719657",
+      "login": "fossabot",
+      "displayName": "Fossabot",
+      "grantedAt": "2020-08-16T20:51:55.198556309Z"
+    },
+    {
+      "id": "191202519",
+      "login": "spintto",
+      "displayName": "spintto",
+      "grantedAt": "2022-03-08T14:59:43.671830635Z"
+    },
+    {
+      "id": "514751411",
+      "login": "hnoace",
+      "displayName": "HNoAce",
+      "grantedAt": "2022-08-09T13:35:14.99544541Z"
+    }
+  ],
+  "vips": [
+    {
+      "id": "150790620",
+      "login": "bakonsword",
+      "displayName": "bakonsword",
+      "grantedAt": "2022-02-20T19:39:12.355546493Z"
+    },
+    {
+      "id": "145484970",
+      "login": "alyjiaht_t",
+      "displayName": "alyjiahT_T",
+      "grantedAt": "2022-02-25T05:42:16.048233372Z"
+    },
+    {
+      "id": "205748697",
+      "login": "avbest",
+      "displayName": "AVBest",
+      "grantedAt": "2022-03-08T14:31:49.869620222Z"
+    },
+    {
+      "id": "69184756",
+      "login": "zaintew_",
+      "displayName": "Zaintew_",
+      "grantedAt": "2022-09-17T21:43:57.737612548Z"
+    },
+    {
+      "id": "505131195",
+      "login": "captkayy",
+      "displayName": "captkayy",
+      "grantedAt": "2022-09-25T20:15:59.332859708Z"
+    },
+    {
+      "id": "425925187",
+      "login": "seagrad",
+      "displayName": "seagrad",
+      "grantedAt": "2022-10-05T05:51:51.432004125Z"
+    },
+    {
+      "id": "222316577",
+      "login": "dafkeee",
+      "displayName": "Dafkeee",
+      "grantedAt": "2022-10-05T05:52:02.130647633Z"
+    }
+  ],
+  "ttl": 494
+}

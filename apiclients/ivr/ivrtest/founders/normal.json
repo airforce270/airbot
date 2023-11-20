@@ -1,0 +1,74 @@
+{
+  "founders": [
+    {
+      "isSubscribed": false,
+      "entitlementStart": "2022-07-31T00:41:06Z",
+      "id": "415575292",
+      "login": "fishyykingyy",
+      "displayName": "FishyyKingyy"
+    },
+    {
+      "isSubscribed": false,
+      "entitlementStart": "2022-08-13T19:46:18Z",
+      "id": "267287250",
+      "login": "eljulidi1337",
+      "displayName": "eljulidi1337"
+    },
+    {
+      "isSubscribed": true,
+      "entitlementStart": "2022-08-16T15:24:49Z",
+      "id": "89075062",
+      "login": "sammist",
+      "displayName": "SamMist"
+    },
+    {
+      "isSubscribed": true,
+      "entitlementStart": "2022-08-16T15:41:52Z",
+      "id": "190634299",
+      "login": "leochansz",
+      "displayName": "Leochansz"
+    },
+    {
+      "isSubscribed": false,
+      "entitlementStart": "2022-08-17T05:07:54Z",
+      "id": "143232353",
+      "login": "lexieuzumaki7",
+      "displayName": "lexieuzumaki7"
+    },
+    {
+      "isSubscribed": false,
+      "entitlementStart": "2022-08-17T21:44:28Z",
+      "id": "65602310",
+      "login": "contravz",
+      "displayName": "ContraVz"
+    },
+    {
+      "isSubscribed": true,
+      "entitlementStart": "2022-08-18T00:41:48Z",
+      "id": "232875294",
+      "login": "rott______",
+      "displayName": "rott______"
+    },
+    {
+      "isSubscribed": false,
+      "entitlementStart": "2022-08-18T00:48:10Z",
+      "id": "610912094",
+      "login": "dankjuicer",
+      "displayName": "DankJuicer"
+    },
+    {
+      "isSubscribed": false,
+      "entitlementStart": "2022-08-20T20:39:11Z",
+      "id": "671024739",
+      "login": "kronikz____",
+      "displayName": "kronikZ____"
+    },
+    {
+      "isSubscribed": true,
+      "entitlementStart": "2022-08-24T01:48:53Z",
+      "id": "408538669",
+      "login": "blemplob",
+      "displayName": "blemplob"
+    }
+  ]
+}

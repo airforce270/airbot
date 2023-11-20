@@ -1,0 +1,35 @@
+{
+  "user": {
+    "id": "460691477",
+    "login": "macroblank1",
+    "displayName": "Macroblank1"
+  },
+  "channel": {
+    "id": "71092938",
+    "login": "xqc",
+    "displayName": "xQc"
+  },
+  "statusHidden": false,
+  "followedAt": "2021-06-29T07:37:31Z",
+  "streak": {
+    "elapsedDays": 27,
+    "daysRemaining": 3,
+    "months": 17,
+    "end": "2023-01-25T00:00:00Z",
+    "start": "2023-01-01T05:31:26Z"
+  },
+  "cumulative": {
+    "elapsedDays": 27,
+    "daysRemaining": 3,
+    "months": 17,
+    "end": "2023-01-25T00:00:00Z",
+    "start": "2023-01-01T05:31:26Z"
+  },
+  "meta": {
+    "type": "paid",
+    "tier": "3",
+    "endsAt": "2023-02-01T05:31:23Z",
+    "renewsAt": null,
+    "giftMeta": null
+  }
+}

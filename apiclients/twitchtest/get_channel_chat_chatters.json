@@ -1,0 +1,14 @@
+{
+  "data": [
+    {
+      "user_id": "1",
+      "user_name": "user1",
+      "user_login": "user1"
+    },
+    {
+      "user_id": "2",
+      "user_name": "user2",
+      "user_login": "user2"
+    }
+  ]
+}

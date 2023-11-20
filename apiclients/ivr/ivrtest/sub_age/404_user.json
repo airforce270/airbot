@@ -1,0 +1,7 @@
+{
+  "statusCode": 404,
+  "requestID": "c0ac8196-e6dc-4918-a974-ed48b516f9a8",
+  "error": {
+    "message": "User was not found"
+  }
+}

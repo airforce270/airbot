@@ -1,0 +1,23 @@
+{
+  "user": {
+    "id": "181950834",
+    "login": "airforce2700",
+    "displayName": "airforce2700"
+  },
+  "channel": {
+    "id": "186352304",
+    "login": "elis",
+    "displayName": "elis"
+  },
+  "statusHidden": false,
+  "followedAt": "2021-11-11T17:47:35Z",
+  "streak": null,
+  "cumulative": {
+    "elapsedDays": 31,
+    "daysRemaining": 0,
+    "months": 4,
+    "end": "2023-01-20T20:48:38Z",
+    "start": "2022-12-20T20:48:38Z"
+  },
+  "meta": null
+}

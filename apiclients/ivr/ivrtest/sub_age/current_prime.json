@@ -1,0 +1,35 @@
+{
+  "user": {
+    "id": "181950834",
+    "login": "airforce2700",
+    "displayName": "airforce2700"
+  },
+  "channel": {
+    "id": "71092938",
+    "login": "xqc",
+    "displayName": "xQc"
+  },
+  "statusHidden": false,
+  "followedAt": "2019-10-14T03:10:31Z",
+  "streak": {
+    "elapsedDays": 29,
+    "daysRemaining": 1,
+    "months": 22,
+    "end": "2023-01-23T18:46:37Z",
+    "start": "2022-12-23T18:46:37Z"
+  },
+  "cumulative": {
+    "elapsedDays": 29,
+    "daysRemaining": 1,
+    "months": 22,
+    "end": "2023-01-23T18:46:37Z",
+    "start": "2022-12-23T18:46:37Z"
+  },
+  "meta": {
+    "type": "prime",
+    "tier": "1",
+    "endsAt": "2023-01-23T18:46:37Z",
+    "renewsAt": null,
+    "giftMeta": null
+  }
+}

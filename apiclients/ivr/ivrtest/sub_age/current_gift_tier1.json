@@ -1,0 +1,42 @@
+{
+  "user": {
+    "id": "46620027",
+    "login": "ellagarten",
+    "displayName": "ellagarten"
+  },
+  "channel": {
+    "id": "71092938",
+    "login": "xqc",
+    "displayName": "xQc"
+  },
+  "statusHidden": false,
+  "followedAt": "2020-04-04T22:31:11Z",
+  "streak": {
+    "elapsedDays": 17,
+    "daysRemaining": 14,
+    "months": 4,
+    "end": "2023-02-05T21:47:32Z",
+    "start": "2023-01-05T00:00:00Z"
+  },
+  "cumulative": {
+    "elapsedDays": 17,
+    "daysRemaining": 14,
+    "months": 17,
+    "end": "2023-02-05T21:47:32Z",
+    "start": "2023-01-05T00:00:00Z"
+  },
+  "meta": {
+    "type": "gift",
+    "tier": "1",
+    "endsAt": "2023-02-05T21:47:32Z",
+    "renewsAt": null,
+    "giftMeta": {
+      "giftDate": "2022-11-05T21:47:33.094141514Z",
+      "gifter": {
+        "id": "150839051",
+        "login": "takanatsume_",
+        "displayName": "TakaNatsume_"
+      }
+    }
+  }
+}

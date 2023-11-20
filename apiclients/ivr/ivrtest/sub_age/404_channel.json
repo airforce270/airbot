@@ -1,0 +1,7 @@
+{
+  "statusCode": 404,
+  "requestID": "b5705a1d-ab47-445a-8f7d-dcfeceea8d74",
+  "error": {
+    "message": "Channel was not found"
+  }
+}

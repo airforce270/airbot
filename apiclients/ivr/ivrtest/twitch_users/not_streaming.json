@@ -1,0 +1,96 @@
+[
+  {
+    "banned": false,
+    "displayName": "xQc",
+    "login": "xqc",
+    "id": "71092938",
+    "bio": "THE BEST AT ABSOLUTELY EVERYTHING. THE JUICER. LEADER OF THE JUICERS.",
+    "follows": 207,
+    "followers": 11226373,
+    "profileViewCount": 524730962,
+    "chatColor": "#0000FF",
+    "logo": "https://static-cdn.jtvnw.net/jtv_user_pictures/xqc-profile_image-9298dca608632101-600x600.jpeg",
+    "banner": "https://static-cdn.jtvnw.net/jtv_user_pictures/83e86af1-9a6c-42b1-98e2-3f6238a744b5-profile_banner-480.png",
+    "verifiedBot": false,
+    "createdAt": "2014-09-12T23:50:05.989719Z",
+    "updatedAt": "2022-10-06T20:43:00.256907Z",
+    "emotePrefix": "xqc",
+    "roles": {
+      "isAffiliate": false,
+      "isPartner": true,
+      "isStaff": null
+    },
+    "badges": [
+      {
+        "setID": "partner",
+        "title": "Verified",
+        "description": "Verified",
+        "version": "1"
+      }
+    ],
+    "chatSettings": {
+      "chatDelayMs": 0,
+      "followersOnlyDurationMinutes": 1440,
+      "slowModeDurationSeconds": null,
+      "blockLinks": false,
+      "isSubscribersOnlyModeEnabled": false,
+      "isEmoteOnlyModeEnabled": false,
+      "isFastSubsModeEnabled": false,
+      "isUniqueChatModeEnabled": false,
+      "requireVerifiedAccount": false,
+      "rules": [
+        "English please",
+        "Fresh memes"
+      ]
+    },
+    "stream": null,
+    "lastBroadcast": {
+      "startedAt": "2022-10-06T22:47:39.840638Z",
+      "title": "🟧JUICED EP2. !FANSLY🟧CLICK NOW🟧FT. JERMA🟧& AUSTIN🟧& LUDWIG🟧& CONNOREATSPANTS🟧& ME🟧JOIN NOW🟧FAST🟧BEFORE I LOSE IT🟧BIG🟧#SPONSORED"
+    },
+    "panels": [
+      {
+        "id": "124112525"
+      },
+      {
+        "id": "98109996"
+      },
+      {
+        "id": "44997828"
+      },
+      {
+        "id": "32221884"
+      },
+      {
+        "id": "12592823"
+      },
+      {
+        "id": "6720150"
+      },
+      {
+        "id": "77693957"
+      },
+      {
+        "id": "12592818"
+      },
+      {
+        "id": "8847001"
+      },
+      {
+        "id": "22113669"
+      },
+      {
+        "id": "8847029"
+      },
+      {
+        "id": "22360616"
+      },
+      {
+        "id": "14506832"
+      },
+      {
+        "id": "22360618"
+      }
+    ]
+  }
+]

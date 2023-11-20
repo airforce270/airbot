@@ -1,7 +1,11 @@
 // Package bibletest provides helpers for testing connections to the Bible API.
 package bibletest
 
+import _ "embed"
+
 var (
-	LookupVerseSingleVerse1Resp = `{"reference":"Philippians 4:8","verses":[{"book_id":"PHP","book_name":"Philippians","chapter":4,"verse":8,"text":"Finally, brothers, whatever things are true, whatever things are honorable, whatever things are just, whatever things are pure, whatever things are lovely, whatever things are of good report; if there is any virtue, and if there is any praise, think about these things.\n"}],"text":"Finally, brothers, whatever things are true, whatever things are honorable, whatever things are just, whatever things are pure, whatever things are lovely, whatever things are of good report; if there is any virtue, and if there is any praise, think about these things.\n","translation_id":"web","translation_name":"World English Bible","translation_note":"Public Domain"}`
-	LookupVerseSingleVerse2Resp = `{"reference":"John 3:16","verses":[{"book_id":"JHN","book_name":"John","chapter":3,"verse":16,"text":"\nFor God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.\n\n"}],"text":"\nFor God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.\n\n","translation_id":"web","translation_name":"World English Bible","translation_note":"Public Domain"}`
+	//go:embed lookup_verse/single_verse_1.json
+	LookupVerseSingleVerse1Resp string
+	//go:embed lookup_verse/single_verse_2.json
+	LookupVerseSingleVerse2Resp string
 )

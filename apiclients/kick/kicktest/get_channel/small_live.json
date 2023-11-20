@@ -1,0 +1,120 @@
+{
+  "id": 94750,
+  "user_id": 95834,
+  "slug": "jesterexile",
+  "is_banned": false,
+  "playback_url": "<redacted>",
+  "vod_enabled": true,
+  "subscription_enabled": false,
+  "followers_count": 47,
+  "following": false,
+  "subscription": null,
+  "subscriber_badges": [],
+  "livestream": {
+    "id": 13998296,
+    "slug": "a1cdd-onward-to-diamond",
+    "channel_id": 94750,
+    "created_at": "2023-09-02 00:16:48",
+    "session_title": "onward to diamond!!",
+    "is_live": true,
+    "risk_level_id": null,
+    "start_time": "2023-09-02 00:16:46",
+    "source": null,
+    "twitch_channel": null,
+    "duration": 0,
+    "language": "English",
+    "is_mature": false,
+    "viewer_count": 0,
+    "thumbnail": {
+      "url": "https:\/\/stream.kick.com\/thumbnails\/livestream\/13998296\/thumb0\/video_thumbnail\/thumb0.jpg"
+    },
+    "categories": [
+      {
+        "id": 1,
+        "category_id": 1,
+        "name": "Apex Legends",
+        "slug": "apex-legends",
+        "tags": [
+          "FPS",
+          "Shooter",
+          "Battle Royale"
+        ],
+        "description": "Conquer with character in Apex Legends, a free-to-play Hero shooter where legendary characters with powerful abilities team up to battle for fame & fortune on the fringes of the Frontier. Master an ever-growing roster of diverse Legends, deep tactical squad play and bold new innovations that go beyond the Battle Royale experience\u2014all within a rugged world where anything goes. Welcome to the next evolution of Hero Shooter.",
+        "deleted_at": null,
+        "viewers": 2203,
+        "category": {
+          "id": 1,
+          "name": "Games",
+          "slug": "games",
+          "icon": "\ud83d\udd79\ufe0f"
+        }
+      }
+    ],
+    "tags": []
+  },
+  "role": null,
+  "muted": false,
+  "follower_badges": [],
+  "offline_banner_image": null,
+  "verified": false,
+  "recent_categories": [
+    {
+      "id": 1,
+      "category_id": 1,
+      "name": "Apex Legends",
+      "slug": "apex-legends",
+      "tags": [
+        "FPS",
+        "Shooter",
+        "Battle Royale"
+      ],
+      "description": "Conquer with character in Apex Legends, a free-to-play Hero shooter where legendary characters with powerful abilities team up to battle for fame & fortune on the fringes of the Frontier. Master an ever-growing roster of diverse Legends, deep tactical squad play and bold new innovations that go beyond the Battle Royale experience\u2014all within a rugged world where anything goes. Welcome to the next evolution of Hero Shooter.",
+      "deleted_at": null,
+      "viewers": 2203,
+      "banner": {
+        "responsive": "https:\/\/files.kick.com\/images\/subcategories\/1\/banner\/responsives\/15e350ec-3408-4969-b4e2-e3d73f70ad47___banner_600_800.webp 600w, https:\/\/files.kick.com\/images\/subcategories\/1\/banner\/responsives\/15e350ec-3408-4969-b4e2-e3d73f70ad47___banner_501_668.webp 501w, https:\/\/files.kick.com\/images\/subcategories\/1\/banner\/responsives\/15e350ec-3408-4969-b4e2-e3d73f70ad47___banner_420_560.webp 420w, https:\/\/files.kick.com\/images\/subcategories\/1\/banner\/responsives\/15e350ec-3408-4969-b4e2-e3d73f70ad47___banner_351_468.webp 351w, https:\/\/files.kick.com\/images\/subcategories\/1\/banner\/responsives\/15e350ec-3408-4969-b4e2-e3d73f70ad47___banner_294_392.webp 294w, https:\/\/files.kick.com\/images\/subcategories\/1\/banner\/responsives\/15e350ec-3408-4969-b4e2-e3d73f70ad47___banner_245_327.webp 245w, https:\/\/files.kick.com\/images\/subcategories\/1\/banner\/responsives\/15e350ec-3408-4969-b4e2-e3d73f70ad47___banner_205_273.webp 205w, https:\/\/files.kick.com\/images\/subcategories\/1\/banner\/responsives\/15e350ec-3408-4969-b4e2-e3d73f70ad47___banner_172_229.webp 172w, data:image\/svg+xml;base64,PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbDpzcGFjZT0icHJlc2VydmUiIHg9IjAiCiB5PSIwIiB2aWV3Qm94PSIwIDAgNjAwIDgwMCI+Cgk8aW1hZ2Ugd2lkdGg9IjYwMCIgaGVpZ2h0PSI4MDAiIHhsaW5rOmhyZWY9ImRhdGE6aW1hZ2UvanBlZztiYXNlNjQsLzlqLzRBQVFTa1pKUmdBQkFRRUFZQUJnQUFELy9nQTdRMUpGUVZSUFVqb2daMlF0YW5CbFp5QjJNUzR3SUNoMWMybHVaeUJKU2tjZ1NsQkZSeUIyT0RBcExDQnhkV0ZzYVhSNUlEMGdPVEFLLzlzQVF3QURBZ0lEQWdJREF3TURCQU1EQkFVSUJRVUVCQVVLQndjR0NBd0tEQXdMQ2dzTERRNFNFQTBPRVE0TEN4QVdFQkVURkJVVkZRd1BGeGdXRkJnU0ZCVVUvOXNBUXdFREJBUUZCQVVKQlFVSkZBMExEUlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVS84QUFFUWdBS3dBZ0F3RWlBQUlSQVFNUkFmL0VBQjhBQUFFRkFRRUJBUUVCQUFBQUFBQUFBQUFCQWdNRUJRWUhDQWtLQy8vRUFMVVFBQUlCQXdNQ0JBTUZCUVFFQUFBQmZRRUNBd0FFRVFVU0lURkJCaE5SWVFjaWNSUXlnWkdoQ0NOQ3NjRVZVdEh3SkROaWNvSUpDaFlYR0JrYUpTWW5LQ2txTkRVMk56ZzVPa05FUlVaSFNFbEtVMVJWVmxkWVdWcGpaR1ZtWjJocGFuTjBkWFozZUhsNmc0U0Zob2VJaVlxU2s1U1ZscGVZbVpxaW82U2xwcWVvcWFxeXM3UzF0cmU0dWJyQ3c4VEZ4c2ZJeWNyUzA5VFYxdGZZMmRyaDR1UGs1ZWJuNk9ucThmTHo5UFgyOS9qNSt2L0VBQjhCQUFNQkFRRUJBUUVCQVFFQUFBQUFBQUFCQWdNRUJRWUhDQWtLQy8vRUFMVVJBQUlCQWdRRUF3UUhCUVFFQUFFQ2R3QUJBZ01SQkFVaE1RWVNRVkVIWVhFVElqS0JDQlJDa2FHeHdRa2pNMUx3RldKeTBRb1dKRFRoSmZFWEdCa2FKaWNvS1NvMU5qYzRPVHBEUkVWR1IwaEpTbE5VVlZaWFdGbGFZMlJsWm1kb2FXcHpkSFYyZDNoNWVvS0RoSVdHaDRpSmlwS1RsSldXbDVpWm1xS2pwS1dtcDZpcHFyS3p0TFcydDdpNXVzTER4TVhHeDhqSnl0TFQxTlhXMTlqWjJ1TGo1T1htNStqcDZ2THo5UFgyOS9qNSt2L2FBQXdEQVFBQ0VRTVJBRDhBL1IySy9pTGhTNnFmUW12QlAyc1BGT3E2ZG9BdGRIT1pwQnlSVngvRWsxenBuOW9QY21NZ1pITmZQL3hUL2FSMHFhL09uM0xDU2FQSzd1dFk4cnMwbHFlaFdwS0NqS28rV0xLdjdObnh3MVRTZkZNMmxhdzVZWnIxL3dDTy93QWJyclFkQ2E0MGxnNzQ2ZWxmRnZoLzRpNlhwdmpLNTFjU0tUbklRZDZoK0lmeDN1dkVobXRJcmZaQy9BWnVsYVFveFRpcGRkemhxVjNLRTNTMXM5UE05LzhBamo4U1pmQXZndElJMklreGc0TmZLZmdlK3NQSGVzM01tcFpNa3JIYVRYcGZ4SjFIVWZpamRRd0pEaUNSc0NyL0FJYy9aeW0wTzl0N3NuWUlnSFlEdlhyVVZUbzFIVmt0VXRqeXVJNmRiTktYMWFoSnFMYVhNdWh6MXQrejBZTldqdkkxZHJaanVJOXFiOFJQaDdiYWpxVnJZMmtma29xL01VSE9hK21OSDFHTzd0dnNkc2dNc2NlQ0NLeDlIOEd3YXBxY3R4S0I1d09LNG95ZGFvNVBTNTcrVFpaSjA0NFZPNlZydDdzWjRiK0hFZWh0SGR6amNJem5iWFJhOXI3WHFsYktQQnh0T2ZTdW12RkJ0cEFSeGl1RWxPeWFUYng5S1RmYyt3eDJXMDR3aXFlZzdTSFRSYnVTN2RDWGRNRUQxcmQ4R0F5clBNUmpleElyTjBwUk5hekZ4dUlIZXQvd2lBSVdBSEdhaURzN25WbFdIVkdyZE0vLzJRPT0iPgoJPC9pbWFnZT4KPC9zdmc+ 32w",
+        "url": "https:\/\/files.kick.com\/images\/subcategories\/1\/banner\/15e350ec-3408-4969-b4e2-e3d73f70ad47"
+      },
+      "category": {
+        "id": 1,
+        "name": "Games",
+        "slug": "games",
+        "icon": "\ud83d\udd79\ufe0f"
+      }
+    }
+  ],
+  "can_host": true,
+  "user": {
+    "id": 95834,
+    "username": "jesterexile",
+    "agreed_to_terms": true,
+    "email_verified_at": "2022-12-06T08:09:05.000000Z",
+    "bio": "Veteran and now trying to be a full time gamer here who loves FPS along with having some good laughs.",
+    "country": "",
+    "state": "",
+    "city": "",
+    "instagram": "",
+    "twitter": "jesterexile",
+    "youtube": "jesterexile",
+    "discord": "",
+    "tiktok": "jesterexile",
+    "facebook": "",
+    "profile_pic": "https:\/\/files.kick.com\/images\/user\/95834\/profile_image\/conversion\/12ffaa34-ce1a-4930-93af-259807745d7b-fullsize.webp"
+  },
+  "chatroom": {
+    "id": 94748,
+    "chatable_type": "App\\Models\\Channel",
+    "channel_id": 94750,
+    "created_at": "2022-12-06T08:08:14.000000Z",
+    "updated_at": "2022-12-06T08:08:14.000000Z",
+    "chat_mode_old": "public",
+    "chat_mode": "public",
+    "slow_mode": false,
+    "chatable_id": 94750,
+    "followers_mode": false,
+    "subscribers_mode": false,
+    "emotes_mode": false,
+    "message_interval": 0,
+    "following_min_duration": 0
+  }
+}

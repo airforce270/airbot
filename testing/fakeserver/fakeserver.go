@@ -14,10 +14,9 @@ func New() *FakeServer {
 	s.Reset()
 	httpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// yes, this is hacky
-		if strings.Contains(s.Resp, `"statusCode":404`) {
+		if strings.Contains(s.Resp, `"statusCode": 404`) {
 			w.WriteHeader(http.StatusNotFound)
 		}
-
 		fmt.Fprint(w, s.Resp)
 	}))
 	s.s = httpServer
