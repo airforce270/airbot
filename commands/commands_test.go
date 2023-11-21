@@ -500,6 +500,41 @@ func TestCommands(t *testing.T) {
 		{
 			input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$restart",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Owner,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
+			},
+			want: []*base.Message{
+				{
+					Text:    "Restarting Airbot.",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
+					Text:    "$restart",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+				Platform:        twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
+			},
+			want: nil,
+		},
+		{
+			input: base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$setprefix &",
 					UserID:  "user1",
 					User:    "user1",
@@ -2983,7 +3018,7 @@ func setFakes(url string, db *gorm.DB) {
 	kick.BaseURL = url
 	pastebin.FetchPasteURLOverride = url
 	seventv.BaseURL = url
-	twitch.Conn = twitch.NewForTesting(url, db)
+	twitch.SetInstance(twitch.NewForTesting(url, db))
 }
 
 func resetFakes() {
@@ -2995,7 +3030,7 @@ func resetFakes() {
 	kick.BaseURL = savedKickURL
 	pastebin.FetchPasteURLOverride = ""
 	seventv.BaseURL = saved7TVURL
-	twitch.Conn = twitch.NewForTesting(helix.DefaultAPIBaseURL, nil)
+	twitch.SetInstance(twitch.NewForTesting(helix.DefaultAPIBaseURL, nil))
 }
 
 func joinOtherUser1() error {

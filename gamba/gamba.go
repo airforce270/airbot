@@ -2,6 +2,7 @@
 package gamba
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -23,10 +24,16 @@ var (
 
 // StartGrantingPoints starts a loop to grant points to all chatters on an interval.
 // This function blocks and should be run within a goroutine.
-func StartGrantingPoints(ps map[string]base.Platform, db *gorm.DB) {
+func StartGrantingPoints(ctx context.Context, ps map[string]base.Platform, db *gorm.DB) {
+	timer := time.NewTicker(grantInterval)
 	for {
-		go grantPoints(ps, db)
-		time.Sleep(grantInterval)
+		select {
+		case <-ctx.Done():
+			log.Print("Stopping point granting, context cancelled")
+			return
+		case <-timer.C:
+			go grantPoints(ps, db)
+		}
 	}
 }
 

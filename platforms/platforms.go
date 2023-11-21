@@ -2,6 +2,7 @@
 package platforms
 
 import (
+	"context"
 	"log"
 	"runtime/debug"
 	"time"
@@ -15,13 +16,15 @@ import (
 	"gorm.io/gorm"
 )
 
+const ctxCheckInterval = 50 * time.Millisecond
+
 // Build builds connections to enabled platforms based on the config.
 func Build(cfg *config.Config, db *gorm.DB, cdb cache.Cache) (map[string]base.Platform, error) {
 	p := map[string]base.Platform{}
 	if twc := cfg.Platforms.Twitch; twc.Enabled {
 		log.Printf("Building Twitch platform...")
 		tw := twitch.New(twc.Username, twc.Owners, twc.ClientID, twc.ClientSecret, twc.AccessToken, twc.RefreshToken, db, cdb)
-		twitch.Conn = tw
+		twitch.SetInstance(tw)
 		p[tw.Name()] = tw
 	}
 	return p, nil
@@ -29,16 +32,29 @@ func Build(cfg *config.Config, db *gorm.DB, cdb cache.Cache) (map[string]base.Pl
 
 // StartHandling starts handling commands coming from the given platform.
 // This function blocks and should be run within a goroutine.
-func StartHandling(p base.Platform, db *gorm.DB, cdb cache.Cache, logIncoming, logOutgoing bool) {
+func StartHandling(ctx context.Context, p base.Platform, db *gorm.DB, cdb cache.Cache, logIncoming, logOutgoing bool) {
 	handler := commands.NewHandler(db)
 	inC := p.Listen()
 
-	outC := make(chan base.OutgoingMessage)
-	go startSending(p, outC, cdb, logOutgoing)
+	outC := make(chan base.OutgoingMessage, 100)
+	go startSending(ctx, p, outC, cdb, logOutgoing)
 
+	timer := time.NewTicker(ctxCheckInterval)
 	for {
-		msg := <-inC
-		go processMessage(&handler, db, p, outC, msg, logIncoming)
+		select {
+		case <-ctx.Done():
+			log.Print("Stopping message handling, context cancelled")
+			return
+		default:
+		}
+
+		select {
+		case <-timer.C:
+		case msg := <-inC:
+			go processMessage(&handler, db, p, outC, msg, logIncoming)
+		}
+
+		timer.Reset(ctxCheckInterval)
 	}
 }
 
@@ -71,31 +87,43 @@ func processMessage(handler *commands.Handler, db *gorm.DB, p base.Platform, out
 const slowmodeSleepDuration = 1 * time.Second
 
 // startSending sends messages from the queue.
-func startSending(p base.Platform, outC <-chan base.OutgoingMessage, cdb cache.Cache, logOutgoing bool) {
+func startSending(ctx context.Context, p base.Platform, outC <-chan base.OutgoingMessage, cdb cache.Cache, logOutgoing bool) {
+	timer := time.NewTicker(ctxCheckInterval)
 	for {
-		out := <-outC
-
-		if logOutgoing {
-			log.Printf("[%s-> %s/%s]: %s", p.Name(), out.Channel, p.Username(), out.Text)
+		select {
+		case <-ctx.Done():
+			log.Print("Stopping message sending, context cancelled")
+			return
+		default:
 		}
 
-		if out.ReplyToID != "" {
-			if err := p.Reply(out.Message, out.ReplyToID); err != nil {
-				log.Printf("Failed to send message (reply) %v: %v", out, err)
+		select {
+		case <-timer.C:
+		case out := <-outC:
+			if logOutgoing {
+				log.Printf("[%s-> %s/%s]: %s", p.Name(), out.Channel, p.Username(), out.Text)
 			}
-		} else {
-			if err := p.Send(out.Message); err != nil {
-				log.Printf("Failed to send message %v: %v", out, err)
+
+			if out.ReplyToID != "" {
+				if err := p.Reply(out.Message, out.ReplyToID); err != nil {
+					log.Printf("Failed to send message (reply) %v: %v", out, err)
+				}
+			} else {
+				if err := p.Send(out.Message); err != nil {
+					log.Printf("Failed to send message %v: %v", out, err)
+				}
+			}
+
+			slowmode, err := cdb.FetchBool(cache.GlobalSlowmodeKey(p))
+			if err != nil {
+				log.Printf("Failed to fetch slowmode status for %s: %v", p.Name(), err)
+			}
+
+			if slowmode {
+				time.Sleep(slowmodeSleepDuration)
 			}
 		}
 
-		slowmode, err := cdb.FetchBool(cache.GlobalSlowmodeKey(p))
-		if err != nil {
-			log.Printf("Failed to fetch slowmode status for %s: %v", p.Name(), err)
-		}
-
-		if slowmode {
-			time.Sleep(slowmodeSleepDuration)
-		}
+		timer.Reset(ctxCheckInterval)
 	}
 }

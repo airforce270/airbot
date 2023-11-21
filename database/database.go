@@ -2,6 +2,7 @@
 package database
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync"
@@ -36,10 +37,10 @@ var (
 )
 
 // Connect creates a connection to the database.
-func Connect(dbname, user, password string) (*gorm.DB, error) {
+func Connect(ctx context.Context, dbName, user, password string) (*gorm.DB, error) {
 	settings := map[string]string{
 		"host":     "database",
-		"dbname":   dbname,
+		"dbname":   dbName,
 		"user":     user,
 		"password": password,
 		"port":     "5432",
@@ -51,6 +52,7 @@ func Connect(dbname, user, password string) (*gorm.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open DB connection: %w", err)
 	}
+	gormDB.WithContext(ctx)
 
 	db, err := gormDB.DB()
 	if err != nil {
