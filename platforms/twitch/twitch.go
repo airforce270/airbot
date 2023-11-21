@@ -21,7 +21,7 @@ import (
 	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
 
-	twitchirc "github.com/gempir/go-twitch-irc/v3"
+	twitchirc "github.com/gempir/go-twitch-irc/v4"
 	"github.com/nicklaw5/helix/v2"
 	"gorm.io/gorm"
 )

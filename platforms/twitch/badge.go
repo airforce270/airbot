@@ -3,7 +3,7 @@ package twitch
 import (
 	"github.com/airforce270/airbot/permission"
 
-	twitchirc "github.com/gempir/go-twitch-irc/v3"
+	twitchirc "github.com/gempir/go-twitch-irc/v4"
 )
 
 type badge string
