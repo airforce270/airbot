@@ -3,7 +3,7 @@ package twitch
 import (
 	"testing"
 
-	twitchirc "github.com/gempir/go-twitch-irc/v3"
+	twitchirc "github.com/gempir/go-twitch-irc/v4"
 )
 
 func TestUserHasBadge(t *testing.T) {

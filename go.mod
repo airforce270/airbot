@@ -9,7 +9,7 @@ go 1.21.4
 
 require (
 	github.com/Danny-Dasilva/CycleTLS/cycletls v0.0.0-20231115113039-7c6710610fbd
-	github.com/gempir/go-twitch-irc/v3 v3.3.0
+	github.com/gempir/go-twitch-irc/v4 v4.0.0
 	github.com/google/go-cmp v0.6.0
 	github.com/nicklaw5/helix/v2 v2.25.2
 	github.com/pelletier/go-toml/v2 v2.1.0
