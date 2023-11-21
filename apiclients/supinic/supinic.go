@@ -3,6 +3,7 @@
 package supinic
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -31,10 +32,16 @@ const pingInterval = 15 * time.Minute
 // StartPinging starts a background task to ping the Supinic API regularly
 // to make sure the API knows the bot is still online.
 // This function blocks and should be run within a goroutine.
-func (c *Client) StartPinging() {
+func (c *Client) StartPinging(ctx context.Context) {
+	pingTimer := time.NewTicker(pingInterval)
 	for {
-		go c.pingAPI()
-		time.Sleep(pingInterval)
+		select {
+		case <-ctx.Done():
+			log.Print("Stopping pinging Supinic API, context cancelled")
+			return
+		case <-pingTimer.C:
+			go c.pingAPI()
+		}
 	}
 }
 

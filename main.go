@@ -2,70 +2,61 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
-	"sync"
+	"time"
 
 	"github.com/airforce270/airbot/apiclients/supinic"
+	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/cache"
 	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/gamba"
 	"github.com/airforce270/airbot/platforms"
+	"github.com/airforce270/airbot/utils/cleanup"
+	"github.com/airforce270/airbot/utils/restart"
 )
 
-// cleanupFunc is a function that should be called before program exit.
-type cleanupFunc struct {
-	// name is the function's human-readable name.
-	name string
-	// f is the function to be called.
-	f func() error
+const (
+	waitForCancelFuncs         = 100 * time.Millisecond
+	waitForContextCancellation = 100 * time.Millisecond
+)
+
+func initialStart(ctx context.Context) (cleanup.Cleaner, error) {
+	cleaner, _, err := start(ctx)
+	return cleaner, err
 }
 
-// cleanupFuncs contains functions to be called to cleanup before program exit.
-var cleanupFuncs []cleanupFunc
-
-// startListeningForSigterm starts a goroutine that listens for SIGTERM (ctrl-c)
-// and runs the cleanup functions before exiting.
-func startListeningForSigterm() {
-	c := make(chan os.Signal, 2)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		<-c
-		for _, f := range cleanupFuncs {
-			if err := f.f(); err != nil {
-				log.Printf("cleanup function %s failed: %v", f.name, err)
-			}
-		}
-		os.Exit(1)
-	}()
+func reStart(ctx context.Context) (cleanup.Cleaner, error) {
+	cleaner, ps, err := start(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := restart.Notify(ps); err != nil {
+		log.Printf("Failed to notify restart: %v", err)
+	}
+	return cleaner, err
 }
 
-// wait blocks the thread that calls it indefinitely.
-func wait() {
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	wg.Wait()
-}
-
-func main() {
-	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
-	startListeningForSigterm()
+func start(ctx context.Context) (cleanup.Cleaner, map[string]base.Platform, error) {
+	cleaner := cleanup.NewCleaner()
 
 	log.Print("Reading config...")
 	cfg, err := config.Read()
 	if err != nil {
-		log.Fatalf("failed to read config: %v", err)
+		return nil, nil, fmt.Errorf("failed to read config: %v", err)
 	}
 
 	log.Print("Setting config values...")
 	config.StoreGlobals(cfg)
 
 	log.Printf("Connecting to database...")
-	db, err := database.Connect(os.Getenv("POSTGRES_DB"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"))
+	db, err := database.Connect(ctx, os.Getenv("POSTGRES_DB"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"))
 	if err != nil {
-		log.Fatalf("failed to connect to database: %v", err)
+		return nil, nil, fmt.Errorf("failed to connect to database: %v", err)
 	}
 	database.SetInstance(db)
 
@@ -75,34 +66,80 @@ func main() {
 
 	log.Printf("Performing database migrations...")
 	if err = database.Migrate(db); err != nil {
-		log.Fatalf("failed to perform database migrations: %v", err)
+		return nil, nil, fmt.Errorf("failed to perform database migrations: %v", err)
 	}
 
 	log.Printf("Preparing chat connections...")
 	ps, err := platforms.Build(cfg, db, &cdb)
 	if err != nil {
-		log.Fatalf("Failed to build platforms: %v", err)
+		return nil, nil, fmt.Errorf("failed to build platforms: %v", err)
 	}
 
 	for _, p := range ps {
 		log.Printf("Connecting to %s...", p.Name())
 		if err := p.Connect(); err != nil {
-			log.Fatalf("Failed to connect to %s: %v", p.Name(), err)
+			return cleaner, nil, fmt.Errorf("failed to connect to %s: %v", p.Name(), err)
 		}
 
 		log.Printf("Starting to handle messages on %s...", p.Name())
-		go platforms.StartHandling(p, db, &cdb, cfg.LogIncoming, cfg.LogOutgoing)
-		cleanupFuncs = append(cleanupFuncs, cleanupFunc{name: p.Name(), f: p.Disconnect})
+		go platforms.StartHandling(ctx, p, db, &cdb, cfg.LogIncoming, cfg.LogOutgoing)
+		cleaner.Register(cleanup.Func{Name: p.Name(), F: p.Disconnect})
 	}
 
-	go gamba.StartGrantingPoints(ps, db)
+	go gamba.StartGrantingPoints(ctx, ps, db)
 
 	if cfg.Supinic.IsConfigured() && cfg.Supinic.ShouldPingAPI {
 		log.Println("Starting to ping the Supinic API...")
 		supinicClient := supinic.NewClient(cfg.Supinic.UserID, cfg.Supinic.APIKey)
-		go supinicClient.StartPinging()
+		go supinicClient.StartPinging(ctx)
 	}
 
-	log.Printf("Airbot is now running.")
-	wait()
+	return cleaner, ps, nil
 }
+
+func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
+
+	c := make(chan os.Signal, 2)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		<-c
+		cancel()
+		time.Sleep(waitForContextCancellation)
+		os.Exit(1)
+	}()
+
+	cleaner, err := initialStart(ctx)
+	if err != nil {
+		log.Fatalf("Failed to start: %v", err)
+	}
+	log.Printf("Airbot is now running.")
+
+	for {
+		select {
+		case <-restart.C:
+			log.Printf("Restarting...")
+
+			if err := cleaner.Cleanup(); err != nil {
+				log.Printf("Cleanup failed: %v", err)
+			}
+			time.Sleep(waitForCancelFuncs)
+			cancel()
+			time.Sleep(waitForContextCancellation)
+
+			ctx, cancel = context.WithCancel(context.Background())
+
+			cleaner, err = reStart(ctx)
+			if err != nil {
+				log.Fatalf("Failed to start: %v", err)
+			}
+			log.Printf("Airbot is now running (restarted).")
+		case <-ctx.Done():
+			log.Printf("Context cancelled, Airbot shutting down.")
+			return
+		}
+	}
+}
+
+// send message that says "Restarted" once bot is restarted

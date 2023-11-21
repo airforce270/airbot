@@ -69,6 +69,12 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - > Usage: `$reloadconfig`
 - > Minimum permission level: `Admin`
 
+### $restart
+
+- Restarts the bot. Does not restart the database, etc.
+- > Usage: `$restart`
+- > Minimum permission level: `Admin`
+
 ### $setprefix
 
 - Sets the bot's prefix in the channel.

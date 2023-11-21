@@ -27,14 +27,26 @@ import (
 )
 
 func Instance() *Twitch {
-	if Conn == nil {
+	connMtx.RLock()
+	defer connMtx.RUnlock()
+	if conn == nil {
 		panic("twitch.Conn is nil!")
 	}
-	return Conn
+	return conn
 }
 
-// Conn is a connection to Twitch.
-var Conn *Twitch
+func SetInstance(t *Twitch) {
+	connMtx.Lock()
+	conn = t
+	connMtx.Unlock()
+}
+
+var (
+	// conn is a connection to Twitch.
+	conn *Twitch
+
+	connMtx sync.RWMutex // protects conn
+)
 
 // Twitch implements Platform for a connection to Twitch chat.
 type Twitch struct {
@@ -267,7 +279,7 @@ func (t *Twitch) connectIRC() {
 	wg.Add(1)
 	t.irc.OnConnect(func() { wg.Done() })
 	go func() {
-		if err := t.irc.Connect(); err != nil {
+		if err := t.irc.Connect(); err != nil && !errors.Is(err, twitchirc.ErrClientDisconnected) {
 			log.Fatalf("failed to connect to twitch IRC: %v", err)
 		}
 	}()

@@ -18,6 +18,7 @@ import (
 	"github.com/airforce270/airbot/permission"
 	twitchplatform "github.com/airforce270/airbot/platforms/twitch"
 	"github.com/airforce270/airbot/utils"
+	"github.com/airforce270/airbot/utils/restart"
 )
 
 // Commands contains this package's commands.
@@ -30,6 +31,7 @@ var Commands = [...]basecommand.Command{
 	leaveCommand,
 	leaveOtherCommand,
 	reloadConfigCommand,
+	restartCommand,
 	setPrefixCommand,
 }
 
@@ -136,6 +138,13 @@ var (
 		Desc:       "Reloads the bot's config after a config change.",
 		Permission: permission.Admin,
 		Handler:    reloadConfig,
+	}
+
+	restartCommand = basecommand.Command{
+		Name:       "restart",
+		Desc:       "Restarts the bot. Does not restart the database, etc.",
+		Permission: permission.Admin,
+		Handler:    restartBot,
 	}
 
 	setPrefixCommand = basecommand.Command{
@@ -342,6 +351,20 @@ func reloadConfig(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, e
 		{
 			Channel: msg.Message.Channel,
 			Text:    "Reloaded config.",
+		},
+	}, nil
+}
+
+func restartBot(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+	go restart.WriteRequester(msg.Platform.Name(), msg.Message.Channel, msg.Message.ID)
+
+	const delay = 100 * time.Millisecond
+	time.AfterFunc(delay, func() { restart.C <- true })
+
+	return []*base.Message{
+		{
+			Channel: msg.Message.Channel,
+			Text:    "Restarting Airbot.",
 		},
 	}, nil
 }

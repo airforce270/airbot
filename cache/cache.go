@@ -58,6 +58,12 @@ type Cache interface {
 const (
 	// Cache key for the last sent Twitch message.
 	KeyLastSentTwitchMessage = "twitch_last_sent_message"
+	// Cache key for the platform that bot restart was requested from.
+	KeyRestartRequestedOnPlatform = "restart_requested_on_platform"
+	// Cache key for the channel that bot restart was requested from.
+	KeyRestartRequestedInChannel = "restart_requested_from_channel"
+	// Cache key for the ID of the message that requested the bot restart.
+	KeyRestartRequestedByMessageID = "restart_requested_by_message"
 )
 
 // GlobalSlowmodeKey returns the global slowmode cache key for a platform.
@@ -78,10 +84,10 @@ func (c *Redis) StoreExpiringBool(key string, value bool, expiration time.Durati
 }
 func (c *Redis) FetchBool(key string) (bool, error) {
 	resp, err := c.r.Get(context.Background(), key).Bool()
-	if errors.Is(err, redis.Nil) {
-		return false, nil
-	}
 	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return false, nil
+		}
 		return false, err
 	}
 	return resp, nil
