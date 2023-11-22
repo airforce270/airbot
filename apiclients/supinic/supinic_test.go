@@ -33,7 +33,7 @@ func TestUpdateBotActivity(t *testing.T) {
 			t.Parallel()
 			server := fakeserver.New()
 			defer server.Close()
-			server.Resp = tc.useResp
+			server.Resps = []string{tc.useResp}
 			client := NewClientForTesting(server.URL())
 
 			err := client.updateBotActivity()

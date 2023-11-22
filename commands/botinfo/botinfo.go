@@ -10,7 +10,6 @@ import (
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/base/arg"
 	"github.com/airforce270/airbot/commands/basecommand"
-	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
 
@@ -30,8 +29,8 @@ var Commands = [...]basecommand.Command{
 		Permission: permission.Normal,
 		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			var resp strings.Builder
-			resp.WriteString(fmt.Sprintf("Beep boop, this is Airbot running as %s in %s", msg.Platform.Username(), msg.Message.Channel))
-			resp.WriteString(fmt.Sprintf(" with prefix %s on %s.", msg.Prefix, msg.Platform.Name()))
+			resp.WriteString(fmt.Sprintf("Beep boop, this is Airbot running as %s in %s", msg.Resources.Platform.Username(), msg.Message.Channel))
+			resp.WriteString(fmt.Sprintf(" with prefix %s on %s.", msg.Prefix, msg.Resources.Platform.Name()))
 			resp.WriteString(fmt.Sprintf(" Made by airforce2700, source available on GitHub ( %ssource )", msg.Prefix))
 			return []*base.Message{
 				{
@@ -76,8 +75,6 @@ var Commands = [...]basecommand.Command{
 }
 
 func stats(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
-	db := database.Instance()
-
 	var g errgroup.Group
 
 	var cpuPercent float64
@@ -136,7 +133,7 @@ func stats(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	const recentlyProcessedMessagesInterval = 60 * time.Second
 	var recentlyProcessedMessages int64
 	g.Go(func() error {
-		err := db.Model(&models.Message{}).Where("created_at > ?", time.Now().Add(-recentlyProcessedMessagesInterval)).Count(&recentlyProcessedMessages).Error
+		err := msg.Resources.DB.Model(&models.Message{}).Where("created_at > ?", time.Now().Add(-recentlyProcessedMessagesInterval)).Count(&recentlyProcessedMessages).Error
 		if err != nil {
 			return fmt.Errorf("failed to count recently processed messages: %w", err)
 		}
@@ -145,7 +142,7 @@ func stats(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 
 	var joinedChannels int64
 	g.Go(func() error {
-		err := db.Model(&models.JoinedChannel{}).Count(&joinedChannels).Error
+		err := msg.Resources.DB.Model(&models.JoinedChannel{}).Count(&joinedChannels).Error
 		if err != nil {
 			return fmt.Errorf("failed to count joined channels: %w", err)
 		}

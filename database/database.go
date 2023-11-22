@@ -5,35 +5,11 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"sync"
 
 	"github.com/airforce270/airbot/database/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-)
-
-func Instance() *gorm.DB {
-	connMtx.RLock()
-	defer connMtx.RUnlock()
-	if conn == nil {
-		panic("database.Conn is nil!")
-	}
-	return conn
-}
-
-func SetInstance(c *gorm.DB) {
-	connMtx.Lock()
-	conn = c
-	connMtx.Unlock()
-}
-
-var (
-	// Conn is the connection to the database.
-	// It should be set by main.
-	conn *gorm.DB
-
-	connMtx sync.RWMutex // protects conn
 )
 
 // Connect creates a connection to the database.

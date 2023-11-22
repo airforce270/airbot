@@ -15,8 +15,7 @@ import (
 var C = make(chan bool, 1)
 
 // WriteRequester writes information about where the restart was requested from.
-func WriteRequester(platform, channel, id string) {
-	c := cache.Instance()
+func WriteRequester(c cache.Cache, platform, channel, id string) {
 	const expireIn = 30 * time.Second
 
 	go func() {
@@ -37,9 +36,7 @@ func WriteRequester(platform, channel, id string) {
 }
 
 // Notify notifies interested parties that the restart has finished.
-func Notify(platforms map[string]base.Platform) error {
-	c := cache.Instance()
-
+func Notify(c cache.Cache, platforms map[string]base.Platform) error {
 	platformCh := make(chan string, 1)
 	channelCh := make(chan string, 1)
 	messageCh := make(chan string, 1)

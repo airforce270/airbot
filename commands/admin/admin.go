@@ -157,13 +157,11 @@ var (
 )
 
 func botSlowmode(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
-	cdb := cache.Instance()
-
 	enableArg := args[0]
-	key := cache.GlobalSlowmodeKey(msg.Platform)
+	key := cache.GlobalSlowmodeKey(msg.Resources.Platform.Name())
 
 	if !enableArg.Present {
-		enabled, err := cdb.FetchBool(key)
+		enabled, err := msg.Resources.Cache.FetchBool(key)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch cache key %s (bool): %w", key, err)
 		}
@@ -174,14 +172,14 @@ func botSlowmode(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
-				Text:    fmt.Sprintf("Bot slowmode is currently %s on %s", enabledMsg, msg.Platform.Name()),
+				Text:    fmt.Sprintf("Bot slowmode is currently %s on %s", enabledMsg, msg.Resources.Platform.Name()),
 			},
 		}, nil
 	}
 
 	enable := enableArg.BoolValue
 
-	if err := cdb.StoreBool(key, enable); err != nil {
+	if err := msg.Resources.Cache.StoreBool(key, enable); err != nil {
 		failureMsgStart := "Failed to enable"
 		if !enable {
 			failureMsgStart = "Failed to disable"
@@ -189,7 +187,7 @@ func botSlowmode(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 		return []*base.Message{
 			{
 				Channel: msg.Message.Channel,
-				Text:    fmt.Sprintf("%s bot slowmode on %s", failureMsgStart, msg.Platform.Name()),
+				Text:    fmt.Sprintf("%s bot slowmode on %s", failureMsgStart, msg.Resources.Platform.Name()),
 			},
 		}, nil
 	}
@@ -201,7 +199,7 @@ func botSlowmode(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
-			Text:    fmt.Sprintf("%s bot slowmode on %s", outMsgStart, msg.Platform.Name()),
+			Text:    fmt.Sprintf("%s bot slowmode on %s", outMsgStart, msg.Resources.Platform.Name()),
 		},
 	}, nil
 }
@@ -209,11 +207,9 @@ func botSlowmode(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 const defaultPrefix = "$"
 
 func joinChannel(msg *base.IncomingMessage, targetChannel, prefix string) ([]*base.Message, error) {
-	db := database.Instance()
-
 	var channels []models.JoinedChannel
-	db.Where(models.JoinedChannel{
-		Platform: msg.Platform.Name(),
+	msg.Resources.DB.Where(models.JoinedChannel{
+		Platform: msg.Resources.Platform.Name(),
 		Channel:  strings.ToLower(targetChannel),
 	}).Find(&channels)
 
@@ -227,16 +223,16 @@ func joinChannel(msg *base.IncomingMessage, targetChannel, prefix string) ([]*ba
 	}
 
 	channelRecord := models.JoinedChannel{
-		Platform: msg.Platform.Name(),
+		Platform: msg.Resources.Platform.Name(),
 		Channel:  targetChannel,
 		Prefix:   prefix,
 		JoinedAt: time.Now(),
 	}
-	if err := db.Create(&channelRecord).Error; err != nil {
+	if err := msg.Resources.DB.Create(&channelRecord).Error; err != nil {
 		return nil, fmt.Errorf("failed to join channel %s: %w", targetChannel, err)
 	}
 
-	err := msg.Platform.Join(targetChannel, prefix)
+	err := msg.Resources.Platform.Join(targetChannel, prefix)
 
 	if errors.Is(err, twitchplatform.ErrChannelNotFound) {
 		return []*base.Message{
@@ -273,10 +269,8 @@ func joinChannel(msg *base.IncomingMessage, targetChannel, prefix string) ([]*ba
 const maxUsersPerMessage = 15
 
 func joined(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
-	db := database.Instance()
-
 	var joinedChannels []*models.JoinedChannel
-	if err := db.Find(&joinedChannels).Error; err != nil {
+	if err := msg.Resources.DB.Find(&joinedChannels).Error; err != nil {
 		return nil, fmt.Errorf("failed to find channels: %w", err)
 	}
 	var channels []string
@@ -305,9 +299,7 @@ func joined(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 }
 
 func leaveChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Message, error) {
-	db := database.Instance()
-
-	err := database.LeaveChannel(db, msg.Platform.Name(), targetChannel)
+	err := database.LeaveChannel(msg.Resources.DB, msg.Resources.Platform.Name(), targetChannel)
 
 	if err != nil {
 		return []*base.Message{
@@ -320,7 +312,7 @@ func leaveChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Mess
 
 	go func() {
 		time.Sleep(time.Millisecond * 500)
-		if err := msg.Platform.Leave(targetChannel); err != nil {
+		if err := msg.Resources.Platform.Leave(targetChannel); err != nil {
 			log.Printf("failed to leave channel %s: %v", targetChannel, err)
 		}
 	}()
@@ -356,7 +348,7 @@ func reloadConfig(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, e
 }
 
 func restartBot(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
-	go restart.WriteRequester(msg.Platform.Name(), msg.Message.Channel, msg.Message.ID)
+	go restart.WriteRequester(msg.Resources.Cache, msg.Resources.Platform.Name(), msg.Message.Channel, msg.Message.ID)
 
 	const delay = 100 * time.Millisecond
 	time.AfterFunc(delay, func() { restart.C <- true })
@@ -376,18 +368,16 @@ func setPrefix(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, erro
 	}
 	newPrefix := prefixArg.StringValue
 
-	db := database.Instance()
-
 	var channels []models.JoinedChannel
-	err := db.Where("platform = ? AND LOWER(channel) = ?", msg.Platform.Name(), strings.ToLower(msg.Message.Channel)).Find(&channels).Error
+	err := msg.Resources.DB.Where("platform = ? AND LOWER(channel) = ?", msg.Resources.Platform.Name(), strings.ToLower(msg.Message.Channel)).Find(&channels).Error
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch channels matching %s/%s: %w", msg.Platform.Name(), strings.ToLower(msg.Message.Channel), err)
+		return nil, fmt.Errorf("failed to fetch channels matching %s/%s: %w", msg.Resources.Platform.Name(), strings.ToLower(msg.Message.Channel), err)
 	}
 
 	for _, channel := range channels {
 		channel.Prefix = newPrefix
 
-		result := db.Save(&channel)
+		result := msg.Resources.DB.Save(&channel)
 		if err := result.Error; err != nil {
 			return nil, fmt.Errorf("failed to save new prefix %s for channel %s: %w", newPrefix, channel.Channel, err)
 		}
@@ -403,7 +393,7 @@ func setPrefix(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, erro
 		}
 	}
 
-	if err := msg.Platform.SetPrefix(msg.Message.Channel, newPrefix); err != nil {
+	if err := msg.Resources.Platform.SetPrefix(msg.Message.Channel, newPrefix); err != nil {
 		log.Printf("Failed to update prefix: %v", err)
 		return []*base.Message{
 			{

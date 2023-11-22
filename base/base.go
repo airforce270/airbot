@@ -2,13 +2,15 @@
 package base
 
 import (
-	"crypto/rand"
 	"errors"
+	"io"
 	"strings"
 	"time"
 
+	"github.com/airforce270/airbot/cache"
 	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
+	"gorm.io/gorm"
 
 	exprand "golang.org/x/exp/rand"
 )
@@ -79,8 +81,8 @@ type IncomingMessage struct {
 	Prefix string
 	// PermissionLevel is the permission level of the user that sent the message.
 	PermissionLevel permission.Level
-	// Platform is the platform the message was sent on.
-	Platform Platform
+	// Resources contains resources available to an incoming message.
+	Resources Resources
 }
 
 // MessageTextWithoutPrefix returns the message's text without the prefix.
@@ -100,7 +102,23 @@ type OutgoingMessage struct {
 	ReplyToID string
 }
 
-var (
-	RandReader                = rand.Reader
-	RandSource exprand.Source = nil
-)
+// Resources contains references to app-level resources.
+type Resources struct {
+	// Platform is the current platform.
+	Platform Platform
+	// DB is a reference to the database.
+	DB *gorm.DB
+	// Cache is a reference to the cache.
+	Cache cache.Cache
+	// Rand is a reference to random sources.
+	Rand RandResources
+}
+
+// RandResources contains references to random number resources.
+type RandResources struct {
+	// Reader will be used as the reader for random values.
+	Reader io.Reader
+	// Source is a source of random numbers.
+	// Optional - a default will be used if not provided.
+	Source exprand.Source
+}

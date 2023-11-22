@@ -149,7 +149,9 @@ func (t *Twitch) Listen() <-chan base.IncomingMessage {
 			},
 			Prefix:          t.prefix(msg.Channel),
 			PermissionLevel: t.level(&msg),
-			Platform:        t,
+			Resources: base.Resources{
+				Platform: t,
+			},
 		}
 	})
 	return c

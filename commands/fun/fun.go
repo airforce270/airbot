@@ -93,7 +93,7 @@ const cockMaxLength = 14
 func cock(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	target := basecommand.FirstArgOrUsername(args, msg)
 
-	length, err := rand.Int(base.RandReader, big.NewInt(cockMaxLength+1))
+	length, err := rand.Int(msg.Resources.Rand.Reader, big.NewInt(cockMaxLength+1))
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate random number: %w", err)
 	}
@@ -109,7 +109,7 @@ func cock(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 func iq(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	target := basecommand.FirstArgOrUsername(args, msg)
 
-	userIqFloat := distuv.Normal{Mu: 100, Sigma: 15, Src: base.RandSource}.Rand()
+	userIqFloat := distuv.Normal{Mu: 100, Sigma: 15, Src: msg.Resources.Rand.Source}.Rand()
 	userIq := int64(math.Round(userIqFloat))
 
 	return []*base.Message{
@@ -127,7 +127,7 @@ func ship(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	}
 	person1, person2 := person1Arg.StringValue, person2Arg.StringValue
 
-	percentBigInt, err := rand.Int(base.RandReader, big.NewInt(101))
+	percentBigInt, err := rand.Int(msg.Resources.Rand.Reader, big.NewInt(101))
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate random number: %w", err)
 	}

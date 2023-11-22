@@ -221,7 +221,7 @@ func TestFetchUser(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		server.Resp = tc.useResp
+		server.Resps = []string{tc.useResp}
 		t.Run(tc.desc, func(t *testing.T) {
 			got, err := FetchUsers("fake-username")
 			if err != nil {
@@ -355,7 +355,7 @@ func TestFetchModsAndVIPs(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		server.Resp = tc.useResp
+		server.Resps = []string{tc.useResp}
 		t.Run(tc.desc, func(t *testing.T) {
 			got, err := FetchModsAndVIPs("fakeusername")
 			if err != nil {
@@ -470,7 +470,7 @@ func TestFetchFounders(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		server.Resp = tc.useResp
+		server.Resps = []string{tc.useResp}
 		t.Run(tc.desc, func(t *testing.T) {
 			got, err := FetchFounders("fakeusername")
 			if err != nil {
@@ -676,7 +676,7 @@ func TestFetchSubAge(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		server.Resp = tc.useResp
+		server.Resps = []string{tc.useResp}
 		t.Run(tc.desc, func(t *testing.T) {
 			got, err := FetchSubAge("fakeuser", "fakechannel")
 			if err != nil && tc.wantErr == nil {
@@ -723,7 +723,7 @@ func TestIsVerifiedBot(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		server.Resp = tc.useResp
+		server.Resps = []string{tc.useResp}
 		t.Run(tc.desc, func(t *testing.T) {
 			users, err := FetchUsers("fake-username")
 			if err != nil {

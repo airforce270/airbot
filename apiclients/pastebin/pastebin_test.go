@@ -34,7 +34,7 @@ func TestFetchPaste(t *testing.T) {
 			t.Parallel()
 			server := fakeserver.New()
 			defer server.Close()
-			server.Resp = tc.useResp
+			server.Resps = []string{tc.useResp}
 			got, err := FetchPaste(server.URL())
 			if err != nil {
 				t.Fatalf("FetchPaste() unexpected error: %v", err)
