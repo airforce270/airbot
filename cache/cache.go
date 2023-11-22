@@ -4,34 +4,9 @@ package cache
 import (
 	"context"
 	"errors"
-	"sync"
 	"time"
 
-	"github.com/airforce270/airbot/base"
-
 	"github.com/redis/go-redis/v9"
-)
-
-func Instance() Cache {
-	connMtx.RLock()
-	defer connMtx.RUnlock()
-	if conn == nil {
-		panic("cache.Conn is nil!")
-	}
-	return conn
-}
-
-func SetInstance(c Cache) {
-	connMtx.Lock()
-	conn = c
-	connMtx.Unlock()
-}
-
-var (
-	// Conn is an instance of the cache.
-	conn Cache = nil
-
-	connMtx sync.RWMutex // protects Conn
 )
 
 // A Cache stores and retrieves simple key-value data quickly.
@@ -67,8 +42,8 @@ const (
 )
 
 // GlobalSlowmodeKey returns the global slowmode cache key for a platform.
-func GlobalSlowmodeKey(p base.Platform) string {
-	return "global_slowmode_" + p.Name()
+func GlobalSlowmodeKey(platformName string) string {
+	return "global_slowmode_" + platformName
 }
 
 // Redis implements Cache for a real Redis database.

@@ -14,14 +14,13 @@ func New() *FakeServer {
 	s.Reset()
 	respIndex := 0
 	httpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// yes, this is hacky
-		if strings.Contains(s.Resp, `"statusCode": 404`) {
-			w.WriteHeader(http.StatusNotFound)
+		if len(s.Resps) == 0 {
+			return
 		}
 
-		if len(s.Resps) == 0 {
-			fmt.Fprint(w, s.Resp)
-			return
+		// yes, this is hacky
+		if strings.Contains(s.Resps[respIndex], `"statusCode": 404`) {
+			w.WriteHeader(http.StatusNotFound)
 		}
 
 		fmt.Fprint(w, s.Resps[respIndex])
@@ -43,11 +42,7 @@ type FakeServer struct {
 	onClose []func()
 
 	// Resps will be returned in order when calls are made to the server.
-	// If this is set, Resp is ignored.
 	Resps []string
-
-	// Resp is the response to be returned when calls are made to the server.
-	Resp string
 }
 
 // URL returns the server's URL.
@@ -70,5 +65,5 @@ func (s *FakeServer) Close() {
 
 // Reset resets the server's response to its default.
 func (s *FakeServer) Reset() {
-	s.Resp = "no-response-set"
+	s.Resps = nil
 }

@@ -11,6 +11,7 @@ import (
 
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/base/arg"
+	"github.com/airforce270/airbot/cache"
 	"github.com/airforce270/airbot/commands/admin"
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/commands/botinfo"
@@ -63,18 +64,28 @@ func init() {
 }
 
 // NewHandler creates a new Handler.
-func NewHandler(db *gorm.DB) Handler {
-	return Handler{db: db}
+func NewHandler(db *gorm.DB, cdb cache.Cache, randOpts base.RandResources) Handler {
+	return Handler{db: db, cache: cdb, randOpts: randOpts}
 }
 
 // Handler handles messages.
 type Handler struct {
 	// db is a connection to the database.
 	db *gorm.DB
+	// cache is a reference to the cache.
+	cache cache.Cache
+	// randOpts are references to sources of randomness.
+	randOpts base.RandResources
 }
 
 // Handle handles incoming messages, possibly returning messages to be sent in response.
 func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, error) {
+	msg.Resources.DB = h.db
+	msg.Resources.Cache = h.cache
+	// msg.Resources.Platform is set by the platform,
+	// before the message reaches here
+	msg.Resources.Rand = h.randOpts
+
 	var outMsgs []*base.OutgoingMessage
 	for pattern, command := range commandPatterns {
 		if !strings.HasPrefix(strings.TrimSpace(msg.Message.Text), msg.Prefix) {
@@ -94,14 +105,14 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, er
 			Command: command.Name,
 		}).Error
 		if err != nil {
-			return nil, fmt.Errorf("[%s] failed to get/create channel cooldown for channel %q, command %q: %w", msg.Platform.Name(), msg.Message.Channel, command.Name, err)
+			return nil, fmt.Errorf("[%s] failed to get/create channel cooldown for channel %q, command %q: %w", msg.Resources.Platform.Name(), msg.Message.Channel, command.Name, err)
 		}
 		if command.ChannelCooldown > time.Since(channelCooldown.LastRun) {
 			log.Printf("Skipping %s%s: channel cooldown is %s but it has only been %s", msg.Prefix, command.Name, command.ChannelCooldown, time.Since(channelCooldown.LastRun))
 			continue
 		}
 
-		user, err := msg.Platform.User(msg.Message.User)
+		user, err := msg.Resources.Platform.User(msg.Message.User)
 		if err != nil && !errors.Is(err, base.ErrUserUnknown) {
 			return nil, fmt.Errorf("failed to fetch user %q: %w", msg.Message.User, err)
 		}
@@ -115,7 +126,7 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, er
 				Command: command.Name,
 			}).Error
 			if err != nil {
-				return nil, fmt.Errorf("[%s] failed to get/create user cooldown for user %q, command %q, %w", msg.Platform.Name(), msg.Message.User, command.Name, err)
+				return nil, fmt.Errorf("[%s] failed to get/create user cooldown for user %q, command %q, %w", msg.Resources.Platform.Name(), msg.Message.User, command.Name, err)
 			}
 			if command.UserCooldown > time.Since(userCooldown.LastRun) {
 				log.Printf("Skipping %s%s: user cooldown is %s but it has only been %s", msg.Prefix, command.Name, command.UserCooldown, time.Since(userCooldown.LastRun))

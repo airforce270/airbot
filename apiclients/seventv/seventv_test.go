@@ -391,7 +391,7 @@ func TestFetchUserConnectionByTwitchUserId(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		server.Resp = tc.useResp
+		server.Resps = []string{tc.useResp}
 		t.Run(tc.desc, func(t *testing.T) {
 			got, err := seventv.FetchUserConnectionByTwitchUserId("user1")
 			if err != nil {
