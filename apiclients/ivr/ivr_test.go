@@ -1,35 +1,28 @@
-package ivr
+package ivr_test
 
 import (
 	"errors"
 	"testing"
 	"time"
 
+	"github.com/airforce270/airbot/apiclients/ivr"
 	"github.com/airforce270/airbot/apiclients/ivr/ivrtest"
 	"github.com/airforce270/airbot/testing/fakeserver"
 
 	"github.com/google/go-cmp/cmp"
 )
 
-var (
-	originalIvrBaseUrl = BaseURL
-)
-
 func TestFetchUser(t *testing.T) {
-	server := fakeserver.New()
-	server.AddOnClose(func() { originalIvrBaseUrl = BaseURL })
-	defer server.Close()
-	BaseURL = server.URL()
-
+	t.Parallel()
 	tests := []struct {
 		desc    string
 		useResp string
-		want    []*TwitchUsersResponseItem
+		want    []*ivr.TwitchUsersResponseItem
 	}{
 		{
 			desc:    "non streaming user",
 			useResp: ivrtest.TwitchUsersNotStreamingResp,
-			want: []*TwitchUsersResponseItem{
+			want: []*ivr.TwitchUsersResponseItem{
 				{
 					IsBanned:          false,
 					BanReason:         "",
@@ -47,12 +40,12 @@ func TestFetchUser(t *testing.T) {
 					CreatedAt:         time.Date(2014, 9, 12, 23, 50, 5, 989719000, time.UTC),
 					UpdatedAt:         time.Date(2022, 10, 6, 20, 43, 0, 256907000, time.UTC),
 					EmotePrefix:       "xqc",
-					Roles: rolesInfo{
+					Roles: ivr.RolesInfo{
 						IsAffiliate: false,
 						IsPartner:   true,
 						IsStaff:     false,
 					},
-					Badges: []badgeInfo{
+					Badges: []ivr.BadgeInfo{
 						{
 							Set:         "partner",
 							Title:       "Verified",
@@ -60,7 +53,7 @@ func TestFetchUser(t *testing.T) {
 							Version:     "1",
 						},
 					},
-					ChatSettings: chatSettingsInfo{
+					ChatSettings: ivr.ChatSettingsInfo{
 						ChatDelayMs:                  0,
 						FollowersOnlyDurationMinutes: 1440,
 						SlowModeDurationSeconds:      0,
@@ -76,11 +69,11 @@ func TestFetchUser(t *testing.T) {
 						},
 					},
 					Stream: nil,
-					LastBroadcast: lastBroadcastInfo{
+					LastBroadcast: ivr.LastBroadcastInfo{
 						StartTime: time.Date(2022, 10, 6, 22, 47, 39, 840638000, time.UTC),
 						Title:     "🟧JUICED EP2. !FANSLY🟧CLICK NOW🟧FT. JERMA🟧& AUSTIN🟧& LUDWIG🟧& CONNOREATSPANTS🟧& ME🟧JOIN NOW🟧FAST🟧BEFORE I LOSE IT🟧BIG🟧#SPONSORED",
 					},
-					Panels: []panelInfo{
+					Panels: []ivr.PanelInfo{
 						{ID: "124112525"},
 						{ID: "98109996"},
 						{ID: "44997828"},
@@ -102,7 +95,7 @@ func TestFetchUser(t *testing.T) {
 		{
 			desc:    "streaming user",
 			useResp: ivrtest.TwitchUsersStreamingResp,
-			want: []*TwitchUsersResponseItem{
+			want: []*ivr.TwitchUsersResponseItem{
 				{
 					IsBanned:          false,
 					BanReason:         "",
@@ -120,12 +113,12 @@ func TestFetchUser(t *testing.T) {
 					CreatedAt:         time.Date(2020, 10, 2, 16, 25, 47, 819212000, time.UTC),
 					UpdatedAt:         time.Date(2022, 10, 9, 3, 41, 23, 622605000, time.UTC),
 					EmotePrefix:       "xqt000",
-					Roles: rolesInfo{
+					Roles: ivr.RolesInfo{
 						IsAffiliate: true,
 						IsPartner:   false,
 						IsStaff:     false,
 					},
-					Badges: []badgeInfo{
+					Badges: []ivr.BadgeInfo{
 						{
 							Set:         "premium",
 							Title:       "Prime Gaming",
@@ -133,7 +126,7 @@ func TestFetchUser(t *testing.T) {
 							Version:     "1",
 						},
 					},
-					ChatSettings: chatSettingsInfo{
+					ChatSettings: ivr.ChatSettingsInfo{
 						ChatDelayMs:                  0,
 						FollowersOnlyDurationMinutes: 0,
 						SlowModeDurationSeconds:      0,
@@ -145,26 +138,26 @@ func TestFetchUser(t *testing.T) {
 						RequireVerifiedAccount:       false,
 						Rules:                        []string{},
 					},
-					Stream: &streamInfo{
+					Stream: &ivr.StreamInfo{
 						Title:        "tiktok esport #228 i guess",
 						ID:           "39929884600",
 						StartTime:    time.Date(2022, 10, 9, 22, 0, 33, 0, time.UTC),
 						Type:         "live",
 						ViewersCount: 77,
-						Game:         gameInfo{DisplayName: "Just Chatting"},
+						Game:         ivr.GameInfo{DisplayName: "Just Chatting"},
 					},
-					LastBroadcast: lastBroadcastInfo{
+					LastBroadcast: ivr.LastBroadcastInfo{
 						StartTime: time.Date(2022, 10, 9, 22, 0, 37, 637909000, time.UTC),
 						Title:     "tiktok esport #228 i guess",
 					},
-					Panels: []panelInfo{},
+					Panels: []ivr.PanelInfo{},
 				},
 			},
 		},
 		{
 			desc:    "banned user",
 			useResp: ivrtest.TwitchUsersBannedResp,
-			want: []*TwitchUsersResponseItem{
+			want: []*ivr.TwitchUsersResponseItem{
 				{
 					IsBanned:          true,
 					BanReason:         "TOS_INDEFINITE",
@@ -182,12 +175,12 @@ func TestFetchUser(t *testing.T) {
 					CreatedAt:         time.Date(2018, 8, 5, 23, 43, 51, 848531000, time.UTC),
 					UpdatedAt:         time.Date(2022, 10, 4, 22, 24, 3, 192561000, time.UTC),
 					EmotePrefix:       "",
-					Roles: rolesInfo{
+					Roles: ivr.RolesInfo{
 						IsAffiliate: false,
 						IsPartner:   false,
 						IsStaff:     false,
 					},
-					Badges: []badgeInfo{
+					Badges: []ivr.BadgeInfo{
 						{
 							Set:         "glhf-pledge",
 							Title:       "GLHF Pledge",
@@ -195,7 +188,7 @@ func TestFetchUser(t *testing.T) {
 							Version:     "1",
 						},
 					},
-					ChatSettings: chatSettingsInfo{
+					ChatSettings: ivr.ChatSettingsInfo{
 						ChatDelayMs:                  0,
 						FollowersOnlyDurationMinutes: 0,
 						SlowModeDurationSeconds:      0,
@@ -208,11 +201,11 @@ func TestFetchUser(t *testing.T) {
 						Rules:                        []string{},
 					},
 					Stream: nil,
-					LastBroadcast: lastBroadcastInfo{
+					LastBroadcast: ivr.LastBroadcastInfo{
 						StartTime: time.Date(2018, 9, 2, 23, 43, 41, 435181000, time.UTC),
 						Title:     "OBS TEST",
 					},
-					Panels: []panelInfo{
+					Panels: []ivr.PanelInfo{
 						{ID: "88030436"},
 					},
 				},
@@ -221,45 +214,46 @@ func TestFetchUser(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		server.Resps = []string{tc.useResp}
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
-			got, err := FetchUsers("fake-username")
+			t.Parallel()
+			server := fakeserver.New()
+			defer server.Close()
+			server.Resps = []string{tc.useResp}
+
+			client := ivr.NewClient(server.URL())
+			got, err := client.FetchUsers("fake-username")
 			if err != nil {
-				t.Fatalf("FetchUser() unexpected error: %v", err)
+				t.Fatalf("FetchUsers() unexpected error: %v", err)
 			}
 
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Errorf("FetchUser() diff (-want +got):\n%s", diff)
+				t.Errorf("FetchUsers() diff (-want +got):\n%s", diff)
 			}
 		})
-		server.Reset()
 	}
 }
 
 func TestFetchModsAndVIPs(t *testing.T) {
-	server := fakeserver.New()
-	server.AddOnClose(func() { originalIvrBaseUrl = BaseURL })
-	defer server.Close()
-	BaseURL = server.URL()
-
+	t.Parallel()
 	tests := []struct {
 		desc    string
 		useResp string
-		want    *ModsAndVIPsResponse
+		want    *ivr.ModsAndVIPsResponse
 	}{
 		{
 			desc:    "no mods or vips",
 			useResp: ivrtest.ModsAndVIPsNoneResp,
-			want: &ModsAndVIPsResponse{
-				Mods: []*ModOrVIPUser{},
-				VIPs: []*ModOrVIPUser{},
+			want: &ivr.ModsAndVIPsResponse{
+				Mods: []*ivr.ModOrVIPUser{},
+				VIPs: []*ivr.ModOrVIPUser{},
 			},
 		},
 		{
 			desc:    "mods only",
 			useResp: ivrtest.ModsAndVIPsModsOnlyResp,
-			want: &ModsAndVIPsResponse{
-				Mods: []*ModOrVIPUser{
+			want: &ivr.ModsAndVIPsResponse{
+				Mods: []*ivr.ModOrVIPUser{
 					{
 						ID:          "429509069",
 						Username:    "ip0g",
@@ -273,14 +267,14 @@ func TestFetchModsAndVIPs(t *testing.T) {
 						GrantedAt:   time.Date(2022, 10, 9, 8, 13, 17, 829797513, time.UTC),
 					},
 				},
-				VIPs: []*ModOrVIPUser{},
+				VIPs: []*ivr.ModOrVIPUser{},
 			},
 		},
 		{
 			desc:    "large, many mods and vips",
 			useResp: ivrtest.ModsAndVIPsModsAndVIPsResp,
-			want: &ModsAndVIPsResponse{
-				Mods: []*ModOrVIPUser{
+			want: &ivr.ModsAndVIPsResponse{
+				Mods: []*ivr.ModOrVIPUser{
 					{
 						ID:          "100135110",
 						Username:    "streamelements",
@@ -306,7 +300,7 @@ func TestFetchModsAndVIPs(t *testing.T) {
 						GrantedAt:   time.Date(2022, 8, 9, 13, 35, 14, 995445410, time.UTC),
 					},
 				},
-				VIPs: []*ModOrVIPUser{
+				VIPs: []*ivr.ModOrVIPUser{
 					{
 						ID:          "150790620",
 						Username:    "bakonsword",
@@ -355,9 +349,15 @@ func TestFetchModsAndVIPs(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		server.Resps = []string{tc.useResp}
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
-			got, err := FetchModsAndVIPs("fakeusername")
+			t.Parallel()
+			server := fakeserver.New()
+			defer server.Close()
+			server.Resps = []string{tc.useResp}
+
+			client := ivr.NewClient(server.URL())
+			got, err := client.FetchModsAndVIPs("fakeusername")
 			if err != nil {
 				t.Fatalf("FetchModsAndVIPs() unexpected error: %v", err)
 			}
@@ -366,40 +366,35 @@ func TestFetchModsAndVIPs(t *testing.T) {
 				t.Errorf("FetchModsAndVIPs() diff (-want +got):\n%s", diff)
 			}
 		})
-		server.Reset()
 	}
 }
 
 func TestFetchFounders(t *testing.T) {
-	server := fakeserver.New()
-	server.AddOnClose(func() { originalIvrBaseUrl = BaseURL })
-	defer server.Close()
-	BaseURL = server.URL()
-
+	t.Parallel()
 	tests := []struct {
 		desc    string
 		useResp string
-		want    *FoundersResponse
+		want    *ivr.FoundersResponse
 	}{
 		{
 			desc:    "no founders 404",
 			useResp: ivrtest.FoundersNone404Resp,
-			want: &FoundersResponse{
+			want: &ivr.FoundersResponse{
 				Founders: nil,
 			},
 		},
 		{
 			desc:    "no founders",
 			useResp: ivrtest.FoundersNoneResp,
-			want: &FoundersResponse{
-				Founders: []*Founder{},
+			want: &ivr.FoundersResponse{
+				Founders: []*ivr.Founder{},
 			},
 		},
 		{
 			desc:    "founders",
 			useResp: ivrtest.FoundersNormalResp,
-			want: &FoundersResponse{
-				Founders: []*Founder{
+			want: &ivr.FoundersResponse{
+				Founders: []*ivr.Founder{
 					{
 						ID:                "415575292",
 						Username:          "fishyykingyy",
@@ -470,9 +465,15 @@ func TestFetchFounders(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		server.Resps = []string{tc.useResp}
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
-			got, err := FetchFounders("fakeusername")
+			t.Parallel()
+			server := fakeserver.New()
+			defer server.Close()
+			server.Resps = []string{tc.useResp}
+
+			client := ivr.NewClient(server.URL())
+			got, err := client.FetchFounders("fakeusername")
 			if err != nil {
 				t.Fatalf("FetchFounders() unexpected error: %v", err)
 			}
@@ -481,53 +482,48 @@ func TestFetchFounders(t *testing.T) {
 				t.Errorf("FetchFounders() diff (-want +got):\n%s", diff)
 			}
 		})
-		server.Reset()
 	}
 }
 
 func TestFetchSubAge(t *testing.T) {
-	server := fakeserver.New()
-	server.AddOnClose(func() { originalIvrBaseUrl = BaseURL })
-	defer server.Close()
-	BaseURL = server.URL()
-
+	t.Parallel()
 	tests := []struct {
 		desc    string
 		useResp string
-		want    *SubAgeResponse
+		want    *ivr.SubAgeResponse
 		wantErr *error
 	}{
 		{
 			desc:    "current paid tier 3 sub",
 			useResp: ivrtest.SubAgeCurrentPaidTier3Resp,
-			want: &SubAgeResponse{
-				User: SubAgeUser{
+			want: &ivr.SubAgeResponse{
+				User: ivr.SubAgeUser{
 					ID:          "460691477",
 					Username:    "macroblank1",
 					DisplayName: "Macroblank1",
 				},
-				Channel: SubAgeUser{
+				Channel: ivr.SubAgeUser{
 					ID:          "71092938",
 					Username:    "xqc",
 					DisplayName: "xQc",
 				},
 				StatusHidden: false,
 				FollowTime:   time.Date(2021, 6, 29, 7, 37, 31, 0, time.UTC),
-				Streak: &SubAgeDuration{
+				Streak: &ivr.SubAgeDuration{
 					ElapsedDays:   27,
 					DaysRemaining: 3,
 					Months:        17,
 					StartTime:     time.Date(2023, 1, 1, 5, 31, 26, 0, time.UTC),
 					EndTime:       time.Date(2023, 1, 25, 0, 0, 0, 0, time.UTC),
 				},
-				Cumulative: &SubAgeDuration{
+				Cumulative: &ivr.SubAgeDuration{
 					ElapsedDays:   27,
 					DaysRemaining: 3,
 					Months:        17,
 					StartTime:     time.Date(2023, 1, 1, 5, 31, 26, 0, time.UTC),
 					EndTime:       time.Date(2023, 1, 25, 0, 0, 0, 0, time.UTC),
 				},
-				Metadata: &SubAgeMetadata{
+				Metadata: &ivr.SubAgeMetadata{
 					Type:     "paid",
 					Tier:     "3",
 					EndTime:  time.Date(2023, 2, 1, 5, 31, 23, 0, time.UTC),
@@ -538,40 +534,40 @@ func TestFetchSubAge(t *testing.T) {
 		{
 			desc:    "current gifted tier 1 sub",
 			useResp: ivrtest.SubAgeCurrentGiftTier1Resp,
-			want: &SubAgeResponse{
-				User: SubAgeUser{
+			want: &ivr.SubAgeResponse{
+				User: ivr.SubAgeUser{
 					ID:          "46620027",
 					Username:    "ellagarten",
 					DisplayName: "ellagarten",
 				},
-				Channel: SubAgeUser{
+				Channel: ivr.SubAgeUser{
 					ID:          "71092938",
 					Username:    "xqc",
 					DisplayName: "xQc",
 				},
 				StatusHidden: false,
 				FollowTime:   time.Date(2020, 4, 4, 22, 31, 11, 0, time.UTC),
-				Streak: &SubAgeDuration{
+				Streak: &ivr.SubAgeDuration{
 					ElapsedDays:   17,
 					DaysRemaining: 14,
 					Months:        4,
 					StartTime:     time.Date(2023, 1, 5, 0, 0, 0, 0, time.UTC),
 					EndTime:       time.Date(2023, 2, 5, 21, 47, 32, 0, time.UTC),
 				},
-				Cumulative: &SubAgeDuration{
+				Cumulative: &ivr.SubAgeDuration{
 					ElapsedDays:   17,
 					DaysRemaining: 14,
 					Months:        17,
 					StartTime:     time.Date(2023, 1, 5, 0, 0, 0, 0, time.UTC),
 					EndTime:       time.Date(2023, 2, 5, 21, 47, 32, 0, time.UTC),
 				},
-				Metadata: &SubAgeMetadata{
+				Metadata: &ivr.SubAgeMetadata{
 					Type:    "gift",
 					Tier:    "1",
 					EndTime: time.Date(2023, 2, 5, 21, 47, 32, 0, time.UTC),
-					GiftInfo: &SubAgeGiftMetadata{
+					GiftInfo: &ivr.SubAgeGiftMetadata{
 						GiftTime: time.Date(2022, 11, 5, 21, 47, 33, 94141514, time.UTC),
-						Gifter: &SubAgeUser{
+						Gifter: &ivr.SubAgeUser{
 							ID:          "150839051",
 							Username:    "takanatsume_",
 							DisplayName: "TakaNatsume_",
@@ -583,34 +579,34 @@ func TestFetchSubAge(t *testing.T) {
 		{
 			desc:    "current prime sub",
 			useResp: ivrtest.SubAgeCurrentPrimeResp,
-			want: &SubAgeResponse{
-				User: SubAgeUser{
+			want: &ivr.SubAgeResponse{
+				User: ivr.SubAgeUser{
 					ID:          "181950834",
 					Username:    "airforce2700",
 					DisplayName: "airforce2700",
 				},
-				Channel: SubAgeUser{
+				Channel: ivr.SubAgeUser{
 					ID:          "71092938",
 					Username:    "xqc",
 					DisplayName: "xQc",
 				},
 				StatusHidden: false,
 				FollowTime:   time.Date(2019, 10, 14, 3, 10, 31, 0, time.UTC),
-				Streak: &SubAgeDuration{
+				Streak: &ivr.SubAgeDuration{
 					ElapsedDays:   29,
 					DaysRemaining: 1,
 					Months:        22,
 					StartTime:     time.Date(2022, 12, 23, 18, 46, 37, 0, time.UTC),
 					EndTime:       time.Date(2023, 1, 23, 18, 46, 37, 0, time.UTC),
 				},
-				Cumulative: &SubAgeDuration{
+				Cumulative: &ivr.SubAgeDuration{
 					ElapsedDays:   29,
 					DaysRemaining: 1,
 					Months:        22,
 					StartTime:     time.Date(2022, 12, 23, 18, 46, 37, 0, time.UTC),
 					EndTime:       time.Date(2023, 1, 23, 18, 46, 37, 0, time.UTC),
 				},
-				Metadata: &SubAgeMetadata{
+				Metadata: &ivr.SubAgeMetadata{
 					Type:     "prime",
 					Tier:     "1",
 					EndTime:  time.Date(2023, 1, 23, 18, 46, 37, 0, time.UTC),
@@ -621,13 +617,13 @@ func TestFetchSubAge(t *testing.T) {
 		{
 			desc:    "previous sub",
 			useResp: ivrtest.SubAgePreviousSubResp,
-			want: &SubAgeResponse{
-				User: SubAgeUser{
+			want: &ivr.SubAgeResponse{
+				User: ivr.SubAgeUser{
 					ID:          "181950834",
 					Username:    "airforce2700",
 					DisplayName: "airforce2700",
 				},
-				Channel: SubAgeUser{
+				Channel: ivr.SubAgeUser{
 					ID:          "186352304",
 					Username:    "elis",
 					DisplayName: "elis",
@@ -635,7 +631,7 @@ func TestFetchSubAge(t *testing.T) {
 				StatusHidden: false,
 				FollowTime:   time.Date(2021, 11, 11, 17, 47, 35, 0, time.UTC),
 				Streak:       nil,
-				Cumulative: &SubAgeDuration{
+				Cumulative: &ivr.SubAgeDuration{
 					ElapsedDays: 31,
 					Months:      4,
 					StartTime:   time.Date(2022, 12, 20, 20, 48, 38, 0, time.UTC),
@@ -646,13 +642,13 @@ func TestFetchSubAge(t *testing.T) {
 		{
 			desc:    "never subbed",
 			useResp: ivrtest.SubAgeNeverSubbedResp,
-			want: &SubAgeResponse{
-				User: SubAgeUser{
+			want: &ivr.SubAgeResponse{
+				User: ivr.SubAgeUser{
 					ID:          "181950834",
 					Username:    "airforce2700",
 					DisplayName: "airforce2700",
 				},
-				Channel: SubAgeUser{
+				Channel: ivr.SubAgeUser{
 					ID:          "207813352",
 					Username:    "hasanabi",
 					DisplayName: "HasanAbi",
@@ -666,19 +662,25 @@ func TestFetchSubAge(t *testing.T) {
 		{
 			desc:    "non-existent user",
 			useResp: ivrtest.SubAge404UserResp,
-			wantErr: &ErrUserNotFound,
+			wantErr: &ivr.ErrUserNotFound,
 		},
 		{
 			desc:    "non-existent channel",
 			useResp: ivrtest.SubAge404ChannelResp,
-			wantErr: &ErrChannelNotFound,
+			wantErr: &ivr.ErrChannelNotFound,
 		},
 	}
 
 	for _, tc := range tests {
-		server.Resps = []string{tc.useResp}
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
-			got, err := FetchSubAge("fakeuser", "fakechannel")
+			t.Parallel()
+			server := fakeserver.New()
+			defer server.Close()
+			server.Resps = []string{tc.useResp}
+
+			client := ivr.NewClient(server.URL())
+			got, err := client.FetchSubAge("fakeuser", "fakechannel")
 			if err != nil && tc.wantErr == nil {
 				t.Fatalf("FetchSubAge() unexpected error: %v", err)
 			}
@@ -695,16 +697,11 @@ func TestFetchSubAge(t *testing.T) {
 				t.Errorf("FetchSubAge() diff (-want +got):\n%s", diff)
 			}
 		})
-		server.Reset()
 	}
 }
 
 func TestIsVerifiedBot(t *testing.T) {
-	server := fakeserver.New()
-	server.AddOnClose(func() { originalIvrBaseUrl = BaseURL })
-	defer server.Close()
-	BaseURL = server.URL()
-
+	t.Parallel()
 	tests := []struct {
 		desc    string
 		useResp string
@@ -723,9 +720,15 @@ func TestIsVerifiedBot(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		server.Resps = []string{tc.useResp}
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
-			users, err := FetchUsers("fake-username")
+			t.Parallel()
+			server := fakeserver.New()
+			defer server.Close()
+			server.Resps = []string{tc.useResp}
+
+			client := ivr.NewClient(server.URL())
+			users, err := client.FetchUsers("fake-username")
 			if err != nil {
 				t.Fatalf("IsVerifiedBot() unexpected error: %v", err)
 			}
@@ -737,6 +740,5 @@ func TestIsVerifiedBot(t *testing.T) {
 				t.Errorf("IsVerifiedBot() = %t, want %t", got, tc.want)
 			}
 		})
-		server.Reset()
 	}
 }

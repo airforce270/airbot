@@ -26,27 +26,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func Instance() *Twitch {
-	connMtx.RLock()
-	defer connMtx.RUnlock()
-	if conn == nil {
-		panic("twitch.Conn is nil!")
-	}
-	return conn
-}
-
-func SetInstance(t *Twitch) {
-	connMtx.Lock()
-	conn = t
-	connMtx.Unlock()
-}
-
-var (
-	// conn is a connection to Twitch.
-	conn *Twitch
-
-	connMtx sync.RWMutex // protects conn
-)
+// Name is the unique, human-readable name of the platform.
+const Name = "Twitch"
 
 // Twitch implements Platform for a connection to Twitch chat.
 type Twitch struct {
@@ -80,7 +61,7 @@ type Twitch struct {
 	cdb cache.Cache
 }
 
-func (t *Twitch) Name() string { return "Twitch" }
+func (t *Twitch) Name() string { return Name }
 
 func (t *Twitch) Username() string { return t.username }
 
@@ -252,7 +233,8 @@ func (t *Twitch) Connect() error {
 
 	t.setUpIRCHandlers()
 
-	ivrUsers, err := ivr.FetchUsers(t.username)
+	ivrClient := ivr.NewDefaultClient()
+	ivrUsers, err := ivrClient.FetchUsers(t.username)
 	if err != nil {
 		fmt.Printf("Failed to fetch info about %s from IVR, assuming not a verified bot: %v", t.username, err)
 		t.isVerifiedBot = false
@@ -271,7 +253,7 @@ func (t *Twitch) Connect() error {
 	log.Printf("Connecting to Twitch IRC...")
 	t.connectIRC()
 
-	go t.listenForModAndVIPChanges()
+	go t.listenForModAndVIPChanges(ivrClient)
 
 	return nil
 }
@@ -538,10 +520,10 @@ func (t *Twitch) persistUserAndMessage(twitchID, twitchName, message, channel st
 	}
 }
 
-func (t *Twitch) listenForModAndVIPChanges() {
+func (t *Twitch) listenForModAndVIPChanges(ivrClient *ivr.Client) {
 	for {
 		for _, channel := range t.channels {
-			modsAndVIPs, err := ivr.FetchModsAndVIPs(channel.Name)
+			modsAndVIPs, err := ivrClient.FetchModsAndVIPs(channel.Name)
 			if err != nil {
 				log.Printf("Failed to look up mods and VIPs for %s: %v", channel.Name, err)
 				break

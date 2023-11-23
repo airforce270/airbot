@@ -9,7 +9,6 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/airforce270/airbot/apiclients/bible"
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/base/arg"
 	"github.com/airforce270/airbot/commands/basecommand"
@@ -74,7 +73,7 @@ func bibleVerse(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, err
 	}
 	book, chapterVerse := bookArg.StringValue, chapterVerseArg.StringValue
 
-	verses, err := bible.FetchVerses(book + " " + chapterVerse)
+	verses, err := msg.Resources.Clients.Bible.FetchVerses(book + " " + chapterVerse)
 	if err != nil {
 		log.Printf("Failed to look up Bible verses: %v", err)
 		return nil, nil

@@ -3,15 +3,16 @@ package config
 import (
 	_ "embed"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 )
 
 //go:embed config_example.toml
-var configExample []byte
+var configExample string
 
-func TestParse(t *testing.T) {
+func TestRead(t *testing.T) {
 	t.Parallel()
 	want := &Config{
 		LogIncoming: true,
@@ -38,13 +39,13 @@ func TestParse(t *testing.T) {
 		},
 	}
 
-	got, err := parse(configExample)
+	got, err := Read(strings.NewReader(configExample))
 	if err != nil {
-		t.Fatalf("parse() unexpected error: %v", err)
+		t.Fatalf("Read() unexpected error: %v", err)
 	}
 
 	if diff := cmp.Diff(want, got); diff != "" {
-		t.Errorf("parse() diff (-want +got):\n%s", diff)
+		t.Errorf("Read() diff (-want +got):\n%s", diff)
 	}
 }
 

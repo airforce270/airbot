@@ -1,4 +1,5 @@
 // Package seventv implements 7TV commands.
+
 package seventv
 
 import (
@@ -6,7 +7,6 @@ import (
 	"fmt"
 	"log"
 
-	seventvclient "github.com/airforce270/airbot/apiclients/seventv"
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/base/arg"
 	"github.com/airforce270/airbot/commands/basecommand"
@@ -32,7 +32,18 @@ var (
 func emoteCount(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	target := basecommand.FirstArgOrUsername(args, msg)
 
-	user, err := twitch.Instance().FetchUser(target)
+	plat, ok := msg.Resources.PlatformByName(twitch.Name)
+	if !ok {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "Twitch connection not configured",
+			},
+		}, nil
+	}
+	tw := plat.(*twitch.Twitch)
+
+	user, err := tw.FetchUser(target)
 	if err != nil {
 		if errors.Is(err, twitch.ErrChannelNotFound) {
 			return []*base.Message{
@@ -45,7 +56,7 @@ func emoteCount(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, err
 		return nil, err
 	}
 
-	resp, err := seventvclient.FetchUserConnectionByTwitchUserId(user.ID)
+	resp, err := msg.Resources.Clients.SevenTV.FetchUserConnectionByTwitchUserId(user.ID)
 	if err != nil {
 		log.Printf("Failed to fetch 7TV user connection: %v", err)
 		return []*base.Message{

@@ -11,15 +11,132 @@ import (
 	"time"
 )
 
-// Base URL for API requests. Should only be changed for testing.
-var BaseURL = "https://api.ivr.fi"
-
 var (
 	// ErrUserNotFound is returned from some methods when the user couldn't be found.
 	ErrUserNotFound = errors.New("user was not found")
 	// ErrUserNotFound is returned from some methods when the channel couldn't be found.
 	ErrChannelNotFound = errors.New("channel was not found")
 )
+
+// New DefaultClient returns a default IVR API client.
+func NewDefaultClient() *Client { return NewClient("https://api.ivr.fi") }
+
+// NewClient creates a new IVR API client.
+func NewClient(baseURL string) *Client {
+	return &Client{baseURL: baseURL}
+}
+
+// Client is a client for the IVR API.
+type Client struct {
+	baseURL string
+}
+
+// FetchUsers fetches a user info from the IVR API.
+func (c *Client) FetchUsers(username string) ([]*TwitchUsersResponseItem, error) {
+	body, err := get(fmt.Sprintf("%s/v2/twitch/user?login=%s", c.baseURL, username))
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch users from IVR: %w", err)
+	}
+
+	resp := []*TwitchUsersResponseItem{}
+	if err = json.Unmarshal(body, &resp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
+	}
+
+	return resp, nil
+}
+
+// FetchModsAndVIPs fetches the mods and VIPs for a given a Twitch channel.
+func (c *Client) FetchModsAndVIPs(channel string) (*ModsAndVIPsResponse, error) {
+	body, err := get(fmt.Sprintf("%s/v2/twitch/modvip/%s", c.baseURL, channel))
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch mods and vips from IVR: %w", err)
+	}
+
+	resp := ModsAndVIPsResponse{}
+	if err = json.Unmarshal(body, &resp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
+	}
+
+	return &resp, nil
+}
+
+// FetchFounders fetches the list of founders for a given Twitch channel.
+func (c *Client) FetchFounders(channel string) (*FoundersResponse, error) {
+	reqURL := fmt.Sprintf("%s/v2/twitch/founders/%s", c.baseURL, channel)
+	httpResp, err := http.Get(reqURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch founders from IVR: %w", err)
+	}
+	// The IVR API responds with a 404 when the user has no founders.
+	if httpResp.StatusCode == http.StatusNotFound {
+		return &FoundersResponse{}, nil
+	}
+	if httpResp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("bad response from IVR API (URL:%s): %v", reqURL, httpResp)
+	}
+
+	if httpResp.Body == nil {
+		return nil, fmt.Errorf("no data returned from IVR API: %v", httpResp)
+	}
+	defer httpResp.Body.Close()
+
+	body, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response from IVR API: %w", err)
+	}
+
+	resp := FoundersResponse{}
+	if err = json.Unmarshal(body, &resp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
+	}
+
+	return &resp, nil
+}
+
+// FetchSubAge fetches subscription information
+// for a Twitch user to a given Twitch channel.
+// If a user or channel was not found,
+// ErrUserNotFound or ErrChannelNotFound will be returned, respectively.
+func (c *Client) FetchSubAge(user, channel string) (*SubAgeResponse, error) {
+	reqURL := fmt.Sprintf("%s/v2/twitch/subage/%s/%s", c.baseURL, user, channel)
+	httpResp, err := http.Get(reqURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch sub age from IVR: %w", err)
+	}
+	// The IVR API responds with a 404 when a user or channel was not found.
+	if httpResp.StatusCode != http.StatusOK && httpResp.StatusCode != http.StatusNotFound {
+		return nil, fmt.Errorf("bad response from IVR API (URL:%s): %v", reqURL, httpResp)
+	}
+
+	if httpResp.Body == nil {
+		return nil, fmt.Errorf("no data returned from IVR API: %v", httpResp)
+	}
+	defer httpResp.Body.Close()
+
+	body, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response from IVR API: %w", err)
+	}
+
+	// The IVR API responds with a 404 when a user or channel was not found.
+	if httpResp.StatusCode == http.StatusNotFound {
+		if strings.Contains(string(body), "User was not found") {
+			return nil, ErrUserNotFound
+		}
+		if strings.Contains(string(body), "Channel was not found") {
+			return nil, ErrChannelNotFound
+		}
+		return nil, fmt.Errorf("bad response from IVR API (URL:%s): %v", reqURL, httpResp)
+	}
+
+	resp := SubAgeResponse{}
+	if err = json.Unmarshal(body, &resp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
+	}
+
+	return &resp, nil
+}
 
 // TwitchUsersResponseItem /is the type that the IVR API responds with
 // for calls to /v2/twitch/users.
@@ -59,22 +176,22 @@ type TwitchUsersResponseItem struct {
 	// EmotePrefix is the user's emote prefix.
 	EmotePrefix string `json:"emotePrefix"`
 	// Roles contains information about the user's global Twitch roles.
-	Roles rolesInfo `json:"roles"`
+	Roles RolesInfo `json:"roles"`
 	// Badges contains the user's Twitch badges.
 	// Note: does not include FFZ, 7TV, etc. badges.
-	Badges []badgeInfo `json:"badges"`
+	Badges []BadgeInfo `json:"badges"`
 	// ChatSettings contains information about this user's chat.
-	ChatSettings chatSettingsInfo `json:"chatSettings"`
+	ChatSettings ChatSettingsInfo `json:"chatSettings"`
 	// Stream contains info about the user's current stream.
-	Stream *streamInfo `json:"stream"`
+	Stream *StreamInfo `json:"stream"`
 	// LastBroadcast contains info about this user's last stream.
-	LastBroadcast lastBroadcastInfo `json:"lastBroadcast"`
+	LastBroadcast LastBroadcastInfo `json:"lastBroadcast"`
 	// Panels contains information about the panels on the user's about page.
-	Panels []panelInfo `json:"panels"`
+	Panels []PanelInfo `json:"panels"`
 }
 
-// rolesInfo contains information about a user's global Twitch roles.
-type rolesInfo struct {
+// RolesInfo contains information about a user's global Twitch roles.
+type RolesInfo struct {
 	// IsAffiliate is whether the user is a Twitch Affiliate.
 	IsAffiliate bool `json:"isAffiliate"`
 	// IsPartner is whether the user is a Twitch Partner.
@@ -83,8 +200,8 @@ type rolesInfo struct {
 	IsStaff bool `json:"isStaff"`
 }
 
-// badgeInfo represents a Twitch badge.
-type badgeInfo struct {
+// BadgeInfo represents a Twitch badge.
+type BadgeInfo struct {
 	// Set is the set this badge is in.
 	Set string `json:"setID"`
 	// Title is the title of this badge.
@@ -95,8 +212,8 @@ type badgeInfo struct {
 	Version string `json:"version"`
 }
 
-// chatSettingsInfo contains information about a user's chat.
-type chatSettingsInfo struct {
+// ChatSettingsInfo contains information about a user's chat.
+type ChatSettingsInfo struct {
 	// ChatDelayMs is the delay before messages are sent.
 	ChatDelayMs int `json:"chatDelayMs"`
 	// FollowersOnlyDurationMinutes is the minimum amount of time a user must be following for
@@ -123,8 +240,8 @@ type chatSettingsInfo struct {
 	Rules []string `json:"rules"`
 }
 
-// streamInfo contains info about a user's current stream.
-type streamInfo struct {
+// StreamInfo contains info about a user's current stream.
+type StreamInfo struct {
 	// Title is the title of the stream.
 	Title string `json:"title"`
 	// ID is the ID of the stream.
@@ -138,25 +255,25 @@ type streamInfo struct {
 	// ViewersCount is the number of current viewers to the stream.
 	ViewersCount int `json:"viewersCount"`
 	// Game contains info about the game being played on stream.
-	Game gameInfo `json:"game"`
+	Game GameInfo `json:"game"`
 }
 
-// gameInfo contains info about a game being played on stream.
-type gameInfo struct {
+// GameInfo contains info about a game being played on stream.
+type GameInfo struct {
 	// DisplayName is the display name of the game.
 	DisplayName string `json:"displayName"`
 }
 
-// lastBroadcastInfo contains info about a user's last stream.
-type lastBroadcastInfo struct {
+// LastBroadcastInfo contains info about a user's last stream.
+type LastBroadcastInfo struct {
 	// StartTime is when the user's last stream started.
 	StartTime time.Time `json:"startedAt"`
 	// Title is the title of the user's last stream.
 	Title string `json:"title"`
 }
 
-// panelInfo contains information about a panel on a user's about page.
-type panelInfo struct {
+// PanelInfo contains information about a panel on a user's about page.
+type PanelInfo struct {
 	// ID is the id of the panel.
 	ID string `json:"id"`
 }
@@ -277,112 +394,6 @@ type SubAgeGiftMetadata struct {
 	// Gifter is the user that gifted the subscription.
 	// Only present if the gifting user did not perform an anonymous gift.
 	Gifter *SubAgeUser `json:"gifter"`
-}
-
-// FetchUsers fetches a user info from the IVR API.
-func FetchUsers(username string) ([]*TwitchUsersResponseItem, error) {
-	body, err := get(fmt.Sprintf("%s/v2/twitch/user?login=%s", BaseURL, username))
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch users from IVR: %w", err)
-	}
-
-	resp := []*TwitchUsersResponseItem{}
-	if err = json.Unmarshal(body, &resp); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
-	}
-
-	return resp, nil
-}
-
-func FetchModsAndVIPs(channel string) (*ModsAndVIPsResponse, error) {
-	body, err := get(fmt.Sprintf("%s/v2/twitch/modvip/%s", BaseURL, channel))
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch mods and vips from IVR: %w", err)
-	}
-
-	resp := ModsAndVIPsResponse{}
-	if err = json.Unmarshal(body, &resp); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
-	}
-
-	return &resp, nil
-}
-
-// FetchFounders fetches the list of founders for a given Twitch channel.
-func FetchFounders(channel string) (*FoundersResponse, error) {
-	reqURL := fmt.Sprintf("%s/v2/twitch/founders/%s", BaseURL, channel)
-	httpResp, err := http.Get(reqURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch founders from IVR: %w", err)
-	}
-	// The IVR API responds with a 404 when the user has no founders.
-	if httpResp.StatusCode == http.StatusNotFound {
-		return &FoundersResponse{}, nil
-	}
-	if httpResp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("bad response from IVR API (URL:%s): %v", reqURL, httpResp)
-	}
-
-	if httpResp.Body == nil {
-		return nil, fmt.Errorf("no data returned from IVR API: %v", httpResp)
-	}
-	defer httpResp.Body.Close()
-
-	body, err := io.ReadAll(httpResp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response from IVR API: %w", err)
-	}
-
-	resp := FoundersResponse{}
-	if err = json.Unmarshal(body, &resp); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
-	}
-
-	return &resp, nil
-}
-
-// FetchSubAge fetches subscription information
-// for a Twitch user to a given Twitch channel.
-// If a user or channel was not found,
-// ErrUserNotFound or ErrChannelNotFound will be returned, respectively.
-func FetchSubAge(user, channel string) (*SubAgeResponse, error) {
-	reqURL := fmt.Sprintf("%s/v2/twitch/subage/%s/%s", BaseURL, user, channel)
-	httpResp, err := http.Get(reqURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch sub age from IVR: %w", err)
-	}
-	// The IVR API responds with a 404 when a user or channel was not found.
-	if httpResp.StatusCode != http.StatusOK && httpResp.StatusCode != http.StatusNotFound {
-		return nil, fmt.Errorf("bad response from IVR API (URL:%s): %v", reqURL, httpResp)
-	}
-
-	if httpResp.Body == nil {
-		return nil, fmt.Errorf("no data returned from IVR API: %v", httpResp)
-	}
-	defer httpResp.Body.Close()
-
-	body, err := io.ReadAll(httpResp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response from IVR API: %w", err)
-	}
-
-	// The IVR API responds with a 404 when a user or channel was not found.
-	if httpResp.StatusCode == http.StatusNotFound {
-		if strings.Contains(string(body), "User was not found") {
-			return nil, ErrUserNotFound
-		}
-		if strings.Contains(string(body), "Channel was not found") {
-			return nil, ErrChannelNotFound
-		}
-		return nil, fmt.Errorf("bad response from IVR API (URL:%s): %v", reqURL, httpResp)
-	}
-
-	resp := SubAgeResponse{}
-	if err = json.Unmarshal(body, &resp); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response from IVR API: %w", err)
-	}
-
-	return &resp, nil
 }
 
 func get(reqURL string) (respBody []byte, err error) {

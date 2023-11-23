@@ -2,13 +2,19 @@
 package commands
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"regexp"
 	"strings"
 	"time"
 
+	"github.com/airforce270/airbot/apiclients/bible"
+	"github.com/airforce270/airbot/apiclients/ivr"
+	kickapi "github.com/airforce270/airbot/apiclients/kick"
+	seventvapi "github.com/airforce270/airbot/apiclients/seventv"
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/base/arg"
 	"github.com/airforce270/airbot/cache"
@@ -23,6 +29,7 @@ import (
 	"github.com/airforce270/airbot/commands/moderation"
 	"github.com/airforce270/airbot/commands/seventv"
 	"github.com/airforce270/airbot/commands/twitch"
+	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
 
@@ -64,8 +71,34 @@ func init() {
 }
 
 // NewHandler creates a new Handler.
-func NewHandler(db *gorm.DB, cdb cache.Cache, randOpts base.RandResources) Handler {
-	return Handler{db: db, cache: cdb, randOpts: randOpts}
+func NewHandler(db *gorm.DB, cdb cache.Cache, cfg *config.Config, allPlatforms map[string]base.Platform) Handler {
+	return Handler{
+		db:              db,
+		cache:           cdb,
+		allPlatforms:    allPlatforms,
+		newConfigSource: config.DefaultNewConfigSource,
+		rand: base.RandResources{
+			Reader: rand.Reader,
+		},
+		Clients: base.APIClients{
+			Bible:   bible.NewDefaultClient(),
+			IVR:     ivr.NewDefaultClient(),
+			Kick:    kickapi.NewClient(kickapi.DefaultBaseURL, cfg.Platforms.Kick.JA3, cfg.Platforms.Kick.UserAgent),
+			SevenTV: seventvapi.NewDefaultClient(),
+		},
+	}
+}
+
+// NewHandlerForTest creates a new Handler for use in testing.
+func NewHandlerForTest(db *gorm.DB, cdb cache.Cache, allPlatforms map[string]base.Platform, newConfigSource func() (io.ReadCloser, error), randOpts base.RandResources, clients base.APIClients) Handler {
+	return Handler{
+		db:              db,
+		cache:           cdb,
+		allPlatforms:    allPlatforms,
+		newConfigSource: newConfigSource,
+		rand:            randOpts,
+		Clients:         clients,
+	}
 }
 
 // Handler handles messages.
@@ -74,17 +107,20 @@ type Handler struct {
 	db *gorm.DB
 	// cache is a reference to the cache.
 	cache cache.Cache
-	// randOpts are references to sources of randomness.
-	randOpts base.RandResources
+	// allPlatforms contains all registered and configured platforms.
+	allPlatforms map[string]base.Platform
+	// newConfigSource returns a source for the latest config data.
+	newConfigSource func() (io.ReadCloser, error)
+	// rand are references to sources of randomness.
+	rand base.RandResources
+	// Clients are API Clients to use.
+	// It is only exported for testing and should not be otherwise used.
+	Clients base.APIClients
 }
 
 // Handle handles incoming messages, possibly returning messages to be sent in response.
 func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, error) {
-	msg.Resources.DB = h.db
-	msg.Resources.Cache = h.cache
-	// msg.Resources.Platform is set by the platform,
-	// before the message reaches here
-	msg.Resources.Rand = h.randOpts
+	h.setResources(msg)
 
 	var outMsgs []*base.OutgoingMessage
 	for pattern, command := range commandPatterns {
@@ -173,6 +209,17 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, er
 		}
 	}
 	return outMsgs, nil
+}
+
+func (h *Handler) setResources(msg *base.IncomingMessage) {
+	msg.Resources.DB = h.db
+	msg.Resources.Cache = h.cache
+	// msg.Resources.Platform is set by the platform,
+	// before the message reaches here
+	msg.Resources.AllPlatforms = h.allPlatforms
+	msg.Resources.NewConfigSource = h.newConfigSource
+	msg.Resources.Rand = h.rand
+	msg.Resources.Clients = h.Clients
 }
 
 // parseArgs parses all args from the given message.

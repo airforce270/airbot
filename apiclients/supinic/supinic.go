@@ -13,6 +13,26 @@ import (
 	"time"
 )
 
+// NewClient creates a new Client.
+func NewClient(userID, apiKey string) *Client {
+	return &Client{
+		userID:  userID,
+		apiKey:  apiKey,
+		baseURL: "https://supinic.com/api/",
+		h:       http.Client{},
+	}
+}
+
+// NewClientForTesting creates a new Client for testing.
+func NewClientForTesting(baseURL string) *Client {
+	return &Client{
+		userID:  "fake-user-id",
+		apiKey:  "fake-api-key",
+		baseURL: baseURL,
+		h:       http.Client{},
+	}
+}
+
 // Client is a Supinic API client.
 type Client struct {
 	// userID is the Supinic User ID of the bot.
@@ -118,24 +138,4 @@ func (c *Client) call(method, path string, body io.Reader) ([]byte, error) {
 
 func (c *Client) put(path string) ([]byte, error) {
 	return c.call(http.MethodPut, path, nil)
-}
-
-// NewClient creates a new Client.
-func NewClient(userID, apiKey string) *Client {
-	return &Client{
-		userID:  userID,
-		apiKey:  apiKey,
-		baseURL: "https://supinic.com/api/",
-		h:       http.Client{},
-	}
-}
-
-// NewClientForTesting creates a new Client for testing.
-func NewClientForTesting(baseURL string) *Client {
-	return &Client{
-		userID:  "fake-user-id",
-		apiKey:  "fake-api-key",
-		baseURL: baseURL,
-		h:       http.Client{},
-	}
 }

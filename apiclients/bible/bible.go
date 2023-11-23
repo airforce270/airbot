@@ -9,8 +9,36 @@ import (
 	"net/url"
 )
 
-// Base URL for API requests. Should only be changed for testing.
-var BaseURL = "https://bible-api.com"
+// DefaultBaseURL is the default base URL for the Kick API.
+const DefaultBaseURL = "https://bible-api.com"
+
+// NewDefaultClient returns a new default Bible API client.
+func NewDefaultClient() *Client { return NewClient(DefaultBaseURL) }
+
+// NewClient creates a new Bible API client.
+func NewClient(baseURL string) *Client {
+	return &Client{baseURL: baseURL}
+}
+
+// Client is a client for the IVR API.
+type Client struct {
+	baseURL string
+}
+
+// FetchVerses fetches the verses matching a given verse query.
+func (c *Client) FetchVerses(verse string) (*GetVersesResponse, error) {
+	body, err := get(fmt.Sprintf("%s/%s", c.baseURL, url.QueryEscape(verse)))
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch verses for %q: %w", verse, err)
+	}
+
+	resp := GetVersesResponse{}
+	if err = json.Unmarshal(body, &resp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response from Bible API: %w", err)
+	}
+
+	return &resp, nil
+}
 
 // GetVersesResponse represents the response from the Bible API for a GetVerses request.
 // https://bible-api.com/
@@ -69,18 +97,4 @@ func get(reqURL string) (respBody []byte, err error) {
 	}
 
 	return body, nil
-}
-
-func FetchVerses(verse string) (*GetVersesResponse, error) {
-	body, err := get(fmt.Sprintf("%s/%s", BaseURL, url.QueryEscape(verse)))
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch verses for %q: %w", verse, err)
-	}
-
-	resp := GetVersesResponse{}
-	if err = json.Unmarshal(body, &resp); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response from Bible API: %w", err)
-	}
-
-	return &resp, nil
 }

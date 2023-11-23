@@ -7,6 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/airforce270/airbot/apiclients/bible"
+	"github.com/airforce270/airbot/apiclients/ivr"
+	"github.com/airforce270/airbot/apiclients/kick"
+	"github.com/airforce270/airbot/apiclients/seventv"
 	"github.com/airforce270/airbot/cache"
 	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
@@ -110,8 +114,26 @@ type Resources struct {
 	DB *gorm.DB
 	// Cache is a reference to the cache.
 	Cache cache.Cache
+	// AllPlatforms contains all platforms currently registered with the bot.
+	AllPlatforms map[string]Platform
+	// NewConfigSource is a function that returns a source of data
+	// for the latest config.
+	NewConfigSource func() (io.ReadCloser, error)
 	// Rand is a reference to random sources.
 	Rand RandResources
+	// Clients contains API clients.
+	Clients APIClients
+}
+
+// PlatformByName returns the platform with a given name
+// if it's currently registered and configured.
+func (r Resources) PlatformByName(name string) (plat Platform, ok bool) {
+	for n, p := range r.AllPlatforms {
+		if name == n {
+			return p, true
+		}
+	}
+	return nil, false
 }
 
 // RandResources contains references to random number resources.
@@ -121,4 +143,20 @@ type RandResources struct {
 	// Source is a source of random numbers.
 	// Optional - a default will be used if not provided.
 	Source exprand.Source
+}
+
+// APIClients contains external API clients.
+type APIClients struct {
+	// Bible API client.
+	Bible *bible.Client
+	// IVR API client.
+	IVR *ivr.Client
+	// Kick API client.
+	Kick *kick.Client
+	// Pastebin FetchPaste URL override.
+	// If set, this will override whatever the user enters.
+	// Therefore, it should only be set in test.
+	PastebinFetchPasteURLOverride string
+	// 7TV API client.
+	SevenTV *seventv.Client
 }

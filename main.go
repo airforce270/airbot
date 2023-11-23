@@ -50,18 +50,21 @@ func start(ctx context.Context) (cleanup.Cleaner, postStartupResources, error) {
 	cleaner := cleanup.NewCleaner()
 
 	log.Print("Reading config...")
-	cfg, err := config.Read()
+	configSrc, err := config.DefaultNewConfigSource()
 	if err != nil {
-		return nil, postStartupResources{}, fmt.Errorf("failed to read config: %v", err)
+		return nil, postStartupResources{}, fmt.Errorf("failed to open config source: %w", err)
 	}
-
-	log.Print("Setting config values...")
-	config.StoreGlobals(cfg)
+	cfg, err := config.Read(configSrc)
+	if err != nil {
+		configSrc.Close()
+		return nil, postStartupResources{}, fmt.Errorf("failed to read config: %w", err)
+	}
+	configSrc.Close()
 
 	log.Printf("Connecting to database...")
 	db, err := database.Connect(ctx, os.Getenv("POSTGRES_DB"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"))
 	if err != nil {
-		return nil, postStartupResources{}, fmt.Errorf("failed to connect to database: %v", err)
+		return nil, postStartupResources{}, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	log.Printf("Connecting to cache...")
@@ -69,23 +72,23 @@ func start(ctx context.Context) (cleanup.Cleaner, postStartupResources, error) {
 
 	log.Printf("Performing database migrations...")
 	if err = database.Migrate(db); err != nil {
-		return nil, postStartupResources{}, fmt.Errorf("failed to perform database migrations: %v", err)
+		return nil, postStartupResources{}, fmt.Errorf("failed to perform database migrations: %w", err)
 	}
 
 	log.Printf("Preparing chat connections...")
 	ps, err := platforms.Build(cfg, db, &cdb)
 	if err != nil {
-		return nil, postStartupResources{}, fmt.Errorf("failed to build platforms: %v", err)
+		return nil, postStartupResources{}, fmt.Errorf("failed to build platforms: %w", err)
 	}
 
 	for _, p := range ps {
 		log.Printf("Connecting to %s...", p.Name())
 		if err := p.Connect(); err != nil {
-			return cleaner, postStartupResources{}, fmt.Errorf("failed to connect to %s: %v", p.Name(), err)
+			return cleaner, postStartupResources{}, fmt.Errorf("failed to connect to %s: %w", p.Name(), err)
 		}
 
 		log.Printf("Starting to handle messages on %s...", p.Name())
-		go platforms.StartHandling(ctx, p, db, &cdb, cfg.LogIncoming, cfg.LogOutgoing)
+		go platforms.StartHandling(ctx, p, db, &cdb, cfg, ps, cfg.LogIncoming, cfg.LogOutgoing)
 		cleaner.Register(cleanup.Func{Name: p.Name(), F: p.Disconnect})
 	}
 

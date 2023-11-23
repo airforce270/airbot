@@ -8,20 +8,23 @@ import (
 	"strings"
 )
 
-// Paste represents a pastebin paste.
-type Paste []string
+// NewClient creates a new Pastebin API client.
+// fetchPasteURLOverride is optional and should only be set in test.
+func NewClient(fetchPasteURLOverride string) *Client {
+	return &Client{fetchPasteURLOverride: fetchPasteURLOverride}
+}
 
-func (p Paste) Values() []string { return []string(p) }
-
-// FetchPasteURLOverride, if set, overrides the URL called, for testing.
-var FetchPasteURLOverride = ""
+// Client is a client for the Pastebin API.
+type Client struct {
+	fetchPasteURLOverride string
+}
 
 // FetchPaste fetches a paste, given a pastebin URL.
 // Example: https://pastebin.com/raw/B7TBjQEy
-func FetchPaste(pasteURL string) (Paste, error) {
+func (c *Client) FetchPaste(pasteURL string) (Paste, error) {
 	reqURL := pasteURL
-	if FetchPasteURLOverride != "" {
-		reqURL = FetchPasteURLOverride
+	if c.fetchPasteURLOverride != "" {
+		reqURL = c.fetchPasteURLOverride
 	}
 
 	resp, err := http.Get(reqURL)
@@ -41,3 +44,9 @@ func FetchPaste(pasteURL string) (Paste, error) {
 
 	return Paste(lines), nil
 }
+
+// Paste represents a pastebin paste.
+type Paste []string
+
+// Values returns the paste's values.
+func (p Paste) Values() []string { return []string(p) }

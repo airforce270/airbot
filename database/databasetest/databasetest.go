@@ -2,7 +2,6 @@
 package databasetest
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/airforce270/airbot/database"
@@ -12,49 +11,29 @@ import (
 	"gorm.io/gorm"
 )
 
-var instance *gorm.DB
-
-func init() {
-	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"))
-	if err != nil {
-		panic(err)
-	}
-	instance = db
-}
-
-// NewFakeDB creates a new connection to the in-memory database for testing.
-func NewFakeDBConn() *gorm.DB {
-	return instance
-}
-
-// NewFakeDB creates a new connection to the in-memory database for testing.
-func NewFakeDB(t *testing.T) *gorm.DB {
+// New creates a new in-memory database for testing.
+func New(t *testing.T) *gorm.DB {
 	t.Helper()
-	db := NewFakeDBConn()
-
-	for _, m := range models.AllModels {
-		if err := db.Migrator().DropTable(&m); err != nil {
-			t.Fatal(err)
-		}
+	db, err := gorm.Open(sqlite.Open("file::memory:"))
+	if err != nil {
+		t.Fatalf("Failed to create new in-memory DB: %v", err)
 	}
 
 	if err := database.Migrate(db); err != nil {
-		t.Fatal(err)
+		t.Fatalf("Failed to migrate DB: %v", err)
 	}
 
 	for _, user := range []string{"user1", "user2", "user3"} {
-		if err := seedTwitchUser(db, user); err != nil {
-			t.Fatal(err)
-		}
+		seedTwitchUser(t, db, user)
 	}
 
 	return db
 }
 
-func seedTwitchUser(db *gorm.DB, user string) error {
+func seedTwitchUser(t testing.TB, db *gorm.DB, user string) {
+	t.Helper()
 	err := db.Create(&models.User{TwitchID: user, TwitchName: user}).Error
 	if err != nil {
-		return fmt.Errorf("failed to seed user %s: %w", user, err)
+		t.Fatalf("Failed to seed user %s: %v", user, err)
 	}
-	return nil
 }

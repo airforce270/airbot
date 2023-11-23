@@ -333,11 +333,18 @@ func leaveChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Mess
 }
 
 func reloadConfig(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
-	cfg, err := config.Read()
+	configSrc, err := msg.Resources.NewConfigSource()
 	if err != nil {
 		return nil, err
 	}
-	config.StoreGlobals(cfg)
+	cfg, err := config.Read(configSrc)
+	if err != nil {
+		return nil, err
+	}
+	msg.Resources.Clients.Kick.Mtx.Lock()
+	msg.Resources.Clients.Kick.JA3 = cfg.Platforms.Kick.JA3
+	msg.Resources.Clients.Kick.UserAgent = cfg.Platforms.Kick.UserAgent
+	msg.Resources.Clients.Kick.Mtx.Unlock()
 
 	return []*base.Message{
 		{

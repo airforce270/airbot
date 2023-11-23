@@ -45,7 +45,7 @@ func isLive(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 	}
 	targetChannel := channelArg.StringValue
 
-	channel, err := kickclient.FetchChannel(targetChannel)
+	channel, err := msg.Resources.Clients.Kick.FetchChannel(targetChannel)
 	if err != nil {
 		if errors.Is(err, kickclient.ErrChannelNotFound) {
 			return []*base.Message{
@@ -83,7 +83,7 @@ func title(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	}
 	targetChannel := channelArg.StringValue
 
-	channel, err := kickclient.FetchChannel(targetChannel)
+	channel, err := msg.Resources.Clients.Kick.FetchChannel(targetChannel)
 	if err != nil {
 		if errors.Is(err, kickclient.ErrChannelNotFound) {
 			return []*base.Message{

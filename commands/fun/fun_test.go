@@ -14,6 +14,7 @@ import (
 )
 
 func TestFunCommands(t *testing.T) {
+	t.Parallel()
 	tests := []commandtest.Case{
 		{
 			Input: base.IncomingMessage{
@@ -27,7 +28,7 @@ func TestFunCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 				Resources: base.Resources{
-					Platform: twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
+					Platform: twitch.NewForTesting("forsen", databasetest.New(t)),
 				},
 			},
 			Platform:   commandtest.TwitchPlatform,
@@ -52,7 +53,7 @@ func TestFunCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 				Resources: base.Resources{
-					Platform: twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
+					Platform: twitch.NewForTesting("forsen", databasetest.New(t)),
 				},
 			},
 			Platform:   commandtest.TwitchPlatform,
@@ -77,7 +78,7 @@ func TestFunCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 				Resources: base.Resources{
-					Platform: twitch.NewForTesting("forsen", databasetest.NewFakeDBConn()),
+					Platform: twitch.NewForTesting("forsen", databasetest.New(t)),
 				},
 			},
 			Platform:   commandtest.TwitchPlatform,

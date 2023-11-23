@@ -2,30 +2,30 @@ package admin_test
 
 import (
 	"bytes"
-	"os"
+	"io"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/airforce270/airbot/apiclients/bible"
+	"github.com/airforce270/airbot/apiclients/ivr"
 	"github.com/airforce270/airbot/apiclients/kick"
+	"github.com/airforce270/airbot/apiclients/seventv"
 	"github.com/airforce270/airbot/apiclients/twitchtest"
 	"github.com/airforce270/airbot/base"
+	"github.com/airforce270/airbot/cache/cachetest"
 	"github.com/airforce270/airbot/commands"
 	"github.com/airforce270/airbot/commands/commandtest"
 	"github.com/airforce270/airbot/config"
+	"github.com/airforce270/airbot/database/databasetest"
 	"github.com/airforce270/airbot/permission"
+	"github.com/airforce270/airbot/platforms/twitch"
+	"github.com/airforce270/airbot/testing/fakeserver"
 	"github.com/pelletier/go-toml/v2"
 )
 
 func TestAdminCommands(t *testing.T) {
-	config.OSReadFile = func(name string) ([]byte, error) {
-		var buf bytes.Buffer
-		enc := toml.NewEncoder(&buf)
-		if err := enc.Encode(&config.Config{}); err != nil {
-			return nil, err
-		}
-		return buf.Bytes(), nil
-	}
-	defer func() { config.OSReadFile = os.ReadFile }()
+	t.Parallel()
 	tests := []commandtest.Case{
 		{
 			Input: base.IncomingMessage{
@@ -438,7 +438,8 @@ func TestAdminCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Owner,
 			},
-			Platform: commandtest.TwitchPlatform,
+			Platform:   commandtest.TwitchPlatform,
+			ConfigData: "[platforms.kick]\nuser_agent = \"asdf\"",
 			Want: []*base.Message{
 				{
 					Text:    "Reloaded config.",
@@ -537,9 +538,18 @@ func TestAdminCommands(t *testing.T) {
 }
 
 func TestReloadConfig(t *testing.T) {
+	t.Parallel()
+	server := fakeserver.New()
+	defer server.Close()
+
+	db := databasetest.New(t)
+	cdb := cachetest.NewInMemory()
+
+	platform := twitch.NewForTesting(server.URL(), db)
+
 	const want = "something-specific"
-	config.OSReadFile = func(name string) ([]byte, error) {
-		var buf bytes.Buffer
+	cfg := func() string {
+		var buf strings.Builder
 		enc := toml.NewEncoder(&buf)
 		cfg := &config.Config{
 			Platforms: config.PlatformConfig{
@@ -549,42 +559,64 @@ func TestReloadConfig(t *testing.T) {
 			},
 		}
 		if err := enc.Encode(cfg); err != nil {
-			return nil, err
+			t.Fatalf("Failed to encode %+v: %v", cfg, err)
 		}
-		return buf.Bytes(), nil
-	}
-	defer func() { config.OSReadFile = os.ReadFile }()
-	tc := commandtest.Case{
-		Input: base.IncomingMessage{
-			Message: base.Message{
-				Text:    "$reloadconfig",
-				UserID:  "user1",
-				User:    "user1",
-				Channel: "user2",
-				Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
-			},
-			Prefix:          "$",
-			PermissionLevel: permission.Owner,
+		return buf.String()
+	}()
+
+	resources := base.Resources{
+		Platform: platform,
+		DB:       db,
+		Cache:    cdb,
+		AllPlatforms: map[string]base.Platform{
+			platform.Name(): platform,
 		},
-		Platform: commandtest.TwitchPlatform,
-		Want: []*base.Message{
-			{
-				Text:    "Reloaded config.",
-				Channel: "user2",
-			},
+		NewConfigSource: func() (io.ReadCloser, error) {
+			return io.NopCloser(strings.NewReader(cfg)), nil
+		},
+		Rand: base.RandResources{
+			Reader: bytes.NewBuffer([]byte{3}),
+			Source: fakeExpRandSource{Value: uint64(150)},
+		},
+		Clients: base.APIClients{
+			Bible:                         bible.NewClient(server.URL()),
+			IVR:                           ivr.NewClient(server.URL()),
+			Kick:                          kick.NewClient(server.URL(), "" /* ja3 */, "" /* userAgent */),
+			PastebinFetchPasteURLOverride: server.URL(),
+			SevenTV:                       seventv.NewClient(server.URL()),
 		},
 	}
 
-	commandtest.Run(t, []commandtest.Case{tc})
+	input := base.IncomingMessage{
+		Message: base.Message{
+			Text:    "$reloadconfig",
+			UserID:  "user1",
+			User:    "user1",
+			Channel: "user2",
+			Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+		},
+		Prefix:          "$",
+		PermissionLevel: permission.Owner,
+		Resources:       resources,
+	}
 
-	if got := *kick.UserAgent.Load(); got != want {
-		t.Errorf("reloadConfig() value = %q, want %q", got, want)
+	handler := commands.NewHandlerForTest(db, cdb, resources.AllPlatforms, resources.NewConfigSource, resources.Rand, resources.Clients)
+
+	_, err := handler.Handle(&input)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if got := handler.Clients.Kick.UserAgent; got != want {
+		t.Errorf("config value after updating = %q, want %q", got, want)
 	}
 }
 
+var testConfig = config.Config{}
+
 func joinOtherUser1(t testing.TB, r *base.Resources) {
 	t.Helper()
-	handler := commands.NewHandler(r.DB, r.Cache, r.Rand)
+	handler := commands.NewHandler(r.DB, r.Cache, &testConfig, nil)
 	_, err := handler.Handle(&base.IncomingMessage{
 		Message: base.Message{
 			Text:    "$joinother user1",
@@ -604,7 +636,7 @@ func joinOtherUser1(t testing.TB, r *base.Resources) {
 
 func enableBotSlowmode(t testing.TB, r *base.Resources) {
 	t.Helper()
-	handler := commands.NewHandler(r.DB, r.Cache, r.Rand)
+	handler := commands.NewHandler(r.DB, r.Cache, &testConfig, nil)
 	_, err := handler.Handle(&base.IncomingMessage{
 		Message: base.Message{
 			Text:    "$botslowmode on",
@@ -621,3 +653,10 @@ func enableBotSlowmode(t testing.TB, r *base.Resources) {
 		t.Fatalf("Failed to enable bot slowmode: %v", err)
 	}
 }
+
+type fakeExpRandSource struct {
+	Value uint64
+}
+
+func (s fakeExpRandSource) Uint64() uint64  { return s.Value }
+func (s fakeExpRandSource) Seed(val uint64) {}

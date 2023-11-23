@@ -10,6 +10,7 @@ import (
 )
 
 func TestModerationCommands(t *testing.T) {
+	t.Parallel()
 	tests := []commandtest.Case{
 		{
 			Input: base.IncomingMessage{

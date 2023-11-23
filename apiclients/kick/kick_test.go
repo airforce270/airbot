@@ -11,16 +11,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-var (
-	originalBaseURL = kick.BaseURL
-)
-
 func TestFetchChannel(t *testing.T) {
-	server := fakeserver.New()
-	server.AddOnClose(func() { originalBaseURL = kick.BaseURL })
-	defer server.Close()
-	kick.BaseURL = server.URL()
-
+	t.Parallel()
 	tests := []struct {
 		desc    string
 		useResp string
@@ -610,9 +602,15 @@ func TestFetchChannel(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		server.Resps = []string{tc.useResp}
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
-			got, err := kick.FetchChannel("user1")
+			t.Parallel()
+			server := fakeserver.New()
+			defer server.Close()
+			server.Resps = []string{tc.useResp}
+
+			client := kick.NewClient(server.URL(), "" /* ja3 */, "" /* userAgent */)
+			got, err := client.FetchChannel("user1")
 			if err != nil {
 				t.Fatalf("FetchChannel() unexpected error: %v", err)
 			}
@@ -621,7 +619,6 @@ func TestFetchChannel(t *testing.T) {
 				t.Errorf("FetchChannel() diff (-want +got):\n%s", diff)
 			}
 		})
-		server.Reset()
 	}
 }
 

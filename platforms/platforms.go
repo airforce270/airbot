@@ -3,7 +3,6 @@ package platforms
 
 import (
 	"context"
-	"crypto/rand"
 	"log"
 	"runtime/debug"
 	"time"
@@ -25,16 +24,15 @@ func Build(cfg *config.Config, db *gorm.DB, cdb cache.Cache) (map[string]base.Pl
 	if twc := cfg.Platforms.Twitch; twc.Enabled {
 		log.Printf("Building Twitch platform...")
 		tw := twitch.New(twc.Username, twc.Owners, twc.ClientID, twc.ClientSecret, twc.AccessToken, twc.RefreshToken, db, cdb)
-		twitch.SetInstance(tw)
-		p[tw.Name()] = tw
+		p[twitch.Name] = tw
 	}
 	return p, nil
 }
 
 // StartHandling starts handling commands coming from the given platform.
 // This function blocks and should be run within a goroutine.
-func StartHandling(ctx context.Context, p base.Platform, db *gorm.DB, cdb cache.Cache, logIncoming, logOutgoing bool) {
-	handler := commands.NewHandler(db, cdb, base.RandResources{Reader: rand.Reader})
+func StartHandling(ctx context.Context, p base.Platform, db *gorm.DB, cdb cache.Cache, cfg *config.Config, allPlatforms map[string]base.Platform, logIncoming, logOutgoing bool) {
+	handler := commands.NewHandler(db, cdb, cfg, allPlatforms)
 	inC := p.Listen()
 
 	outC := make(chan base.OutgoingMessage, 100)

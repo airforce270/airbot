@@ -16,6 +16,7 @@ import (
 )
 
 func TestGambaCommands(t *testing.T) {
+	t.Parallel()
 	tests := []commandtest.Case{
 		{
 			Input: base.IncomingMessage{
@@ -796,7 +797,8 @@ func TestGambaCommands(t *testing.T) {
 }
 
 func TestFetchUserPoints(t *testing.T) {
-	db := databasetest.NewFakeDB(t)
+	t.Parallel()
+	db := databasetest.New(t)
 	var user1 models.User
 	err := db.FirstOrCreate(&user1, models.User{
 		TwitchID:   "user1",

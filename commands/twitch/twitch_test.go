@@ -12,6 +12,7 @@ import (
 )
 
 func TestTwitchCommands(t *testing.T) {
+	t.Parallel()
 	tests := []commandtest.Case{
 		{
 			Input: base.IncomingMessage{

@@ -20,23 +20,10 @@ import (
 )
 
 func TestHasOutboundPendingDuels(t *testing.T) {
-	db := databasetest.NewFakeDB(t)
-	if err := db.Where("1 = 1").Delete(&models.Duel{}).Error; err != nil {
-		t.Fatal(err)
-	}
-
-	var user1 models.User
-	err := db.First(&user1, models.User{
-		TwitchID:   "user1",
-		TwitchName: "user1",
-	}).Error
-	if err != nil {
-		t.Fatalf("failed to find user1: %v", err)
-	}
-
+	t.Parallel()
 	tests := []struct {
 		desc      string
-		runBefore []func() error
+		runBefore []func(testing.TB, *gorm.DB)
 		want      int
 	}{
 		{
@@ -46,7 +33,7 @@ func TestHasOutboundPendingDuels(t *testing.T) {
 		},
 		{
 			desc: "has outbound pending duels",
-			runBefore: []func() error{
+			runBefore: []func(testing.TB, *gorm.DB){
 				add50PointsToUser1,
 				add50PointsToUser2,
 				startDuel,
@@ -56,11 +43,25 @@ func TestHasOutboundPendingDuels(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
-			for i, f := range tc.runBefore {
-				if err := f(); err != nil {
-					t.Fatalf("runBefore[%d] failed: %v", i, err)
-				}
+			t.Parallel()
+			db := databasetest.New(t)
+			if err := db.Where("1 = 1").Delete(&models.Duel{}).Error; err != nil {
+				t.Fatal(err)
+			}
+
+			var user1 models.User
+			err := db.First(&user1, models.User{
+				TwitchID:   "user1",
+				TwitchName: "user1",
+			}).Error
+			if err != nil {
+				t.Fatalf("failed to find user1: %v", err)
+			}
+
+			for _, f := range tc.runBefore {
+				f(t, db)
 			}
 
 			got, err := OutboundPendingDuels(&user1, 30*time.Second, db)
@@ -75,23 +76,10 @@ func TestHasOutboundPendingDuels(t *testing.T) {
 }
 
 func TestInboundPendingDuels(t *testing.T) {
-	db := databasetest.NewFakeDB(t)
-	if err := db.Where("1 = 1").Delete(&models.Duel{}).Error; err != nil {
-		t.Fatal(err)
-	}
-
-	var user2 models.User
-	err := db.First(&user2, models.User{
-		TwitchID:   "user2",
-		TwitchName: "user2",
-	}).Error
-	if err != nil {
-		t.Fatalf("failed to find user2: %v", err)
-	}
-
+	t.Parallel()
 	tests := []struct {
 		desc      string
-		runBefore []func() error
+		runBefore []func(testing.TB, *gorm.DB)
 		want      int
 	}{
 		{
@@ -101,7 +89,7 @@ func TestInboundPendingDuels(t *testing.T) {
 		},
 		{
 			desc: "has inbound pending duels",
-			runBefore: []func() error{
+			runBefore: []func(testing.TB, *gorm.DB){
 				add50PointsToUser1,
 				add50PointsToUser2,
 				startDuel,
@@ -111,11 +99,25 @@ func TestInboundPendingDuels(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
-			for i, f := range tc.runBefore {
-				if err := f(); err != nil {
-					t.Fatalf("runBefore[%d] failed: %v", i, err)
-				}
+			t.Parallel()
+			db := databasetest.New(t)
+			if err := db.Where("1 = 1").Delete(&models.Duel{}).Error; err != nil {
+				t.Fatal(err)
+			}
+
+			var user2 models.User
+			err := db.First(&user2, models.User{
+				TwitchID:   "user2",
+				TwitchName: "user2",
+			}).Error
+			if err != nil {
+				t.Fatalf("failed to find user2: %v", err)
+			}
+
+			for _, f := range tc.runBefore {
+				f(t, db)
 			}
 
 			got, err := InboundPendingDuels(&user2, 30*time.Second, db)
@@ -130,7 +132,8 @@ func TestInboundPendingDuels(t *testing.T) {
 }
 
 func TestGrantPoints(t *testing.T) {
-	db := databasetest.NewFakeDB(t)
+	t.Parallel()
+	db := databasetest.New(t)
 	server := newTestServer()
 
 	if err := db.Where("1 = 1").Delete(&models.User{}).Error; err != nil {
@@ -161,7 +164,6 @@ func TestGrantPoints(t *testing.T) {
 		},
 	}
 	for i, m := range messages {
-
 		if err := db.Create(&m).Error; err != nil {
 			t.Fatalf("failed to create message %d: %v", i, err)
 		}
@@ -196,7 +198,8 @@ func TestGrantPoints(t *testing.T) {
 }
 
 func TestGetInactiveUsers(t *testing.T) {
-	db := databasetest.NewFakeDB(t)
+	t.Parallel()
+	db := databasetest.New(t)
 	server := newTestServer()
 
 	if err := db.Where("1 = 1").Delete(&models.User{}).Error; err != nil {
@@ -228,7 +231,8 @@ func TestGetInactiveUsers(t *testing.T) {
 }
 
 func TestGetActiveUsers(t *testing.T) {
-	db := databasetest.NewFakeDB(t)
+	t.Parallel()
+	db := databasetest.New(t)
 
 	user1 := models.User{TwitchID: "user1", TwitchName: "user1"}
 	if err := db.Create(&user1).Error; err != nil {
@@ -408,22 +412,22 @@ func TestDeduplicateByUser(t *testing.T) {
 	}
 }
 
-func startDuel() error {
-	db := databasetest.NewFakeDBConn()
+func startDuel(t testing.TB, db *gorm.DB) {
+	t.Helper()
 	var user1, user2 models.User
 	err := db.First(&user1, models.User{
 		TwitchID:   "user1",
 		TwitchName: "user1",
 	}).Error
 	if err != nil {
-		return fmt.Errorf("failed to find user1: %w", err)
+		t.Fatalf("Failed to find user1: %v", err)
 	}
 	err = db.First(&user2, models.User{
 		TwitchID:   "user2",
 		TwitchName: "user2",
 	}).Error
 	if err != nil {
-		return fmt.Errorf("failed to find user2: %w", err)
+		t.Fatalf("Failed to find user2: %v", err)
 	}
 	err = db.Create(&models.Duel{
 		UserID:   user1.ID,
@@ -435,47 +439,46 @@ func startDuel() error {
 		Accepted: false,
 	}).Error
 	if err != nil {
-		return fmt.Errorf("failed to create duel: %w", err)
+		t.Fatalf("Failed to create duel: %v", err)
 	}
-	return nil
 }
 
-func add50PointsToUser1() error {
-	db := databasetest.NewFakeDBConn()
+func add50PointsToUser1(t testing.TB, db *gorm.DB) {
+	t.Helper()
 	var user models.User
 	err := db.First(&user, models.User{
 		TwitchID:   "user1",
 		TwitchName: "user1",
 	}).Error
 	if err != nil {
-		return fmt.Errorf("failed to find user1: %w", err)
+		t.Fatalf("Failed to find user1: %v", err)
 	}
-	return add50PointsToUser(user, db)
+	add50PointsToUser(t, user, db)
 }
 
-func add50PointsToUser2() error {
-	db := databasetest.NewFakeDBConn()
+func add50PointsToUser2(t testing.TB, db *gorm.DB) {
+	t.Helper()
 	var user models.User
 	err := db.First(&user, models.User{
 		TwitchID:   "user2",
 		TwitchName: "user2",
 	}).Error
 	if err != nil {
-		return fmt.Errorf("failed to find/create user2: %w", err)
+		t.Fatalf("Failed to find/create user2: %v", err)
 	}
-	return add50PointsToUser(user, db)
+	add50PointsToUser(t, user, db)
 }
 
-func add50PointsToUser(user models.User, db *gorm.DB) error {
+func add50PointsToUser(t testing.TB, user models.User, db *gorm.DB) {
+	t.Helper()
 	txn := models.GambaTransaction{
 		Game:  "FAKE - TEST",
 		User:  user,
 		Delta: 50,
 	}
 	if err := db.Create(&txn).Error; err != nil {
-		return fmt.Errorf("failed to insert gamba transaction: %w", err)
+		t.Fatalf("Failed to insert gamba transaction: %v", err)
 	}
-	return nil
 }
 
 func newTestServer() *httptest.Server {

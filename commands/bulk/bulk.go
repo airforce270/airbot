@@ -32,7 +32,8 @@ func filesay(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error)
 		return nil, basecommand.ErrBadUsage
 	}
 
-	paste, err := pastebin.FetchPaste(pastebinURLArg.StringValue)
+	client := pastebin.NewClient(msg.Resources.Clients.PastebinFetchPasteURLOverride)
+	paste, err := client.FetchPaste(pastebinURLArg.StringValue)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch paste %s: %w", pastebinURLArg.StringValue, err)
 	}

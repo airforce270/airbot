@@ -15,7 +15,7 @@ import (
 
 func TestTwitch_CurrentUsers(t *testing.T) {
 	t.Parallel()
-	db := databasetest.NewFakeDB(t)
+	db := databasetest.New(t)
 	server := newTestServer()
 	tw := NewForTesting(server.URL, db)
 

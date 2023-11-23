@@ -139,7 +139,7 @@ func banReason(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, erro
 	}
 	targetUser := targetUserArg.StringValue
 
-	users, err := ivr.FetchUsers(targetUser)
+	users, err := msg.Resources.Clients.IVR.FetchUsers(targetUser)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch IVR user data for %s: %w", targetUser, err)
 	}
@@ -174,7 +174,16 @@ func banReason(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, erro
 func currentGame(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
-	tw := twitchplatform.Instance()
+	plat, ok := msg.Resources.PlatformByName(twitchplatform.Name)
+	if !ok {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "Twitch connection not configured",
+			},
+		}, nil
+	}
+	tw := plat.(*twitchplatform.Twitch)
 
 	channel, err := tw.Channel(targetChannel)
 	if err != nil {
@@ -201,7 +210,7 @@ func currentGame(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 func founders(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
-	founders, err := ivr.FetchFounders(targetChannel)
+	founders, err := msg.Resources.Clients.IVR.FetchFounders(targetChannel)
 	if err != nil {
 		if strings.Contains(err.Error(), "Specified user has no founders.") {
 			return []*base.Message{
@@ -263,7 +272,7 @@ func logs(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 func mods(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
-	modsAndVIPs, err := ivr.FetchModsAndVIPs(targetChannel)
+	modsAndVIPs, err := msg.Resources.Clients.IVR.FetchModsAndVIPs(targetChannel)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch mods/vips for %s: %w", targetChannel, err)
 	}
@@ -300,7 +309,7 @@ func mods(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 func nameColor(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetUser := basecommand.FirstArgOrUsername(args, msg)
 
-	users, err := ivr.FetchUsers(targetUser)
+	users, err := msg.Resources.Clients.IVR.FetchUsers(targetUser)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch IVR user data for %s: %w", targetUser, err)
 	}
@@ -331,7 +340,7 @@ func subAge(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 		return nil, basecommand.ErrBadUsage
 	}
 
-	sub, err := ivr.FetchSubAge(userArg.StringValue, channelArg.StringValue)
+	sub, err := msg.Resources.Clients.IVR.FetchSubAge(userArg.StringValue, channelArg.StringValue)
 	if err != nil {
 		if errors.Is(err, ivr.ErrUserNotFound) {
 			return []*base.Message{
@@ -362,18 +371,17 @@ func subAge(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 			tier = fmt.Sprintf("Tier %s paid", sub.Metadata.Tier)
 		}
 
-		parts := []string{
-			fmt.Sprintf("%s is currently subscribed to %s", sub.User.DisplayName, sub.Channel.DisplayName),
-			fmt.Sprintf("with a %s subscription", tier),
-			fmt.Sprintf("(%d %s remaining)", sub.Streak.DaysRemaining, plural("day", sub.Streak.DaysRemaining)),
-			fmt.Sprintf("and is on a %d month streak", sub.Streak.Months),
-		}
+		var outMsg strings.Builder
+		outMsg.WriteString(sub.User.DisplayName + " is currently subscribed to " + sub.Channel.DisplayName)
+		outMsg.WriteString(fmt.Sprintf(" with a %s subscription", tier))
+		outMsg.WriteString(fmt.Sprintf(" (%d %s remaining)", sub.Streak.DaysRemaining, plural("day", sub.Streak.DaysRemaining)))
+		outMsg.WriteString(fmt.Sprintf(" and is on a %d month streak", sub.Streak.Months))
 
 		if sub.Cumulative.Months > sub.Streak.Months {
-			parts = append(parts, fmt.Sprintf("(total: %d %s)", sub.Cumulative.Months, plural("month", sub.Cumulative.Months)))
+			outMsg.WriteString(fmt.Sprintf(" (total: %d %s)", sub.Cumulative.Months, plural("month", sub.Cumulative.Months)))
 		}
 
-		return []*base.Message{{Channel: msg.Message.Channel, Text: strings.Join(parts, " ")}}, nil
+		return []*base.Message{{Channel: msg.Message.Channel, Text: outMsg.String()}}, nil
 	}
 
 	if sub.Streak == nil && sub.Cumulative != nil {
@@ -399,7 +407,16 @@ func subAge(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 func title(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
-	tw := twitchplatform.Instance()
+	plat, ok := msg.Resources.PlatformByName(twitchplatform.Name)
+	if !ok {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "Twitch connection not configured",
+			},
+		}, nil
+	}
+	tw := plat.(*twitchplatform.Twitch)
 
 	channel, err := tw.Channel(targetChannel)
 	if err != nil {
@@ -426,7 +443,7 @@ func verifiedBot(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 
 	targetUser := basecommand.FirstArgOrUsername(args, msg)
 
-	users, err := ivr.FetchUsers(targetUser)
+	users, err := msg.Resources.Clients.IVR.FetchUsers(targetUser)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch user data for %s: %w", targetUser, err)
 	}
@@ -470,7 +487,7 @@ func verifiedBotQuiet(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Messag
 
 	targetUser := basecommand.FirstArgOrUsername(args, msg)
 
-	users, err := ivr.FetchUsers(targetUser)
+	users, err := msg.Resources.Clients.IVR.FetchUsers(targetUser)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch IVR user data for %s: %w", targetUser, err)
 	}
@@ -505,7 +522,7 @@ func verifiedBotQuiet(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Messag
 func vips(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
-	modsAndVIPs, err := ivr.FetchModsAndVIPs(targetChannel)
+	modsAndVIPs, err := msg.Resources.Clients.IVR.FetchModsAndVIPs(targetChannel)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch mods/vips for %s: %w", targetChannel, err)
 	}

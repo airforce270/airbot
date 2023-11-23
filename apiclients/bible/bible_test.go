@@ -1,35 +1,28 @@
-package bible
+package bible_test
 
 import (
 	"testing"
 
+	"github.com/airforce270/airbot/apiclients/bible"
 	"github.com/airforce270/airbot/apiclients/bible/bibletest"
 	"github.com/airforce270/airbot/testing/fakeserver"
 
 	"github.com/google/go-cmp/cmp"
 )
 
-var (
-	originalBaseURL = BaseURL
-)
-
 func TestFetchUser(t *testing.T) {
-	server := fakeserver.New()
-	server.AddOnClose(func() { originalBaseURL = BaseURL })
-	defer server.Close()
-	BaseURL = server.URL()
-
+	t.Parallel()
 	tests := []struct {
 		desc    string
 		useResp string
-		want    *GetVersesResponse
+		want    *bible.GetVersesResponse
 	}{
 		{
 			desc:    "single verse",
 			useResp: bibletest.LookupVerseSingleVerse1Resp,
-			want: &GetVersesResponse{
+			want: &bible.GetVersesResponse{
 				Reference: "Philippians 4:8",
-				Verses: []Verse{
+				Verses: []bible.Verse{
 					{
 						BookID:   "PHP",
 						BookName: "Philippians",
@@ -47,17 +40,22 @@ func TestFetchUser(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		server.Resps = []string{tc.useResp}
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
-			got, err := FetchVerses("Philippians 4:8")
+			t.Parallel()
+			server := fakeserver.New()
+			defer server.Close()
+			server.Resps = []string{tc.useResp}
+
+			client := bible.NewClient(server.URL())
+			got, err := client.FetchVerses("Philippians 4:8")
 			if err != nil {
-				t.Fatalf("FetchVerse() unexpected error: %v", err)
+				t.Fatalf("FetchVerses() unexpected error: %v", err)
 			}
 
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Errorf("FetchVerse() diff (-want +got):\n%s", diff)
+				t.Errorf("FetchVerses() diff (-want +got):\n%s", diff)
 			}
 		})
-		server.Reset()
 	}
 }

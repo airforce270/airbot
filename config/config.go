@@ -2,19 +2,25 @@
 package config
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 
-	"github.com/airforce270/airbot/apiclients/kick"
 	"github.com/pelletier/go-toml/v2"
 )
 
 // fileName contains the name of the config file to be read (when referenced by the binary).
 const fileName = "config.toml"
 
-var OSReadFile = os.ReadFile
+// DefaultNewConfigSource is the default source of the latest config data.
+var DefaultNewConfigSource = func() (io.ReadCloser, error) {
+	f, err := os.Open(fileName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open %q: %w", fileName, err)
+	}
+	return f, nil
+}
 
 // Config is the top-level config object.
 type Config struct {
@@ -93,29 +99,15 @@ type SupinicConfig struct {
 	ShouldPingAPI bool `toml:"should_ping_api"`
 }
 
-func (s *SupinicConfig) IsConfigured() bool {
+func (s SupinicConfig) IsConfigured() bool {
 	hasDefaultValue := s.UserID == placeholderSupinicUserID || s.APIKey == placeholderSupinicAPIKey
 	isUnset := s.UserID == "" || s.APIKey == ""
 	return !hasDefaultValue && !isUnset
 }
 
-// Read reads the config data from the config file.
-func Read() (*Config, error) {
-	raw, err := OSReadFile(fileName)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read %s: %w", fileName, err)
-	}
-	return parse(raw)
-}
-
-func StoreGlobals(cfg *Config) {
-	kick.JA3.Store(&cfg.Platforms.Kick.JA3)
-	kick.UserAgent.Store(&cfg.Platforms.Kick.UserAgent)
-}
-
-// parse parses raw bytes into a config.
-func parse(data []byte) (*Config, error) {
-	decoder := toml.NewDecoder(bytes.NewBuffer(data)).DisallowUnknownFields()
+// Read reads data into a new config.
+func Read(r io.Reader) (*Config, error) {
+	decoder := toml.NewDecoder(r).DisallowUnknownFields()
 	cfg := Config{}
 	if err := decoder.Decode(&cfg); err != nil {
 		var details *toml.StrictMissingError

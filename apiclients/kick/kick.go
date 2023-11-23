@@ -7,31 +7,82 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"sync/atomic"
+	"sync"
 	"time"
 
 	"github.com/Danny-Dasilva/CycleTLS/cycletls"
 )
 
+// DefaultBaseURL is the default Kick API base URL.
+const DefaultBaseURL = "https://kick.com"
+
 var (
-	// Base URL for API requests. Should only be changed for testing.
-	BaseURL = "https://kick.com"
 	// ErrChannelNotFound is returned when a channel is not found.
 	ErrChannelNotFound = errors.New("channel not found")
-	// JA3 to use for Kick calls.
-	JA3 atomic.Pointer[string]
-	// UserAgent to use for Kick calls.
-	UserAgent atomic.Pointer[string]
 
 	cycleTLSClient = cycletls.Init()
 	errNotFound    = errors.New("404 not found")
 )
 
-// To avoid a nil pointer, just store an empty string by default.
-func init() {
-	empty := ""
-	JA3.Store(&empty)
-	UserAgent.Store(&empty)
+// NewDefaultClient returns a new default Kick API client.
+func NewDefaultClient() *Client { return NewClient(DefaultBaseURL, "" /* ja3 */, "" /* userAgent */) }
+
+// NewClient creates a new Kick API Client.
+func NewClient(baseURL, ja3, userAgent string) *Client {
+	return &Client{
+		JA3:       ja3,
+		UserAgent: userAgent,
+		baseURL:   baseURL,
+	}
+}
+
+// Client is a client for the Kick API.
+type Client struct {
+	// Mtx protects JA3 and UserAgent.
+	Mtx sync.RWMutex
+	// ja3 is the JA3 to use for Kick API calls.
+	JA3 string
+	// UserAgent is the user agent to use for Kick API clals.
+	UserAgent string
+
+	// baseURL is the base URL of the API to call.
+	baseURL string
+}
+
+// FetchChannel fetches a information about a Kick channel.
+func (c *Client) FetchChannel(channel string) (*Channel, error) {
+	body, err := c.get(fmt.Sprintf("%s/api/v2/channels/%s", c.baseURL, strings.ToLower(channel)))
+	if err != nil {
+		if errors.Is(err, errNotFound) {
+			return nil, fmt.Errorf("channel %s was not found: %w %w", channel, ErrChannelNotFound, err)
+		}
+		return nil, fmt.Errorf("failed to fetch chatters for %s: %w", channel, err)
+	}
+
+	resp := Channel{}
+	if err = json.Unmarshal(body, &resp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response from Kick API: %w", err)
+	}
+	return &resp, nil
+}
+
+func (c *Client) get(reqURL string) (respBody []byte, err error) {
+	c.Mtx.RLock()
+	opts := cycletls.Options{Ja3: c.JA3, UserAgent: c.UserAgent}
+	c.Mtx.RUnlock()
+
+	httpResp, err := cycleTLSClient.Do(reqURL, opts, "GET")
+	if err != nil {
+		return nil, fmt.Errorf("get request to Kick API failed (URL:%s): %w", reqURL, err)
+	}
+	if httpResp.Status != http.StatusOK {
+		if httpResp.Status == http.StatusNotFound {
+			return nil, fmt.Errorf("bad response from Kick API (URL:%s): %v, %w", reqURL, httpResp, errNotFound)
+		}
+		return nil, fmt.Errorf("bad response from Kick API (URL:%s): %v", reqURL, httpResp)
+	}
+
+	return []byte(httpResp.Body), nil
 }
 
 // Channel represents a Kick channel.
@@ -305,35 +356,4 @@ type Chatroom struct {
 	ChatableType string `json:"chatable_type"`
 	// ChatableID is of unknown use.
 	ChatableID int `json:"chatable_id"`
-}
-
-func FetchChannel(channel string) (*Channel, error) {
-	body, err := get(fmt.Sprintf("%s/api/v2/channels/%s", BaseURL, strings.ToLower(channel)))
-	if err != nil {
-		if errors.Is(err, errNotFound) {
-			return nil, fmt.Errorf("channel %s was not found: %w %w", channel, ErrChannelNotFound, err)
-		}
-		return nil, fmt.Errorf("failed to fetch chatters for %s: %w", channel, err)
-	}
-
-	resp := Channel{}
-	if err = json.Unmarshal(body, &resp); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response from Kick API: %w", err)
-	}
-	return &resp, nil
-}
-
-func get(reqURL string) (respBody []byte, err error) {
-	httpResp, err := cycleTLSClient.Do(reqURL, cycletls.Options{Ja3: *JA3.Load(), UserAgent: *UserAgent.Load()}, "GET")
-	if err != nil {
-		return nil, fmt.Errorf("get request to Kick API failed (URL:%s): %w", reqURL, err)
-	}
-	if httpResp.Status != http.StatusOK {
-		if httpResp.Status == http.StatusNotFound {
-			return nil, fmt.Errorf("bad response from Kick API (URL:%s): %v, %w", reqURL, httpResp, errNotFound)
-		}
-		return nil, fmt.Errorf("bad response from Kick API (URL:%s): %v", reqURL, httpResp)
-	}
-
-	return []byte(httpResp.Body), nil
 }

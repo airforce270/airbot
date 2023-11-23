@@ -11,14 +11,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-var originalBaseURL = seventv.BaseURL
-
 func TestFetchUserConnectionByTwitchUserId(t *testing.T) {
-	server := fakeserver.New()
-	server.AddOnClose(func() { originalBaseURL = seventv.BaseURL })
-	defer server.Close()
-	seventv.BaseURL = server.URL()
-
+	t.Parallel()
 	tests := []struct {
 		desc    string
 		useResp string
@@ -391,9 +385,15 @@ func TestFetchUserConnectionByTwitchUserId(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		server.Resps = []string{tc.useResp}
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
-			got, err := seventv.FetchUserConnectionByTwitchUserId("user1")
+			t.Parallel()
+			server := fakeserver.New()
+			defer server.Close()
+			server.Resps = []string{tc.useResp}
+			client := seventv.NewClient(server.URL())
+
+			got, err := client.FetchUserConnectionByTwitchUserId("user1")
 			if err != nil {
 				t.Fatalf("FetchUserConnectionByTwitchUserId() unexpected error: %v", err)
 			}
@@ -404,6 +404,5 @@ func TestFetchUserConnectionByTwitchUserId(t *testing.T) {
 				t.Errorf("FetchUserConnectionByTwitchUserId() diff (-want +got):\n%s", diff)
 			}
 		})
-		server.Reset()
 	}
 }

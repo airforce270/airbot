@@ -11,14 +11,26 @@ import (
 	"time"
 )
 
-// BaseURL is the base URL of the 7TV API.
-// Exported only to be overridden during testing.
-var BaseURL = "https://7tv.io/"
+// DefaultBaseURL is the default base URL for the 7TV API.
+const DefaultBaseURL = "https://7tv.io/"
+
+// NewDefaultClient returns a new default 7TV API client.
+func NewDefaultClient() *Client { return NewClient(DefaultBaseURL) }
+
+// NewClient creates a new 7TV API client.
+func NewClient(baseURL string) *Client {
+	return &Client{baseURL: baseURL}
+}
+
+// Client is a 7TV client.
+type Client struct {
+	baseURL string
+}
 
 // FetchUserConnectionByTwitchUserId fetches a 7tv user+connection
 // given a Twitch userid.
-func FetchUserConnectionByTwitchUserId(uid string) (*PlatformConnection, error) {
-	rawResp, err := http.Get(fmt.Sprintf("%s/v3/users/twitch/%s", BaseURL, uid))
+func (c *Client) FetchUserConnectionByTwitchUserId(uid string) (*PlatformConnection, error) {
+	rawResp, err := http.Get(fmt.Sprintf("%s/v3/users/twitch/%s", c.baseURL, uid))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get 7tv user connection for twitch user %q: %w", uid, err)
 	}

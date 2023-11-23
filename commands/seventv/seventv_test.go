@@ -12,6 +12,7 @@ import (
 )
 
 func Test7TVCommands(t *testing.T) {
+	t.Parallel()
 	tests := []commandtest.Case{
 		{
 			Input: base.IncomingMessage{
