@@ -12,7 +12,7 @@ require (
 	github.com/gempir/go-twitch-irc/v4 v4.0.0
 	github.com/google/go-cmp v0.6.0
 	github.com/nicklaw5/helix/v2 v2.25.2
-	github.com/pelletier/go-toml/v2 v2.1.0
+	github.com/pelletier/go-toml/v2 v2.1.1
 	github.com/redis/go-redis/v9 v9.3.0
 	github.com/shirou/gopsutil/v3 v3.23.11
 	golang.org/x/exp v0.0.0-20231206192017-f3f8817b8deb
