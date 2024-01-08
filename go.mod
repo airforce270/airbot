@@ -16,7 +16,7 @@ require (
 	github.com/redis/go-redis/v9 v9.3.0
 	github.com/shirou/gopsutil/v3 v3.23.11
 	golang.org/x/exp v0.0.0-20231206192017-f3f8817b8deb
-	golang.org/x/sync v0.5.0
+	golang.org/x/sync v0.6.0
 	gonum.org/v1/gonum v0.14.0
 	gorm.io/driver/postgres v1.5.4
 	gorm.io/driver/sqlite v1.5.4
