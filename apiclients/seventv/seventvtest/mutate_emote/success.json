@@ -1,0 +1,22 @@
+{
+  "data": {
+    "emoteSet": {
+      "id": "621f13b614f489808df5d58e",
+      "emotes": [
+        {
+          "id": "6569e350817bb096cc42039d",
+          "name": "CatBite"
+        },
+        {
+          "id": "6583c6de83833b99670e12c0",
+          "name": "Nothingreallymatters"
+        },
+        {
+          "id": "65a03f506e1a85c4ee7aaae3",
+          "name": "AMFUELING"
+        }
+      ]
+    }
+  }
+}
+

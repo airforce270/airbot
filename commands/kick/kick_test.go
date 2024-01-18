@@ -27,7 +27,7 @@ func TestKickCommands(t *testing.T) {
 			},
 			Platform:   commandtest.TwitchPlatform,
 			OtherTexts: []string{"$kislive brucedropemoff"},
-			ApiResp:    kicktest.LargeLiveGetChannelResp,
+			APIResp:    kicktest.LargeLiveGetChannelResp,
 			Want: []*base.Message{
 				{
 					Text:    "brucedropemoff is currently live on Kick, streaming Just Chatting to 15274 viewers.",
@@ -49,7 +49,7 @@ func TestKickCommands(t *testing.T) {
 			},
 			Platform:   commandtest.TwitchPlatform,
 			OtherTexts: []string{"$kislive xqc"},
-			ApiResp:    kicktest.LargeOfflineGetChannelResp,
+			APIResp:    kicktest.LargeOfflineGetChannelResp,
 			Want: []*base.Message{
 				{
 					Text:    "xqc is not currently live on Kick.",
@@ -71,7 +71,7 @@ func TestKickCommands(t *testing.T) {
 			},
 			Platform:   commandtest.TwitchPlatform,
 			OtherTexts: []string{"$ktitle brucedropemoff"},
-			ApiResp:    kicktest.LargeLiveGetChannelResp,
+			APIResp:    kicktest.LargeLiveGetChannelResp,
 			Want: []*base.Message{
 				{
 					Text:    "brucedropemoff's title on Kick: DEO COOKOFF MAY THE BEST DISH WIN! 🗣️ #DEO4L",
@@ -93,7 +93,7 @@ func TestKickCommands(t *testing.T) {
 			},
 			Platform:   commandtest.TwitchPlatform,
 			OtherTexts: []string{"$ktitle xqc"},
-			ApiResp:    kicktest.LargeOfflineGetChannelResp,
+			APIResp:    kicktest.LargeOfflineGetChannelResp,
 			Want: []*base.Message{
 				{
 					Text:    "Currently Kick only returns the title for live channels, and xqc is not currently live.",

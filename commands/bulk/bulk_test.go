@@ -31,7 +31,7 @@ func TestBulkCommands(t *testing.T) {
 				},
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  pastebintest.MultiLineFetchPasteResp,
+			APIResp:  pastebintest.MultiLineFetchPasteResp,
 			Want: []*base.Message{
 				{
 					Text:    "line1",
@@ -60,7 +60,7 @@ func TestBulkCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  pastebintest.MultiLineFetchPasteResp,
+			APIResp:  pastebintest.MultiLineFetchPasteResp,
 			Want:     nil,
 		},
 		{
@@ -79,7 +79,7 @@ func TestBulkCommands(t *testing.T) {
 				},
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  pastebintest.MultiLineFetchPasteResp,
+			APIResp:  pastebintest.MultiLineFetchPasteResp,
 			Want: []*base.Message{
 				{
 					Text:    "Usage: $filesay <pastebin raw URL>",

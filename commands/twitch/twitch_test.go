@@ -28,7 +28,7 @@ func TestTwitchCommands(t *testing.T) {
 			},
 			Platform:   commandtest.TwitchPlatform,
 			OtherTexts: []string{"$br"},
-			ApiResp:    ivrtest.TwitchUsersBannedResp,
+			APIResp:    ivrtest.TwitchUsersBannedResp,
 			Want: []*base.Message{
 				{
 					Text:    "Usage: $banreason <user>",
@@ -50,7 +50,7 @@ func TestTwitchCommands(t *testing.T) {
 			},
 			Platform:   commandtest.TwitchPlatform,
 			OtherTexts: []string{"$br banneduser"},
-			ApiResp:    ivrtest.TwitchUsersBannedResp,
+			APIResp:    ivrtest.TwitchUsersBannedResp,
 			Want: []*base.Message{
 				{
 					Text:    "SeaGrade's ban reason: TOS_INDEFINITE",
@@ -72,7 +72,7 @@ func TestTwitchCommands(t *testing.T) {
 			},
 			Platform:   commandtest.TwitchPlatform,
 			OtherTexts: []string{"$br nonbanneduser"},
-			ApiResp:    ivrtest.TwitchUsersNotStreamingResp,
+			APIResp:    ivrtest.TwitchUsersNotStreamingResp,
 			Want: []*base.Message{
 				{
 					Text:    "xQc is not banned.",
@@ -93,7 +93,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  twitchtest.GetChannelInformationResp,
+			APIResp:  twitchtest.GetChannelInformationResp,
 			Want: []*base.Message{
 				{
 					Text:    "user1 is currently playing Science&Technology",
@@ -114,7 +114,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.FoundersNormalResp,
+			APIResp:  ivrtest.FoundersNormalResp,
 			Want: []*base.Message{
 				{
 					Text:    "user2's founders are: FishyyKingyy, eljulidi1337, SamMist, Leochansz, lexieuzumaki7, ContraVz, rott______, DankJuicer, kronikZ____, blemplob",
@@ -135,7 +135,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.FoundersNormalResp,
+			APIResp:  ivrtest.FoundersNormalResp,
 			Want: []*base.Message{
 				{
 					Text:    "hasfounders's founders are: FishyyKingyy, eljulidi1337, SamMist, Leochansz, lexieuzumaki7, ContraVz, rott______, DankJuicer, kronikZ____, blemplob",
@@ -156,7 +156,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.FoundersNoneResp,
+			APIResp:  ivrtest.FoundersNoneResp,
 			Want: []*base.Message{
 				{
 					Text:    "nofounders has no founders",
@@ -177,7 +177,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.FoundersNone404Resp,
+			APIResp:  ivrtest.FoundersNone404Resp,
 			Want: []*base.Message{
 				{
 					Text:    "nofounders404 has no founders",
@@ -198,7 +198,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.SubAgeCurrentPaidTier3Resp,
+			APIResp:  ivrtest.SubAgeCurrentPaidTier3Resp,
 			Want: []*base.Message{
 				{
 					Text:    "Macroblank1 is currently subscribed to xQc with a Tier 3 paid subscription (3 days remaining) and is on a 17 month streak",
@@ -219,7 +219,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.SubAgeCurrentPaidTier3Resp,
+			APIResp:  ivrtest.SubAgeCurrentPaidTier3Resp,
 			Want: []*base.Message{
 				{
 					Text:    "Macroblank1 is currently subscribed to xQc with a Tier 3 paid subscription (3 days remaining) and is on a 17 month streak",
@@ -240,7 +240,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.SubAgeCurrentPaidTier3Resp,
+			APIResp:  ivrtest.SubAgeCurrentPaidTier3Resp,
 			Want: []*base.Message{
 				{
 					Text:    "Macroblank1 is currently subscribed to xQc with a Tier 3 paid subscription (3 days remaining) and is on a 17 month streak",
@@ -261,7 +261,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.SubAgeCurrentGiftTier1Resp,
+			APIResp:  ivrtest.SubAgeCurrentGiftTier1Resp,
 			Want: []*base.Message{
 				{
 					Text:    "ellagarten is currently subscribed to xQc with a Tier 1 gifted subscription (14 days remaining) and is on a 4 month streak (total: 17 months)",
@@ -282,7 +282,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.SubAgeCurrentPrimeResp,
+			APIResp:  ivrtest.SubAgeCurrentPrimeResp,
 			Want: []*base.Message{
 				{
 					Text:    "airforce2700 is currently subscribed to xQc with a Prime subscription (1 day remaining) and is on a 22 month streak",
@@ -303,7 +303,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.SubAgePreviousSubResp,
+			APIResp:  ivrtest.SubAgePreviousSubResp,
 			Want: []*base.Message{
 				{
 					Text:    "airforce2700 is not currently subscribed to elis, but was previously subscribed for 4 months",
@@ -324,7 +324,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.SubAgeNeverSubbedResp,
+			APIResp:  ivrtest.SubAgeNeverSubbedResp,
 			Want: []*base.Message{
 				{
 					Text:    "airforce2700 is not subscribed to HasanAbi and has not been previously subscribed",
@@ -345,7 +345,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.SubAge404ChannelResp,
+			APIResp:  ivrtest.SubAge404ChannelResp,
 			Want: []*base.Message{
 				{
 					Text:    "Channel channelthatdoesntexist was not found",
@@ -366,7 +366,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.SubAge404UserResp,
+			APIResp:  ivrtest.SubAge404UserResp,
 			Want: []*base.Message{
 				{
 					Text:    "User userthatdoesntexist was not found",
@@ -427,7 +427,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.ModsAndVIPsModsAndVIPsResp,
+			APIResp:  ivrtest.ModsAndVIPsModsAndVIPsResp,
 			Want: []*base.Message{
 				{
 					Text:    "user2's mods are: StreamElements, Fossabot, spintto, HNoAce",
@@ -448,7 +448,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.ModsAndVIPsModsAndVIPsResp,
+			APIResp:  ivrtest.ModsAndVIPsModsAndVIPsResp,
 			Want: []*base.Message{
 				{
 					Text:    "otherchannel's mods are: StreamElements, Fossabot, spintto, HNoAce",
@@ -469,7 +469,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.ModsAndVIPsNoneResp,
+			APIResp:  ivrtest.ModsAndVIPsNoneResp,
 			Want: []*base.Message{
 				{
 					Text:    "nomods has no mods",
@@ -491,7 +491,7 @@ func TestTwitchCommands(t *testing.T) {
 			},
 			Platform:   commandtest.TwitchPlatform,
 			OtherTexts: []string{"$title user1"},
-			ApiResp:    twitchtest.GetChannelInformationResp,
+			APIResp:    twitchtest.GetChannelInformationResp,
 			Want: []*base.Message{
 				{
 					Text:    "user1's title: TwitchDevMonthlyUpdate//May6,2021",
@@ -517,7 +517,7 @@ func TestTwitchCommands(t *testing.T) {
 				"$vb",
 				"$vb otherchannel",
 			},
-			ApiResp: ivrtest.TwitchUsersVerifiedBotResp,
+			APIResp: ivrtest.TwitchUsersVerifiedBotResp,
 			Want: []*base.Message{
 				{
 					Text:    "This command is currently offline due to changes on Twitch's end :(",
@@ -539,7 +539,7 @@ func TestTwitchCommands(t *testing.T) {
 			},
 			Platform:   commandtest.TwitchPlatform,
 			OtherTexts: []string{"$vb notverified"},
-			ApiResp:    ivrtest.TwitchUsersNotVerifiedBotResp,
+			APIResp:    ivrtest.TwitchUsersNotVerifiedBotResp,
 			Want: []*base.Message{
 				{
 					Text:    "This command is currently offline due to changes on Twitch's end :(",
@@ -569,7 +569,7 @@ func TestTwitchCommands(t *testing.T) {
 				"$vbq",
 				"$vbq otherchannel",
 			},
-			ApiResp: ivrtest.TwitchUsersVerifiedBotResp,
+			APIResp: ivrtest.TwitchUsersVerifiedBotResp,
 			Want: []*base.Message{
 				{
 					Text:    "This command is currently offline due to changes on Twitch's end :(",
@@ -595,7 +595,7 @@ func TestTwitchCommands(t *testing.T) {
 				"$vbquiet notverified",
 				"$vbq notverified",
 			},
-			ApiResp: ivrtest.TwitchUsersNotVerifiedBotResp,
+			APIResp: ivrtest.TwitchUsersNotVerifiedBotResp,
 			Want: []*base.Message{
 				{
 					Text:    "This command is currently offline due to changes on Twitch's end :(",
@@ -616,7 +616,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.ModsAndVIPsModsAndVIPsResp,
+			APIResp:  ivrtest.ModsAndVIPsModsAndVIPsResp,
 			Want: []*base.Message{
 				{
 					Text:    "user2's VIPs are: bakonsword, alyjiahT_T, AVBest, Zaintew_, captkayy, seagrad, Dafkeee",
@@ -637,7 +637,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.ModsAndVIPsModsAndVIPsResp,
+			APIResp:  ivrtest.ModsAndVIPsModsAndVIPsResp,
 			Want: []*base.Message{
 				{
 					Text:    "otherchannel's VIPs are: bakonsword, alyjiahT_T, AVBest, Zaintew_, captkayy, seagrad, Dafkeee",
@@ -658,7 +658,7 @@ func TestTwitchCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  ivrtest.ModsAndVIPsNoneResp,
+			APIResp:  ivrtest.ModsAndVIPsNoneResp,
 			Want: []*base.Message{
 				{
 					Text:    "novips has no VIPs",

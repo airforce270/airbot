@@ -10,6 +10,17 @@ import (
 )
 
 var (
+	//go:embed mutate_emote/success.json
+	MutateEmoteSuccessResp string
+	//go:embed mutate_emote/already_exists.json
+	MutateEmoteAlreadyExistsResp string
+	//go:embed mutate_emote/id_not_enabled.json
+	MutateEmoteIDNotEnabledResp string
+	//go:embed mutate_emote/id_not_found.json
+	MutateEmoteIDNotFoundResp string
+	//go:embed mutate_emote/not_authorized.json
+	MutateEmoteNotAuthorizedResp string
+
 	//go:embed fetch_uc_by_twitch_uid/small_non_sub.json
 	FetchUserConnectionByTwitchUserIdSmallNonSubResp string
 	//go:embed fetch_uc_by_twitch_uid/small_sub.json

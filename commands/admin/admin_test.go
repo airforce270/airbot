@@ -2,6 +2,7 @@ package admin_test
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"strings"
 	"testing"
@@ -152,7 +153,7 @@ func TestAdminCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  twitchtest.GetChannelInformationResp,
+			APIResp:  twitchtest.GetChannelInformationResp,
 			Want: []*base.Message{
 				{
 					Text:    "Successfully joined channel user1 with prefix $",
@@ -177,7 +178,7 @@ func TestAdminCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  twitchtest.GetChannelInformationResp,
+			APIResp:  twitchtest.GetChannelInformationResp,
 			Want: []*base.Message{
 				{
 					Text:    "Successfully joined channel user1 with prefix &",
@@ -202,7 +203,7 @@ func TestAdminCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform:  commandtest.TwitchPlatform,
-			ApiResp:   twitchtest.GetChannelInformationResp,
+			APIResp:   twitchtest.GetChannelInformationResp,
 			RunBefore: []commandtest.SetupFunc{joinOtherUser1},
 			Want: []*base.Message{
 				{
@@ -238,7 +239,7 @@ func TestAdminCommands(t *testing.T) {
 				PermissionLevel: permission.Owner,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  twitchtest.GetChannelInformationResp,
+			APIResp:  twitchtest.GetChannelInformationResp,
 			Want: []*base.Message{
 				{
 					Text:    "Successfully joined channel user1 with prefix $",
@@ -262,7 +263,7 @@ func TestAdminCommands(t *testing.T) {
 				PermissionLevel: permission.Owner,
 			},
 			Platform: commandtest.TwitchPlatform,
-			ApiResp:  twitchtest.GetChannelInformationResp,
+			APIResp:  twitchtest.GetChannelInformationResp,
 			Want: []*base.Message{
 				{
 					Text:    "Successfully joined channel user1 with prefix *",
@@ -287,7 +288,7 @@ func TestAdminCommands(t *testing.T) {
 				PermissionLevel: permission.Owner,
 			},
 			Platform:  commandtest.TwitchPlatform,
-			ApiResp:   twitchtest.GetChannelInformationResp,
+			APIResp:   twitchtest.GetChannelInformationResp,
 			RunBefore: []commandtest.SetupFunc{joinOtherUser1},
 			Want: []*base.Message{
 				{
@@ -345,7 +346,7 @@ func TestAdminCommands(t *testing.T) {
 				PermissionLevel: permission.Admin,
 			},
 			Platform:  commandtest.TwitchPlatform,
-			ApiResp:   twitchtest.GetChannelInformationResp,
+			APIResp:   twitchtest.GetChannelInformationResp,
 			RunBefore: []commandtest.SetupFunc{joinOtherUser1},
 			Want: []*base.Message{
 				{
@@ -382,7 +383,7 @@ func TestAdminCommands(t *testing.T) {
 				PermissionLevel: permission.Owner,
 			},
 			Platform:  commandtest.TwitchPlatform,
-			ApiResp:   twitchtest.GetChannelInformationResp,
+			APIResp:   twitchtest.GetChannelInformationResp,
 			RunBefore: []commandtest.SetupFunc{joinOtherUser1},
 			Want: []*base.Message{
 				{
@@ -542,10 +543,12 @@ func TestReloadConfig(t *testing.T) {
 	server := fakeserver.New()
 	defer server.Close()
 
+	ctx := context.Background()
+
 	db := databasetest.New(t)
 	cdb := cachetest.NewInMemory()
 
-	platform := twitch.NewForTesting(server.URL(), db)
+	platform := twitch.NewForTesting(server.URL(t).String(), db)
 
 	const want = "something-specific"
 	cfg := func() string {
@@ -579,11 +582,11 @@ func TestReloadConfig(t *testing.T) {
 			Source: fakeExpRandSource{Value: uint64(150)},
 		},
 		Clients: base.APIClients{
-			Bible:                         bible.NewClient(server.URL()),
-			IVR:                           ivr.NewClient(server.URL()),
-			Kick:                          kick.NewClient(server.URL(), "" /* ja3 */, "" /* userAgent */),
-			PastebinFetchPasteURLOverride: server.URL(),
-			SevenTV:                       seventv.NewClient(server.URL()),
+			Bible:                         bible.NewClient(server.URL(t).String()),
+			IVR:                           ivr.NewClient(server.URL(t).String()),
+			Kick:                          kick.NewClient(server.URL(t).String(), "" /* ja3 */, "" /* userAgent */),
+			PastebinFetchPasteURLOverride: server.URL(t).String(),
+			SevenTV:                       seventv.NewClient(ctx, *server.URL(t), "" /* accessToken */),
 		},
 	}
 
@@ -616,7 +619,7 @@ var testConfig = config.Config{}
 
 func joinOtherUser1(t testing.TB, r *base.Resources) {
 	t.Helper()
-	handler := commands.NewHandler(r.DB, r.Cache, &testConfig, nil)
+	handler := commands.NewHandler(context.Background(), r.DB, r.Cache, &testConfig, nil)
 	_, err := handler.Handle(&base.IncomingMessage{
 		Message: base.Message{
 			Text:    "$joinother user1",
@@ -636,7 +639,7 @@ func joinOtherUser1(t testing.TB, r *base.Resources) {
 
 func enableBotSlowmode(t testing.TB, r *base.Resources) {
 	t.Helper()
-	handler := commands.NewHandler(r.DB, r.Cache, &testConfig, nil)
+	handler := commands.NewHandler(context.Background(), r.DB, r.Cache, &testConfig, nil)
 	_, err := handler.Handle(&base.IncomingMessage{
 		Message: base.Message{
 			Text:    "$botslowmode on",

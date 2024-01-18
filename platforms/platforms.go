@@ -32,7 +32,7 @@ func Build(cfg *config.Config, db *gorm.DB, cdb cache.Cache) (map[string]base.Pl
 // StartHandling starts handling commands coming from the given platform.
 // This function blocks and should be run within a goroutine.
 func StartHandling(ctx context.Context, p base.Platform, db *gorm.DB, cdb cache.Cache, cfg *config.Config, allPlatforms map[string]base.Platform, logIncoming, logOutgoing bool) {
-	handler := commands.NewHandler(db, cdb, cfg, allPlatforms)
+	handler := commands.NewHandler(ctx, db, cdb, cfg, allPlatforms)
 	inC := p.Listen()
 
 	outC := make(chan base.OutgoingMessage, 100)

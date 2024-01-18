@@ -1,0 +1,21 @@
+{
+  "errors": [
+    {
+      "message": "704610 Emote Not Enabled",
+      "path": [
+        "emoteSet",
+        "emotes"
+      ],
+      "extensions": {
+        "code": 704610,
+        "fields": {
+          "EMOTE_ID": "63bb912c85325d8fabb2be7d"
+        },
+        "message": "Emote Not Enabled"
+      }
+    }
+  ],
+  "data": {
+    "emoteSet": null
+  }
+}

@@ -47,7 +47,7 @@ func TestFetchUser(t *testing.T) {
 			defer server.Close()
 			server.Resps = []string{tc.useResp}
 
-			client := bible.NewClient(server.URL())
+			client := bible.NewClient(server.URL(t).String())
 			got, err := client.FetchVerses("Philippians 4:8")
 			if err != nil {
 				t.Fatalf("FetchVerses() unexpected error: %v", err)
