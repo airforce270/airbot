@@ -30,6 +30,8 @@ type Config struct {
 	LogOutgoing bool `toml:"log_outgoing_messages"`
 	// Platforms contains platform-specific config data.
 	Platforms PlatformConfig
+	// SevenTV contains config for talking to the 7TV API.
+	SevenTV SevenTVConfig
 	// Supinic contains config for talking to the Supinic API.
 	Supinic SupinicConfig
 }
@@ -74,6 +76,13 @@ type TwitchConfig struct {
 	RefreshToken string `toml:"refresh_token"`
 	// Owners contains the Twitch usernames of the bot owner(s).
 	Owners []string
+}
+
+type SevenTVConfig struct {
+	// AccessToken is the OAuth2 access token to use for 7TV API calls.
+	// It can be obtained by logging in on https://7tv.io/
+	// and getting the token from one of the API calls.
+	AccessToken string `toml:"access_token"`
 }
 
 const (

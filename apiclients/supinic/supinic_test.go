@@ -34,7 +34,7 @@ func TestUpdateBotActivity(t *testing.T) {
 			server := fakeserver.New()
 			defer server.Close()
 			server.Resps = []string{tc.useResp}
-			client := NewClientForTesting(server.URL())
+			client := NewClientForTesting(server.URL(t).String())
 
 			err := client.updateBotActivity()
 			if !tc.wantErr && err != nil {

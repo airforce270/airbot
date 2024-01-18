@@ -1,6 +1,9 @@
 package seventv_test
 
 import (
+	"context"
+	"errors"
+	"io"
 	"testing"
 	"time"
 
@@ -10,6 +13,150 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 )
+
+func TestAddEmote(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		desc    string
+		useResp string
+		wantErr error
+	}{
+		{
+			desc:    "success",
+			useResp: seventvtest.MutateEmoteSuccessResp,
+			wantErr: nil,
+		},
+		{
+			desc:    "not authorized",
+			useResp: seventvtest.MutateEmoteNotAuthorizedResp,
+			wantErr: seventv.ErrNotAuthorized,
+		},
+		{
+			desc:    "already added",
+			useResp: seventvtest.MutateEmoteAlreadyExistsResp,
+			wantErr: seventv.ErrEmoteAlreadyEnabled,
+		},
+		{
+			desc:    "id not found",
+			useResp: seventvtest.MutateEmoteIDNotFoundResp,
+			wantErr: seventv.ErrEmoteNotFound,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.desc, func(t *testing.T) {
+			t.Parallel()
+			ctx := context.Background()
+
+			server := fakeserver.New()
+			defer server.Close()
+
+			server.Resps = []string{tc.useResp}
+			client := seventv.NewClient(ctx, *server.URL(t), "" /* accessToken */)
+
+			err := client.AddEmote(ctx, "fake-emote-set-1", "fake-emote-1")
+			if err != nil && tc.wantErr == nil {
+				t.Fatalf("AddEmote() unexpected error: %v", err)
+			}
+			if err == nil && tc.wantErr != nil {
+				t.Fatal("AddEmote() had no err, but expected one")
+			}
+			if err != nil && tc.wantErr != nil {
+				if !errors.Is(err, tc.wantErr) {
+					t.Fatalf("AddEmote() expected err %v to be %v", err, tc.wantErr)
+				}
+			}
+
+			const wantBody = `{"query":` +
+				`"mutation ($action:ListItemAction!$emote_id:ObjectID!$emote_set_id:ObjectID!){` +
+				`emoteSet(id: $emote_set_id){id,emotes(id: $emote_id, action: $action){id,name}}` +
+				`}",` +
+				`"variables":{"action":"ADD","emote_id":"fake-emote-1","emote_set_id":"fake-emote-set-1"}` +
+				"}\n"
+
+			gotBody, err := io.ReadAll(server.Reqs[0].Body)
+			if err != nil {
+				t.Fatalf("AddEmote() failed to read req body: %v", err)
+			}
+			if diff := cmp.Diff(wantBody, string(gotBody)); diff != "" {
+				t.Errorf("AddEmote() req body diff (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestAddEmoteWithAlias(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		desc    string
+		useResp string
+		wantErr error
+	}{
+		{
+			desc:    "success",
+			useResp: seventvtest.MutateEmoteSuccessResp,
+			wantErr: nil,
+		},
+		{
+			desc:    "not authorized",
+			useResp: seventvtest.MutateEmoteNotAuthorizedResp,
+			wantErr: seventv.ErrNotAuthorized,
+		},
+		{
+			desc:    "already added",
+			useResp: seventvtest.MutateEmoteAlreadyExistsResp,
+			wantErr: seventv.ErrEmoteAlreadyEnabled,
+		},
+		{
+			desc:    "id not found",
+			useResp: seventvtest.MutateEmoteIDNotFoundResp,
+			wantErr: seventv.ErrEmoteNotFound,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.desc, func(t *testing.T) {
+			t.Parallel()
+			ctx := context.Background()
+
+			server := fakeserver.New()
+			defer server.Close()
+
+			server.Resps = []string{tc.useResp}
+			client := seventv.NewClient(ctx, *server.URL(t), "" /* accessToken */)
+
+			err := client.AddEmoteWithAlias(ctx, "fake-emote-set-1", "fake-emote-1", "fake-alias")
+			if err != nil && tc.wantErr == nil {
+				t.Fatalf("AddEmoteWithAlias() unexpected error: %v", err)
+			}
+			if err == nil && tc.wantErr != nil {
+				t.Fatal("AddEmoteWithAlias() had no err, but expected one")
+			}
+			if err != nil && tc.wantErr != nil {
+				if !errors.Is(err, tc.wantErr) {
+					t.Fatalf("AddEmoteWithAlias() expected err %v to be %v", err, tc.wantErr)
+				}
+			}
+
+			const wantBody = `{"query":` +
+				`"mutation ($action:ListItemAction!$emote_id:ObjectID!$emote_set_id:ObjectID!$name:String!){` +
+				`emoteSet(id: $emote_set_id){id,emotes(id: $emote_id, action: $action, name: $name){id,name}}` +
+				`}",` +
+				`"variables":{"action":"ADD","emote_id":"fake-emote-1","emote_set_id":"fake-emote-set-1","name":"fake-alias"}` +
+				"}\n"
+
+			gotBody, err := io.ReadAll(server.Reqs[0].Body)
+			if err != nil {
+				t.Fatalf("AddEmoteWithAlias() failed to read req body: %v", err)
+			}
+			if diff := cmp.Diff(wantBody, string(gotBody)); diff != "" {
+				t.Errorf("AddEmoteWithAlias() req body diff (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
 
 func TestFetchUserConnectionByTwitchUserId(t *testing.T) {
 	t.Parallel()
@@ -388,10 +535,13 @@ func TestFetchUserConnectionByTwitchUserId(t *testing.T) {
 		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
 			t.Parallel()
+			ctx := context.Background()
+
 			server := fakeserver.New()
 			defer server.Close()
+
 			server.Resps = []string{tc.useResp}
-			client := seventv.NewClient(server.URL())
+			client := seventv.NewClient(ctx, *server.URL(t), "" /* accessToken */)
 
 			got, err := client.FetchUserConnectionByTwitchUserId("user1")
 			if err != nil {
@@ -402,6 +552,78 @@ func TestFetchUserConnectionByTwitchUserId(t *testing.T) {
 
 			if diff := cmp.Diff(tc.want, got, cmpOpts...); diff != "" {
 				t.Errorf("FetchUserConnectionByTwitchUserId() diff (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestRemoveEmote(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		desc    string
+		useResp string
+		wantErr error
+	}{
+		{
+			desc:    "success",
+			useResp: seventvtest.MutateEmoteSuccessResp,
+			wantErr: nil,
+		},
+		{
+			desc:    "not authorized",
+			useResp: seventvtest.MutateEmoteNotAuthorizedResp,
+			wantErr: seventv.ErrNotAuthorized,
+		},
+		{
+			desc:    "not added",
+			useResp: seventvtest.MutateEmoteIDNotEnabledResp,
+			wantErr: seventv.ErrEmoteNotEnabled,
+		},
+		{
+			desc:    "id not found",
+			useResp: seventvtest.MutateEmoteIDNotFoundResp,
+			wantErr: seventv.ErrEmoteNotFound,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.desc, func(t *testing.T) {
+			t.Parallel()
+			ctx := context.Background()
+
+			server := fakeserver.New()
+			defer server.Close()
+
+			server.Resps = []string{tc.useResp}
+			client := seventv.NewClient(ctx, *server.URL(t), "" /* accessToken */)
+
+			err := client.RemoveEmote(ctx, "fake-emote-set-1", "fake-emote-1")
+			if err != nil && tc.wantErr == nil {
+				t.Fatalf("RemoveEmote() unexpected error: %v", err)
+			}
+			if err == nil && tc.wantErr != nil {
+				t.Fatal("RemoveEmote() had no err, but expected one")
+			}
+			if err != nil && tc.wantErr != nil {
+				if !errors.Is(err, tc.wantErr) {
+					t.Fatalf("RemoveEmote() expected err %v to be %v", err, tc.wantErr)
+				}
+			}
+
+			const wantBody = `{"query":` +
+				`"mutation ($action:ListItemAction!$emote_id:ObjectID!$emote_set_id:ObjectID!){` +
+				`emoteSet(id: $emote_set_id){id,emotes(id: $emote_id, action: $action){id,name}}` +
+				`}",` +
+				`"variables":{"action":"REMOVE","emote_id":"fake-emote-1","emote_set_id":"fake-emote-set-1"}` +
+				"}\n"
+
+			gotBody, err := io.ReadAll(server.Reqs[0].Body)
+			if err != nil {
+				t.Fatalf("RemoveEmote() failed to read req body: %v", err)
+			}
+			if diff := cmp.Diff(wantBody, string(gotBody)); diff != "" {
+				t.Errorf("RemoveEmote() req body diff (-want +got):\n%s", diff)
 			}
 		})
 	}

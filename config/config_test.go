@@ -32,6 +32,9 @@ func TestRead(t *testing.T) {
 				Owners:       []string{""},
 			},
 		},
+		SevenTV: SevenTVConfig{
+			AccessToken: "",
+		},
 		Supinic: SupinicConfig{
 			UserID:        "not-required-to-run-bot",
 			APIKey:        "you-can-safely-leave-this-as-is",

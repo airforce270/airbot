@@ -3,6 +3,7 @@ package commandtest
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -26,8 +27,8 @@ type Case struct {
 	Input      base.IncomingMessage
 	Platform   Platform
 	OtherTexts []string
-	ApiResp    string
-	ApiResps   []string
+	APIResp    string
+	APIResps   []string
 	ConfigData string
 	RunBefore  []SetupFunc
 	RunAfter   []TeardownFunc
@@ -41,6 +42,7 @@ func Run(t *testing.T, tests []Case) {
 		t.Run(fmt.Sprintf("[%s] %s", tc.input.PermissionLevel.Name(), tc.input.Message.Text), func(t *testing.T) {
 			t.Helper()
 			t.Parallel()
+			ctx := context.Background()
 			server := fakeserver.New()
 			defer server.Close()
 
@@ -52,7 +54,7 @@ func Run(t *testing.T, tests []Case) {
 			var platform base.Platform
 			switch tc.platform {
 			case TwitchPlatform:
-				platform = twitch.NewForTesting(server.URL(), db)
+				platform = twitch.NewForTesting(server.URL(t).String(), db)
 			default:
 				t.Fatal("Platform must be set.")
 			}
@@ -72,11 +74,11 @@ func Run(t *testing.T, tests []Case) {
 					Source: fakeExpRandSource{Value: uint64(150)},
 				},
 				Clients: base.APIClients{
-					Bible:                         bible.NewClient(server.URL()),
-					IVR:                           ivr.NewClient(server.URL()),
-					Kick:                          kick.NewClient(server.URL(), "" /* ja3 */, "" /* userAgent */),
-					PastebinFetchPasteURLOverride: server.URL(),
-					SevenTV:                       seventv.NewClient(server.URL()),
+					Bible:                         bible.NewClient(server.URL(t).String()),
+					IVR:                           ivr.NewClient(server.URL(t).String()),
+					Kick:                          kick.NewClient(server.URL(t).String(), "" /* ja3 */, "" /* userAgent */),
+					PastebinFetchPasteURLOverride: server.URL(t).String(),
+					SevenTV:                       seventv.NewClient(ctx, *server.URL(t), "" /* accessToken */),
 				},
 			}
 
@@ -133,10 +135,10 @@ func buildTestCases(tcs []Case) []builtCase {
 	for _, tc := range tcs {
 		texts := append([]string{tc.Input.Message.Text}, tc.OtherTexts...)
 		var apiResps []string
-		if tc.ApiResp != "" {
-			apiResps = append(apiResps, tc.ApiResp)
+		if tc.APIResp != "" {
+			apiResps = append(apiResps, tc.APIResp)
 		}
-		apiResps = append(apiResps, tc.ApiResps...)
+		apiResps = append(apiResps, tc.APIResps...)
 		for _, text := range texts {
 			builtCase := builtCase{
 				input:      tc.Input,

@@ -345,6 +345,7 @@ func reloadConfig(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, e
 	msg.Resources.Clients.Kick.JA3 = cfg.Platforms.Kick.JA3
 	msg.Resources.Clients.Kick.UserAgent = cfg.Platforms.Kick.UserAgent
 	msg.Resources.Clients.Kick.Mtx.Unlock()
+	msg.Resources.Clients.SevenTV.SetAccessToken(cfg.SevenTV.AccessToken)
 
 	return []*base.Message{
 		{

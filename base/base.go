@@ -128,12 +128,8 @@ type Resources struct {
 // PlatformByName returns the platform with a given name
 // if it's currently registered and configured.
 func (r Resources) PlatformByName(name string) (plat Platform, ok bool) {
-	for n, p := range r.AllPlatforms {
-		if name == n {
-			return p, true
-		}
-	}
-	return nil, false
+	plat, ok = r.AllPlatforms[name]
+	return plat, ok
 }
 
 // RandResources contains references to random number resources.

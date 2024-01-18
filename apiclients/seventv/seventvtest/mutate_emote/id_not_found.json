@@ -1,0 +1,20 @@
+{
+  "errors": [
+    {
+      "message": "70440 Unknown Emote: no target emotes found",
+      "path": [
+        "emoteSet",
+        "emotes"
+      ],
+      "extensions": {
+        "code": 70440,
+        "fields": {},
+        "message": "Unknown Emote: no target emotes found"
+      }
+    }
+  ],
+  "data": {
+    "emoteSet": null
+  }
+}
+

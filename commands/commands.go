@@ -2,6 +2,7 @@
 package commands
 
 import (
+	"context"
 	"crypto/rand"
 	"errors"
 	"fmt"
@@ -71,7 +72,7 @@ func init() {
 }
 
 // NewHandler creates a new Handler.
-func NewHandler(db *gorm.DB, cdb cache.Cache, cfg *config.Config, allPlatforms map[string]base.Platform) Handler {
+func NewHandler(ctx context.Context, db *gorm.DB, cdb cache.Cache, cfg *config.Config, allPlatforms map[string]base.Platform) Handler {
 	return Handler{
 		db:              db,
 		cache:           cdb,
@@ -84,7 +85,7 @@ func NewHandler(db *gorm.DB, cdb cache.Cache, cfg *config.Config, allPlatforms m
 			Bible:   bible.NewDefaultClient(),
 			IVR:     ivr.NewDefaultClient(),
 			Kick:    kickapi.NewClient(kickapi.DefaultBaseURL, cfg.Platforms.Kick.JA3, cfg.Platforms.Kick.UserAgent),
-			SevenTV: seventvapi.NewDefaultClient(),
+			SevenTV: seventvapi.NewClient(ctx, seventvapi.DefaultBaseURL, cfg.SevenTV.AccessToken),
 		},
 	}
 }

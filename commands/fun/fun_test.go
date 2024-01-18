@@ -33,7 +33,7 @@ func TestFunCommands(t *testing.T) {
 			},
 			Platform:   commandtest.TwitchPlatform,
 			OtherTexts: []string{"$bv Philippians 4:8"},
-			ApiResp:    bibletest.LookupVerseSingleVerse1Resp,
+			APIResp:    bibletest.LookupVerseSingleVerse1Resp,
 			Want: []*base.Message{
 				{
 					Text:    "[Philippians 4:8]: Finally, brothers, whatever things are true, whatever things are honorable, whatever things are just, whatever things are pure, whatever things are lovely, whatever things are of good report; if there is any virtue, and if there is any praise, think about these things.\n",
@@ -58,7 +58,7 @@ func TestFunCommands(t *testing.T) {
 			},
 			Platform:   commandtest.TwitchPlatform,
 			OtherTexts: []string{"$bv John 3:16"},
-			ApiResp:    bibletest.LookupVerseSingleVerse2Resp,
+			APIResp:    bibletest.LookupVerseSingleVerse2Resp,
 			Want: []*base.Message{
 				{
 					Text:    "[John 3:16]: \nFor God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.\n\n",

@@ -40,6 +40,12 @@ refresh_token = ""
 owners = [""]
 
 
+# Data for talking to the 7TV API.
+[seventv]
+# 7TV API access token.
+access_token = ""
+
+
 # Data for talking to the Supinic API.
 [supinic]
 # Supinic User ID of the bot.

@@ -609,7 +609,7 @@ func TestFetchChannel(t *testing.T) {
 			defer server.Close()
 			server.Resps = []string{tc.useResp}
 
-			client := kick.NewClient(server.URL(), "" /* ja3 */, "" /* userAgent */)
+			client := kick.NewClient(server.URL(t).String(), "" /* ja3 */, "" /* userAgent */)
 			got, err := client.FetchChannel("user1")
 			if err != nil {
 				t.Fatalf("FetchChannel() unexpected error: %v", err)

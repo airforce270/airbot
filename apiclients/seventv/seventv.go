@@ -1,36 +1,131 @@
-// Package seventv provides a client to the 7tv API.
+// Package seventv provides a client to the 7TV API.
 // https://7tv.io/docs
 package seventv
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
+	"sync/atomic"
 	"time"
+
+	"github.com/airforce270/airbot/apiclients/seventv/gqltypes"
+
+	"github.com/hasura/go-graphql-client"
+	"golang.org/x/oauth2"
+)
+
+var (
+	// ErrEmoteAlreadyEnabled indicates the given emote is already enabled.
+	ErrEmoteAlreadyEnabled = errors.New("emote is already enabled")
+	// ErrEmoteNotEnabled indicates the given emote is not enabled.
+	ErrEmoteNotEnabled = errors.New("emote is not enabled")
+	// ErrEmoteNotFound indicidates the emote was not found.
+	ErrEmoteNotFound = errors.New("emote not found")
+	// ErrNotAuthorized indicates the operation was not allowed.
+	// Most likely, the bot is not an editor on the emote set in question.
+	ErrNotAuthorized = errors.New("not authorized")
+)
+
+const (
+	addAction    = gqltypes.ListItemAction("ADD")
+	removeAction = gqltypes.ListItemAction("REMOVE")
+)
+
+var (
+	emoteAlreadyEnabledCode   = formatErrorCodeForMatch("704611")
+	emoteNotEnabledCode       = formatErrorCodeForMatch("704610")
+	emoteNotFoundCode         = formatErrorCodeForMatch("70440")
+	insufficientPrivilegeCode = formatErrorCodeForMatch("70403")
 )
 
 // DefaultBaseURL is the default base URL for the 7TV API.
-const DefaultBaseURL = "https://7tv.io/"
+var DefaultBaseURL = url.URL{Scheme: "https", Host: "7tv.io"}
 
 // NewDefaultClient returns a new default 7TV API client.
-func NewDefaultClient() *Client { return NewClient(DefaultBaseURL) }
+func NewDefaultClient() *Client {
+	return NewClient(context.Background(), DefaultBaseURL, "" /* accessToken */)
+}
 
 // NewClient creates a new 7TV API client.
-func NewClient(baseURL string) *Client {
-	return &Client{baseURL: baseURL}
+func NewClient(ctx context.Context, baseURL url.URL, accessToken string) *Client {
+	c := &Client{baseURL: baseURL}
+	c.gql.Store(newGQLClient(baseURL, newHTTPClient(ctx, accessToken)))
+	return c
 }
 
 // Client is a 7TV client.
 type Client struct {
-	baseURL string
+	// gql is a GraphQL client for the 7TV API.
+	gql atomic.Pointer[graphql.Client]
+	// baseURL is the base URL of the 7TV API.
+	baseURL url.URL
+}
+
+// AddEmote adds a 7TV emote to an emote set.
+func (c *Client) AddEmote(ctx context.Context, emoteSetID, emoteID string) error {
+	var addEmote ModifyEmoteSetMutation
+	vars := map[string]any{
+		"action":       gqltypes.ListItemAction("ADD"),
+		"emote_id":     gqltypes.ObjectID(emoteID),
+		"emote_set_id": gqltypes.ObjectID(emoteSetID),
+	}
+
+	if err := c.gql.Load().Mutate(ctx, &addEmote, vars); err != nil {
+		if strings.Contains(err.Error(), insufficientPrivilegeCode) {
+			return fmt.Errorf("not allowed to modify emote set %s: %w %w", emoteSetID, ErrNotAuthorized, err)
+		}
+		if strings.Contains(err.Error(), emoteAlreadyEnabledCode) {
+			return fmt.Errorf("emote %s is already enabled in set %s: %w %w", emoteID, emoteSetID, ErrEmoteAlreadyEnabled, err)
+		}
+		if strings.Contains(err.Error(), emoteNotFoundCode) {
+			return fmt.Errorf("emote %s not found: %w %w", emoteID, ErrEmoteNotFound, err)
+		}
+		return fmt.Errorf("adding 7tv emote failed: %w", err)
+	}
+
+	return nil
+
+}
+
+// AddEmoteWithAlias adds a 7TV emote to an emote set with a given name (alias).
+// If useName is the blank string, the emote will not be aliased.
+func (c *Client) AddEmoteWithAlias(ctx context.Context, emoteSetID, emoteID, alias string) error {
+	var addEmote ModifyEmoteSetWithNameMutation
+	vars := map[string]any{
+		"action":       addAction,
+		"emote_id":     gqltypes.ObjectID(emoteID),
+		"emote_set_id": gqltypes.ObjectID(emoteSetID),
+		"name":         alias,
+	}
+
+	if err := c.gql.Load().Mutate(ctx, &addEmote, vars); err != nil {
+		if strings.Contains(err.Error(), insufficientPrivilegeCode) {
+			return fmt.Errorf("not allowed to modify emote set %s: %w %w", emoteSetID, ErrNotAuthorized, err)
+		}
+		if strings.Contains(err.Error(), emoteAlreadyEnabledCode) {
+			return fmt.Errorf("emote %s is already enabled in set %s: %w %w", emoteID, emoteSetID, ErrEmoteAlreadyEnabled, err)
+		}
+		if strings.Contains(err.Error(), emoteNotFoundCode) {
+			return fmt.Errorf("emote %s not found: %w %w", emoteID, ErrEmoteNotFound, err)
+		}
+		return fmt.Errorf("adding 7tv emote failed: %w", err)
+	}
+
+	return nil
 }
 
 // FetchUserConnectionByTwitchUserId fetches a 7tv user+connection
 // given a Twitch userid.
 func (c *Client) FetchUserConnectionByTwitchUserId(uid string) (*PlatformConnection, error) {
-	rawResp, err := http.Get(fmt.Sprintf("%s/v3/users/twitch/%s", c.baseURL, uid))
+	reqURL := c.baseURL.JoinPath("v3", "users", "twitch", uid)
+	rawResp, err := http.Get(reqURL.String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to get 7tv user connection for twitch user %q: %w", uid, err)
 	}
@@ -50,6 +145,59 @@ func (c *Client) FetchUserConnectionByTwitchUserId(uid string) (*PlatformConnect
 	}
 
 	return &resp, nil
+}
+
+// RemoteEmote removes a 7TV emote from an emote set.
+func (c *Client) RemoveEmote(ctx context.Context, emoteSetID, emoteID string) error {
+	var addEmote ModifyEmoteSetMutation
+	vars := map[string]any{
+		"action":       removeAction,
+		"emote_id":     gqltypes.ObjectID(emoteID),
+		"emote_set_id": gqltypes.ObjectID(emoteSetID),
+	}
+
+	if err := c.gql.Load().Mutate(ctx, &addEmote, vars); err != nil {
+		if strings.Contains(err.Error(), insufficientPrivilegeCode) {
+			return fmt.Errorf("not allowed to modify emote set %s: %w %w", emoteSetID, ErrNotAuthorized, err)
+		}
+		if strings.Contains(err.Error(), emoteNotEnabledCode) {
+			return fmt.Errorf("emote %s is not enabled in set %s: %w %w", emoteID, emoteSetID, ErrEmoteNotEnabled, err)
+		}
+		if strings.Contains(err.Error(), emoteNotFoundCode) {
+			return fmt.Errorf("emote %s not found: %w %w", emoteID, ErrEmoteNotFound, err)
+		}
+		return fmt.Errorf("removing 7tv emote failed: %w", err)
+	}
+
+	return nil
+}
+
+// SetAccessToken sets a new access token.
+func (c *Client) SetAccessToken(accessToken string) {
+	c.gql.Store(newGQLClient(c.baseURL, newHTTPClient(context.Background(), accessToken)))
+}
+
+// ModifyEmoteSetWithNameMutation is a GraphQL mutation to modify an emote set
+// and set the emote's name.
+type ModifyEmoteSetWithNameMutation struct {
+	EmoteSet struct {
+		ID     string
+		Emotes []struct {
+			ID   string
+			Name string
+		} `graphql:"emotes(id: $emote_id, action: $action, name: $name)"`
+	} `graphql:"emoteSet(id: $emote_set_id)"`
+}
+
+// ModifyEmoteSetMutation is a GraphQL mutation to modify an emote set.
+type ModifyEmoteSetMutation struct {
+	EmoteSet struct {
+		ID     string
+		Emotes []struct {
+			ID   string
+			Name string
+		} `graphql:"emotes(id: $emote_id, action: $action)"`
+	} `graphql:"emoteSet(id: $emote_set_id)"`
 }
 
 // PlatformConnection is a connection between a 7TV account
@@ -282,4 +430,18 @@ func (t *UnixTimeMs) UnmarshalJSON(in []byte) error {
 	}
 	*(*time.Time)(t) = time.UnixMilli(inInt).UTC()
 	return nil
+}
+
+func newHTTPClient(ctx context.Context, accessToken string) *http.Client {
+	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken})
+	return oauth2.NewClient(ctx, ts)
+}
+
+func newGQLClient(baseURL url.URL, httpClient *http.Client) *graphql.Client {
+	gqlBaseURL := baseURL.JoinPath("v3", "gql")
+	return graphql.NewClient(gqlBaseURL.String(), httpClient).WithDebug(true)
+}
+
+func formatErrorCodeForMatch(code string) string {
+	return `"` + code + " "
 }

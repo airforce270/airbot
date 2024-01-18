@@ -221,7 +221,7 @@ func TestFetchUser(t *testing.T) {
 			defer server.Close()
 			server.Resps = []string{tc.useResp}
 
-			client := ivr.NewClient(server.URL())
+			client := ivr.NewClient(server.URL(t).String())
 			got, err := client.FetchUsers("fake-username")
 			if err != nil {
 				t.Fatalf("FetchUsers() unexpected error: %v", err)
@@ -356,7 +356,7 @@ func TestFetchModsAndVIPs(t *testing.T) {
 			defer server.Close()
 			server.Resps = []string{tc.useResp}
 
-			client := ivr.NewClient(server.URL())
+			client := ivr.NewClient(server.URL(t).String())
 			got, err := client.FetchModsAndVIPs("fakeusername")
 			if err != nil {
 				t.Fatalf("FetchModsAndVIPs() unexpected error: %v", err)
@@ -472,7 +472,7 @@ func TestFetchFounders(t *testing.T) {
 			defer server.Close()
 			server.Resps = []string{tc.useResp}
 
-			client := ivr.NewClient(server.URL())
+			client := ivr.NewClient(server.URL(t).String())
 			got, err := client.FetchFounders("fakeusername")
 			if err != nil {
 				t.Fatalf("FetchFounders() unexpected error: %v", err)
@@ -679,7 +679,7 @@ func TestFetchSubAge(t *testing.T) {
 			defer server.Close()
 			server.Resps = []string{tc.useResp}
 
-			client := ivr.NewClient(server.URL())
+			client := ivr.NewClient(server.URL(t).String())
 			got, err := client.FetchSubAge("fakeuser", "fakechannel")
 			if err != nil && tc.wantErr == nil {
 				t.Fatalf("FetchSubAge() unexpected error: %v", err)
@@ -727,7 +727,7 @@ func TestIsVerifiedBot(t *testing.T) {
 			defer server.Close()
 			server.Resps = []string{tc.useResp}
 
-			client := ivr.NewClient(server.URL())
+			client := ivr.NewClient(server.URL(t).String())
 			users, err := client.FetchUsers("fake-username")
 			if err != nil {
 				t.Fatalf("IsVerifiedBot() unexpected error: %v", err)

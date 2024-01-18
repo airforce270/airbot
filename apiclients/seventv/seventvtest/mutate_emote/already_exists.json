@@ -1,0 +1,19 @@
+{
+  "errors": [
+    {
+      "message": "704611 Emote Already Enabled",
+      "path": [
+        "emoteSet",
+        "emotes"
+      ],
+      "extensions": {
+        "code": 704611,
+        "fields": {},
+        "message": "Emote Already Enabled"
+      }
+    }
+  ],
+  "data": {
+    "emoteSet": null
+  }
+}

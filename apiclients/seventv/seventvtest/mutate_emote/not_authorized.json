@@ -1,0 +1,20 @@
+{
+  "errors": [
+    {
+      "message": "70403 Insufficient Privilege: You do not have permission to modify this emote set",
+      "path": [
+        "emoteSet",
+        "emotes"
+      ],
+      "extensions": {
+        "code": 70403,
+        "fields": {},
+        "message": "Insufficient Privilege: You do not have permission to modify this emote set"
+      }
+    }
+  ],
+  "data": {
+    "emoteSet": null
+  }
+}
+

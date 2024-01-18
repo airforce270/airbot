@@ -37,7 +37,7 @@ func TestFetchPaste(t *testing.T) {
 			defer server.Close()
 			server.Resps = []string{tc.useResp}
 
-			client := pastebin.NewClient(server.URL())
+			client := pastebin.NewClient(server.URL(t).String())
 			got, err := client.FetchPaste("unused")
 			if err != nil {
 				t.Fatalf("FetchPaste() unexpected error: %v", err)
