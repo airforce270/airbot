@@ -87,6 +87,8 @@ type JoinedChannel struct {
 	Platform string
 	// Channel is which channel should be joined.
 	Channel string
+	// ChannelID is the ID of the channel to be joined.
+	ChannelID string
 	// Prefix is the prefix to be used in the channel.
 	Prefix string
 	// JoinedAt is when the channel was joined.

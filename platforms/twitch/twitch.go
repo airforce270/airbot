@@ -428,23 +428,12 @@ func (t *Twitch) level(msg *twitchirc.PrivateMessage) permission.Level {
 
 func (t *Twitch) initializeJoinedChannels() {
 	var botChannel models.JoinedChannel
-	result := t.db.FirstOrCreate(&botChannel, models.JoinedChannel{
-		Platform: t.Name(),
-		Channel:  strings.ToLower(t.username),
-	})
+	result := t.db.Where(models.JoinedChannel{Platform: t.Name(), Channel: strings.ToLower(t.username)}).
+		Attrs(models.JoinedChannel{Prefix: defaultBotPrefix, JoinedAt: time.Now()}).
+		FirstOrCreate(&botChannel)
 	if err := result.Error; err != nil {
 		log.Printf("failed to fetch/create DB row for %s/%s: %v", t.Name(), strings.ToLower(t.username), err)
 		return
-	}
-
-	if result.RowsAffected != 0 {
-		err := t.db.Model(&botChannel).Updates(models.JoinedChannel{
-			Prefix:   defaultBotPrefix,
-			JoinedAt: time.Now(),
-		}).Error
-		if err != nil {
-			log.Printf("failed to make updates for bot channel: %v", err)
-		}
 	}
 
 	t.updateCachedJoinedChannels()
@@ -503,19 +492,17 @@ func (t *Twitch) setUpIRCHandlers() {
 
 func (t *Twitch) persistUserAndMessage(twitchID, twitchName, message, channel string, sentTime time.Time) {
 	var user models.User
-	if err := t.db.FirstOrCreate(&user, models.User{TwitchID: twitchID}).Error; err != nil {
+	result := t.db.Where(models.User{TwitchID: twitchID}).Assign(models.User{TwitchName: twitchName}).FirstOrCreate(&user)
+	if err := result.Error; err != nil {
 		log.Printf("[Twitch.persistUserAndMessage]: Failed to find/create user, twitchName:%q %v", twitchName, err)
 	}
-	if err := t.db.Model(&user).Updates(models.User{TwitchName: twitchName}).Error; err != nil {
-		log.Printf("[Twitch.persistUserAndMessage]: Failed to update user, twitchName:%q %v", twitchName, err)
-	}
-	err := t.db.Create(&models.Message{
+	result = t.db.Create(&models.Message{
 		Text:    message,
 		Channel: channel,
 		User:    user,
 		Time:    sentTime,
-	}).Error
-	if err != nil {
+	})
+	if err := result.Error; err != nil {
 		log.Printf("[Twitch.persistUserAndMessage]: Failed to persist message in database, %q/%q: %v", channel, message, err)
 	}
 }

@@ -43,7 +43,7 @@ func Connect(ctx context.Context, dbName, user, password string) (*gorm.DB, erro
 func Migrate(db *gorm.DB) error {
 	for _, model := range models.AllModels {
 		if err := db.AutoMigrate(&model); err != nil {
-			return fmt.Errorf("failed to migrate %v: %w", model, err)
+			return fmt.Errorf("failed to migrate %+v: %w", model, err)
 		}
 	}
 	return nil
@@ -72,7 +72,7 @@ func LeaveChannel(db *gorm.DB, platformName, channel string) error {
 func formatDSN(settings map[string]string) string {
 	parts := make([]string, len(settings))
 	for key, value := range settings {
-		parts = append(parts, fmt.Sprintf("%s=%s", key, value))
+		parts = append(parts, key+"="+value)
 	}
 	return strings.Join(parts, " ")
 }
