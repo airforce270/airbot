@@ -2,6 +2,7 @@
 package base
 
 import (
+	"context"
 	"errors"
 	"io"
 	"strings"
@@ -31,7 +32,7 @@ type Platform interface {
 	Username() string
 
 	// Connect connects to the platform.
-	Connect() error
+	Connect(ctx context.Context) error
 	// Disconnect disconnects from the platform and should be called before exiting.
 	Disconnect() error
 

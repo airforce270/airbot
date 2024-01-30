@@ -83,7 +83,7 @@ func start(ctx context.Context) (cleanup.Cleaner, postStartupResources, error) {
 
 	for _, p := range ps {
 		log.Printf("Connecting to %s...", p.Name())
-		if err := p.Connect(); err != nil {
+		if err := p.Connect(ctx); err != nil {
 			return cleaner, postStartupResources{}, fmt.Errorf("failed to connect to %s: %w", p.Name(), err)
 		}
 
