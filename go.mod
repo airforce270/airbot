@@ -11,18 +11,18 @@ require (
 	github.com/Danny-Dasilva/CycleTLS/cycletls v1.0.25
 	github.com/gempir/go-twitch-irc/v4 v4.0.0
 	github.com/google/go-cmp v0.6.0
-	github.com/hasura/go-graphql-client v0.10.0
+	github.com/hasura/go-graphql-client v0.10.2
 	github.com/nicklaw5/helix/v2 v2.25.3
 	github.com/pelletier/go-toml/v2 v2.1.1
 	github.com/redis/go-redis/v9 v9.4.0
 	github.com/shirou/gopsutil/v3 v3.23.12
 	golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3
-	golang.org/x/oauth2 v0.14.0
+	golang.org/x/oauth2 v0.16.0
 	golang.org/x/sync v0.6.0
 	gonum.org/v1/gonum v0.14.0
 	gorm.io/driver/postgres v1.5.4
 	gorm.io/driver/sqlite v1.5.4
-	gorm.io/gorm v1.25.5
+	gorm.io/gorm v1.25.6
 )
 
 require (
@@ -34,7 +34,7 @@ require (
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/google/uuid v1.3.0 // indirect
+	github.com/google/uuid v1.5.0 // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20231201235250-de7065d80cb9 // indirect
@@ -59,5 +59,5 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	h12.io/socks v1.0.3 // indirect
-	nhooyr.io/websocket v1.8.7 // indirect
+	nhooyr.io/websocket v1.8.10 // indirect
 )
