@@ -425,7 +425,7 @@ func (t *Twitch) startWatchingForChannelRenames(ctx context.Context) {
 // It:
 //  1. Checks the joined channel records for name updates
 //  2. Updates the DB records if any were found
-//  3. Removes the now-obsolete entries in the in-memory cache (t.channels)
+//  3. Updates the now-obsolete entries in the in-memory cache (t.channels)
 //  4. Returns the channels that were renamed
 //
 // Importantly, renamed channels are not joined.
@@ -474,20 +474,14 @@ func (t *Twitch) updateCachedJoinedChannels() ([]*models.JoinedChannel, error) {
 		}
 	}
 
-	var newChannels []*twitchChannel
 	for _, channel := range t.channels {
-		found := false
 		for _, renamedChannel := range renamed {
 			if renamedChannel.ChannelID == channel.ID {
-				found = true
+				channel.Name = renamedChannel.Channel
 				break
 			}
 		}
-		if !found {
-			newChannels = append(newChannels, channel)
-		}
 	}
-	t.channels = newChannels
 
 	return renamed, nil
 }
