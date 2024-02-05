@@ -15,7 +15,7 @@ require (
 	github.com/nicklaw5/helix/v2 v2.25.3
 	github.com/pelletier/go-toml/v2 v2.1.1
 	github.com/redis/go-redis/v9 v9.4.0
-	github.com/shirou/gopsutil/v3 v3.23.12
+	github.com/shirou/gopsutil/v3 v3.24.1
 	golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3
 	golang.org/x/oauth2 v0.16.0
 	golang.org/x/sync v0.6.0
