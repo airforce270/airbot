@@ -200,7 +200,7 @@ func (t *Twitch) Leave(channel string) error {
 const twitchMsgIdBanned = "msg_banned"
 
 func (t *Twitch) Connect(ctx context.Context) error {
-	log.Printf("Initializing channel data...")
+	log.Printf("[%s] Initializing channel data...", t.Name())
 	if err := t.ensureSelfIsJoined(); err != nil {
 		return fmt.Errorf("[%s] failed to join self: %w", t.Name(), err)
 	}
@@ -208,11 +208,11 @@ func (t *Twitch) Connect(ctx context.Context) error {
 		return fmt.Errorf("[%s] failed to populate in-memory joined channel cache: %w", t.Name(), err)
 	}
 
-	log.Printf("Creating Twitch IRC client...")
+	log.Printf("[%s] Creating IRC client...", t.Name())
 	i := twitchirc.NewClient(t.username, "oauth:"+t.accessToken)
 	t.irc = i
 
-	log.Printf("Connecting to Twitch API...")
+	log.Printf("[%s] Connecting to Twitch API...", t.Name())
 	h, err := helix.NewClient(&helix.Options{
 		ClientID:        t.clientID,
 		ClientSecret:    t.clientSecret,
@@ -233,7 +233,7 @@ func (t *Twitch) Connect(ctx context.Context) error {
 	// Make sure to do this before connecting to IRC.
 	// This makes an API call to Twitch which automatically refreshes the token if needed.
 	// That way we have a valid token before connecting to IRC.
-	log.Printf("Refetching bot's Twitch ID...")
+	log.Printf("[%s] Refetching bot's ID...", t.Name())
 	botUser, err := t.FetchUser(t.username)
 	if err != nil {
 		return fmt.Errorf("failed to fetch user %s: %w", t.username, err)
@@ -243,7 +243,7 @@ func (t *Twitch) Connect(ctx context.Context) error {
 	}
 	t.id = botUser.ID
 
-	log.Printf("Updating cached joined channels...")
+	log.Printf("[%s] Updating cached joined channels...", t.Name())
 	if _, err := t.updateCachedJoinedChannels(); err != nil {
 		return fmt.Errorf("failed to update cached joined channels: %w", err)
 	}
@@ -251,7 +251,7 @@ func (t *Twitch) Connect(ctx context.Context) error {
 
 	t.setUpIRCHandlers()
 
-	log.Printf("Checking if the bot is a verified bot...")
+	log.Printf("[%s] Checking if the bot is a verified bot...", t.Name())
 	ivrClient := ivr.NewDefaultClient()
 	ivrUsers, err := ivrClient.FetchUsers(t.username)
 	if err != nil {
@@ -269,7 +269,7 @@ func (t *Twitch) Connect(ctx context.Context) error {
 		t.irc.SetJoinRateLimiter(twitchirc.CreateVerifiedRateLimiter())
 	}
 
-	log.Printf("Connecting to Twitch IRC...")
+	log.Printf("[%s] Connecting to Twitch IRC...", t.Name())
 	t.connectIRC()
 
 	go t.listenForModAndVIPChanges(ctx, ivrClient)
@@ -290,17 +290,17 @@ func (t *Twitch) connectIRC() {
 	t.irc.OnConnect(nil)
 
 	for _, channel := range t.channels {
-		log.Printf("Joining Twitch channel %s...", channel.Name)
+		log.Printf("[%s] Joining channel %s...", t.Name(), channel.Name)
 		t.irc.Join(channel.Name)
 	}
 }
 
 func (t *Twitch) Disconnect() error {
 	for _, channel := range t.channels {
-		log.Printf("Leaving Twitch channel %s...", channel.Name)
+		log.Printf("[%s] Leaving channel %s...", t.Name(), channel.Name)
 		t.irc.Depart(channel.Name)
 	}
-	log.Printf("Disconnecting from Twitch IRC...")
+	log.Printf("[%s] Disconnecting from Twitch IRC...", t.Name())
 	return t.irc.Disconnect()
 }
 
@@ -441,13 +441,15 @@ func (t *Twitch) updateCachedJoinedChannels() ([]*models.JoinedChannel, error) {
 	helixUsersByID := map[string]helix.User{}
 	for _, channelBatch := range utils.Chunk(joinedChannels, 100) {
 		ids := make([]string, 0, 100)
+		logins := make([]string, 0, 100)
 		for _, joinedChannel := range channelBatch {
-			if joinedChannel.ChannelID == "" {
-				continue
+			if joinedChannel.ChannelID != "" {
+				ids = append(ids, joinedChannel.ChannelID)
+			} else {
+				logins = append(ids, joinedChannel.Channel)
 			}
-			ids = append(ids, joinedChannel.ChannelID)
 		}
-		resp, err := t.helix.GetUsers(&helix.UsersParams{IDs: ids})
+		resp, err := t.helix.GetUsers(&helix.UsersParams{IDs: ids, Logins: logins})
 		if err != nil || resp.Error != "" {
 			return nil, fmt.Errorf("failed to get users from Helix: %d %s %s %w", resp.ErrorStatus, resp.Error, resp.ErrorMessage, err)
 		}
@@ -457,9 +459,28 @@ func (t *Twitch) updateCachedJoinedChannels() ([]*models.JoinedChannel, error) {
 	}
 
 	for _, joinedChannel := range joinedChannels {
+		if joinedChannel.ChannelID == "" {
+			log.Printf("[%s] Detected joined channel with no ID (%s) - probably the bot. Attempting to fix.\n", t.Name(), joinedChannel.Channel)
+			found := false
+			for id, user := range helixUsersByID {
+				if user.Login == joinedChannel.Channel {
+					log.Printf("[%s] Found ID for %s: %s", t.Name(), joinedChannel.Channel, id)
+					joinedChannel.ChannelID = id
+					renamed = append(renamed, joinedChannel)
+					found = true
+					break
+				}
+			}
+			if found {
+				continue
+			}
+			log.Printf("[%s] Couldn't find ID for channel %s", t.Name(), joinedChannel.Channel)
+		}
+
 		helixUser, ok := helixUsersByID[joinedChannel.ChannelID]
 		if !ok {
 			log.Printf("[%s] User %s (%s) not found in Helix lookup", t.Name(), joinedChannel.ChannelID, joinedChannel.Channel)
+			continue
 		}
 		if joinedChannel.Channel != helixUser.Login {
 			log.Printf("[%s] Detected renamed channel (%s): %s->%s", t.Name(), helixUser.ID, joinedChannel.Channel, helixUser.Login)
@@ -469,7 +490,7 @@ func (t *Twitch) updateCachedJoinedChannels() ([]*models.JoinedChannel, error) {
 	}
 
 	for _, renamedChannel := range renamed {
-		if err := t.db.Model(renamedChannel).Update("channel", renamedChannel.Channel).Error; err != nil {
+		if err := t.db.Save(renamedChannel).Error; err != nil {
 			log.Printf("[%s] Failed to persist rename of %s to %s: %v", t.Name(), renamedChannel.ChannelID, renamedChannel.Channel, err)
 		}
 	}
