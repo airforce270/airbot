@@ -11,13 +11,13 @@ import (
 )
 
 // fileName contains the name of the config file to be read (when referenced by the binary).
-const fileName = "config.toml"
+const filePath = "/config.toml"
 
 // DefaultNewConfigSource is the default source of the latest config data.
 var DefaultNewConfigSource = func() (io.ReadCloser, error) {
-	f, err := os.Open(fileName)
+	f, err := os.Open(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open %q: %w", fileName, err)
+		return nil, fmt.Errorf("failed to open %q: %w", filePath, err)
 	}
 	return f, nil
 }

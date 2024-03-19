@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 
-docker compose up --build
+docker compose watch
+docker compose down

@@ -64,15 +64,16 @@ func (c *Command) Compile() (*regexp.Regexp, error) {
 
 // Usage returns usage information for the command.
 func (c *Command) Usage(prefix string) string {
-	parts := []string{prefix + c.Name}
+	var resp strings.Builder
+	resp.WriteString(prefix + c.Name)
 	for _, arg := range c.Params {
 		if arg.Required {
-			parts = append(parts, fmt.Sprintf("<%s>", arg.UsageForDocString()))
+			fmt.Fprintf(&resp, " <%s>", arg.UsageForDocString())
 		} else {
-			parts = append(parts, fmt.Sprintf("[%s]", arg.UsageForDocString()))
+			fmt.Fprintf(&resp, " [%s]", arg.UsageForDocString())
 		}
 	}
-	return strings.Join(parts, " ")
+	return resp.String()
 }
 
 // Help returns help information for the command.

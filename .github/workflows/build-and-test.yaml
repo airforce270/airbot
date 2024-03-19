@@ -44,8 +44,6 @@ jobs:
       - name: Build Docker image
         uses: docker/build-push-action@v5.3.0
         with:
-          context: .
-          file: airbot/Dockerfile
           push: false
 
   lint:

@@ -10,4 +10,6 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - ./config.toml:/go/src/github.com/airforce270/airbot/config.toml
+      - type: bind
+        source: ./config.toml
+        target: /config.toml

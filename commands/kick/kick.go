@@ -63,7 +63,7 @@ func isLive(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 	if channel.Livestream != nil {
 		resp.WriteString(" is currently live on Kick, ")
 		category := channel.Livestream.Categories[0]
-		resp.WriteString(fmt.Sprintf("streaming %s to %d viewers.", category.DisplayName, channel.Livestream.ViewerCount))
+		fmt.Fprintf(&resp, "streaming %s to %d viewers.", category.DisplayName, channel.Livestream.ViewerCount)
 	} else {
 		resp.WriteString(" is not currently live on Kick.")
 	}

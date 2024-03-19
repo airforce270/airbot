@@ -29,9 +29,9 @@ var Commands = [...]basecommand.Command{
 		Permission: permission.Normal,
 		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			var resp strings.Builder
-			resp.WriteString(fmt.Sprintf("Beep boop, this is Airbot running as %s in %s", msg.Resources.Platform.Username(), msg.Message.Channel))
-			resp.WriteString(fmt.Sprintf(" with prefix %s on %s.", msg.Prefix, msg.Resources.Platform.Name()))
-			resp.WriteString(fmt.Sprintf(" Made by airforce2700, source available on GitHub ( %ssource )", msg.Prefix))
+			fmt.Fprintf(&resp, "Beep boop, this is Airbot running as %s in %s", msg.Resources.Platform.Username(), msg.Message.Channel)
+			fmt.Fprintf(&resp, " with prefix %s on %s.", msg.Prefix, msg.Resources.Platform.Name())
+			fmt.Fprintf(&resp, " Made by airforce2700, source available on GitHub ( %ssource )", msg.Prefix)
 			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
