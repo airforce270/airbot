@@ -373,12 +373,12 @@ func subAge(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 
 		var outMsg strings.Builder
 		outMsg.WriteString(sub.User.DisplayName + " is currently subscribed to " + sub.Channel.DisplayName)
-		outMsg.WriteString(fmt.Sprintf(" with a %s subscription", tier))
-		outMsg.WriteString(fmt.Sprintf(" (%d %s remaining)", sub.Streak.DaysRemaining, plural("day", sub.Streak.DaysRemaining)))
-		outMsg.WriteString(fmt.Sprintf(" and is on a %d month streak", sub.Streak.Months))
+		fmt.Fprintf(&outMsg, " with a %s subscription", tier)
+		fmt.Fprintf(&outMsg, " (%d %s remaining)", sub.Streak.DaysRemaining, plural("day", sub.Streak.DaysRemaining))
+		fmt.Fprintf(&outMsg, " and is on a %d month streak", sub.Streak.Months)
 
 		if sub.Cumulative.Months > sub.Streak.Months {
-			outMsg.WriteString(fmt.Sprintf(" (total: %d %s)", sub.Cumulative.Months, plural("month", sub.Cumulative.Months)))
+			fmt.Fprintf(&outMsg, " (total: %d %s)", sub.Cumulative.Months, plural("month", sub.Cumulative.Months))
 		}
 
 		return []*base.Message{{Channel: msg.Message.Channel, Text: outMsg.String()}}, nil

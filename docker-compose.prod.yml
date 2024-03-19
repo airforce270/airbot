@@ -1,6 +1,8 @@
 services:
   server:
-    image: ghcr.io/airforce270/airbot:release
+    build:
+      context: .
+      target: final
     env_file: .env
     environment:
       - RUNNING_IN_DOCKER=true
@@ -10,4 +12,6 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - ./config.toml:/go/src/github.com/airforce270/airbot/config.toml
+      - type: bind
+        source: ./config.toml
+        target: /config.toml
