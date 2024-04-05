@@ -102,7 +102,7 @@ func TestFunCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 			},
-			Platform: commandtest.TwitchPlatform,
+			Platform:   commandtest.TwitchPlatform,
 			OtherTexts: []string{"$kok"},
 			Want: []*base.Message{
 				{
@@ -123,7 +123,7 @@ func TestFunCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 			},
-			Platform: commandtest.TwitchPlatform,
+			Platform:   commandtest.TwitchPlatform,
 			OtherTexts: []string{"$kok someone"},
 			Want: []*base.Message{
 				{
