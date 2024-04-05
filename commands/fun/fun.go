@@ -40,6 +40,7 @@ var (
 
 	cockCommand = basecommand.Command{
 		Name:       "cock",
+		Aliases: []string{"kok"},
 		Desc:       "Tells you the length :)",
 		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
