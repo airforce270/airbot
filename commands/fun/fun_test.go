@@ -103,6 +103,7 @@ func TestFunCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
+			OtherTexts: []string{"$kok"},
 			Want: []*base.Message{
 				{
 					Text:    "user1's cock is 3 inches long",
@@ -123,6 +124,7 @@ func TestFunCommands(t *testing.T) {
 				PermissionLevel: permission.Normal,
 			},
 			Platform: commandtest.TwitchPlatform,
+			OtherTexts: []string{"$kok someone"},
 			Want: []*base.Message{
 				{
 					Text:    "someone's cock is 3 inches long",
