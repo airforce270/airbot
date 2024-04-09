@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-docker compose watch
-docker compose down
+docker compose watch --no-up & docker compose up
+
