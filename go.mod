@@ -13,7 +13,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/hasura/go-graphql-client v0.12.1
 	github.com/nicklaw5/helix/v2 v2.28.1
-	github.com/pelletier/go-toml/v2 v2.2.0
+	github.com/pelletier/go-toml/v2 v2.2.1
 	github.com/redis/go-redis/v9 v9.5.1
 	github.com/shirou/gopsutil/v3 v3.24.3
 	golang.org/x/exp v0.0.0-20240404231335-c0f41cb1a7a0
