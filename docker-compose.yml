@@ -16,13 +16,13 @@ services:
       timeout: 5s
       retries: 10
   cache:
-    image: redis:7
+    image: valkey/valkey:7.2-alpine
     restart: always
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     expose:
       - 6379
-    command: redis-server --save 30 1
+    command: valkey-server --save 30 1
     volumes:
       - redis-data:/data
   server:
