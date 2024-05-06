@@ -17,7 +17,7 @@ require (
 	github.com/redis/go-redis/v9 v9.5.1
 	github.com/shirou/gopsutil/v3 v3.24.4
 	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f
-	golang.org/x/oauth2 v0.19.0
+	golang.org/x/oauth2 v0.20.0
 	golang.org/x/sync v0.7.0
 	gonum.org/v1/gonum v0.15.0
 	gorm.io/driver/postgres v1.5.7
