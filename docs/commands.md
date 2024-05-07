@@ -15,10 +15,22 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 ## 7TV
 
+### $7tv add
+
+- Adds an emote to a channel. Currently, the emote ID must be provided.
+- > Usage: `$7tv add <emote id> [alias]`
+- > Minimum permission level: `Admin`
+
 ### $7tv emotecount
 
 - Counts emotes in a channel.
 - > Usage: `$7tv emotecount [channel]`
+
+### $7tv remove
+
+- Removes an emote from a channel. Currently, the emote ID must be provided.
+- > Usage: `$7tv remove <emote id>`
+- > Minimum permission level: `Admin`
 
 ## Admin
 
@@ -166,6 +178,7 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 - Tells you the length :)
 - > Usage: `$cock [user]`
+- > Aliases: `$kok`
 
 ### $iq
 
