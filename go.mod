@@ -14,9 +14,9 @@ require (
 	github.com/hasura/go-graphql-client v0.12.1
 	github.com/nicklaw5/helix/v2 v2.28.3
 	github.com/pelletier/go-toml/v2 v2.2.2
-	github.com/redis/go-redis/v9 v9.5.1
-	github.com/shirou/gopsutil/v3 v3.24.4
-	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842
+	github.com/redis/go-redis/v9 v9.5.2
+	github.com/shirou/gopsutil/v3 v3.24.5
+	golang.org/x/exp v0.0.0-20240531132922-fd00a4e0eefc
 	golang.org/x/oauth2 v0.20.0
 	golang.org/x/sync v0.7.0
 	gonum.org/v1/gonum v0.15.0
@@ -37,12 +37,12 @@ require (
 	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20231201235250-de7065d80cb9 // indirect
-	github.com/jackc/pgx/v5 v5.5.5 // indirect
+	github.com/jackc/pgx/v5 v5.6.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/compress v1.17.8 // indirect
-	github.com/lufia/plan9stats v0.0.0-20240408141607-282e7b5d6b74 // indirect
+	github.com/lufia/plan9stats v0.0.0-20240513124658-fba389f38bae // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
 	github.com/refraction-networking/utls v1.6.6 // indirect
