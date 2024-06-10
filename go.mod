@@ -14,7 +14,7 @@ require (
 	github.com/hasura/go-graphql-client v0.12.1
 	github.com/nicklaw5/helix/v2 v2.28.3
 	github.com/pelletier/go-toml/v2 v2.2.2
-	github.com/redis/go-redis/v9 v9.5.2
+	github.com/redis/go-redis/v9 v9.5.3
 	github.com/shirou/gopsutil/v3 v3.24.5
 	golang.org/x/exp v0.0.0-20240531132922-fd00a4e0eefc
 	golang.org/x/oauth2 v0.20.0
