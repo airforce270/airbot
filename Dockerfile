@@ -3,7 +3,7 @@
 # https://docs.docker.com/go/dockerfile-reference/
 
 # Create a stage for building the application.
-ARG GO_VERSION=1.22.0
+ARG GO_VERSION=1.22.4
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} AS build
 WORKDIR /src
 
