@@ -7,14 +7,14 @@ import (
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/models"
 
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
 // New creates a new in-memory database for testing.
 func New(t *testing.T) *gorm.DB {
 	t.Helper()
-	db, err := gorm.Open(sqlite.Open("file::memory:"))
+	db, err := gorm.Open(sqlite.Open(":memory:"))
 	if err != nil {
 		t.Fatalf("Failed to create new in-memory DB: %v", err)
 	}
