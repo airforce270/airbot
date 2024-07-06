@@ -180,6 +180,7 @@ func botSlowmode(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 	enable := enableArg.BoolValue
 
 	if err := msg.Resources.Cache.StoreBool(key, enable); err != nil {
+		log.Printf("Failed to set bot slowmode to %t on %s: %v", enable, msg.Resources.Platform.Name(), err)
 		failureMsgStart := "Failed to enable"
 		if !enable {
 			failureMsgStart = "Failed to disable"

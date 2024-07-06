@@ -137,6 +137,7 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, er
 		}
 
 		channelCooldown := models.ChannelCommandCooldown{}
+		shouldSetChannelCooldown := true
 		err := h.db.FirstOrCreate(&channelCooldown, models.ChannelCommandCooldown{
 			Channel: msg.Message.Channel,
 			Command: command.Name,
@@ -178,6 +179,7 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, er
 			if !errors.Is(err, basecommand.ErrBadUsage) {
 				return nil, fmt.Errorf("failed to handle message: %w", err)
 			}
+			shouldSetChannelCooldown = false
 			outMsg := &base.OutgoingMessage{
 				Message: base.Message{
 					Channel: msg.Message.Channel,
@@ -198,9 +200,11 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, er
 			}
 		}
 
-		channelCooldown.LastRun = time.Now()
-		if err := h.db.Save(&channelCooldown).Error; err != nil {
-			log.Printf("failed to save new channel cooldown: %v", err)
+		if shouldSetChannelCooldown {
+			channelCooldown.LastRun = time.Now()
+			if err := h.db.Save(&channelCooldown).Error; err != nil {
+				log.Printf("failed to save new channel cooldown: %v", err)
+			}
 		}
 		if shouldSetUserCooldown {
 			userCooldown.LastRun = time.Now()
