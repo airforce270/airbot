@@ -28,8 +28,23 @@ import (
 	"gorm.io/gorm"
 )
 
-// Name is the unique, human-readable name of the platform.
-const Name = "Twitch"
+const (
+	// Name is the unique, human-readable name of the platform.
+	Name = "Twitch"
+
+	// https://dev.twitch.tv/docs/irc/msg-id#notice-message-ids
+	twitchMsgIdBanned  = "msg_banned"
+	defaultBotPrefix   = "$"
+	messageSpaceSuffix = " \U000E0000"
+	// lastSentTwitchMessageExpiration is the duration the last sent message should remain in the cache.
+	// (Twitch blocks messages that are twice in a row in a 30-second period of time)
+	lastSentTwitchMessageExpiration = 30 * time.Second
+)
+
+var (
+	ErrChannelNotFound = errors.New("channel not found")
+	ErrBotIsBanned     = errors.New("bot is banned from the channel")
+)
 
 // Twitch implements Platform for a connection to Twitch chat.
 type Twitch struct {
@@ -140,8 +155,6 @@ func (t *Twitch) Listen() <-chan base.IncomingMessage {
 	return c
 }
 
-var ErrBotIsBanned = errors.New("bot is banned from the channel")
-
 func (t *Twitch) Join(channel string, prefix string) error {
 	channelInfo, err := t.Channel(channel)
 	if err != nil {
@@ -195,9 +208,6 @@ func (t *Twitch) Leave(channel string) error {
 
 	return nil
 }
-
-// https://dev.twitch.tv/docs/irc/msg-id#notice-message-ids
-const twitchMsgIdBanned = "msg_banned"
 
 func (t *Twitch) Connect(ctx context.Context) error {
 	log.Printf("[%s] Initializing channel data...", t.Name())
@@ -374,8 +384,6 @@ func (t *Twitch) FetchUser(channel string) (*helix.User, error) {
 	}
 	return &users.Data.Users[0], nil
 }
-
-var ErrChannelNotFound = errors.New("channel not found")
 
 func (t *Twitch) Channel(channel string) (*helix.ChannelInformation, error) {
 	user, err := t.FetchUser(channel)
@@ -705,8 +713,6 @@ func (t *Twitch) handleBannedFromChannel(channel string) {
 	}()
 }
 
-const defaultBotPrefix = "$"
-
 // New creates a new Twitch connection.
 func New(username string, owners []string, clientID, clientSecret, accessToken, refreshToken string, db *gorm.DB, cdb cache.Cache) *Twitch {
 	return &Twitch{
@@ -764,12 +770,6 @@ func lowercaseAll(strs []string) []string {
 	}
 	return lower
 }
-
-const messageSpaceSuffix = " \U000E0000"
-
-// lastSentTwitchMessageExpiration is the duration the last sent message should remain in the cache.
-// (Twitch blocks messages that are twice in a row in a 30-second period of time)
-const lastSentTwitchMessageExpiration = 30 * time.Second
 
 // bypassSameMessageDetection manipulates the whitespace in a message
 // in such a way to bypass Twitch's 30-second same message detection/blocking.
