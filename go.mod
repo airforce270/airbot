@@ -13,7 +13,7 @@ require (
 	github.com/glebarez/sqlite v1.11.0
 	github.com/google/go-cmp v0.6.0
 	github.com/hasura/go-graphql-client v0.12.2
-	github.com/nicklaw5/helix/v2 v2.29.0
+	github.com/nicklaw5/helix/v2 v2.30.0
 	github.com/pelletier/go-toml/v2 v2.2.2
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/valkey-io/valkey-go v1.0.41
