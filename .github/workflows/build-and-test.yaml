@@ -14,7 +14,7 @@ jobs:
         uses: actions/checkout@v4.1.7
 
       - name: Set up Go
-        uses: actions/setup-go@v5.0.1
+        uses: actions/setup-go@v5.0.2
         with:
           go-version-file: go.mod
 
@@ -36,7 +36,7 @@ jobs:
           path: airbot
 
       - name: Set up Go
-        uses: actions/setup-go@v5.0.1
+        uses: actions/setup-go@v5.0.2
         with:
           go-version-file: airbot/go.mod
           cache-dependency-path: airbot/go.sum
@@ -53,7 +53,7 @@ jobs:
         uses: actions/checkout@v4.1.7
 
       - name: Set up Go
-        uses: actions/setup-go@v5.0.1
+        uses: actions/setup-go@v5.0.2
         with:
           go-version-file: go.mod
 
