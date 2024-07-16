@@ -17,7 +17,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.2
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/valkey-io/valkey-go v1.0.41
-	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8
+	golang.org/x/exp v0.0.0-20240716175740-e3f259677ff7
 	golang.org/x/oauth2 v0.21.0
 	golang.org/x/sync v0.7.0
 	gonum.org/v1/gonum v0.15.0
@@ -57,9 +57,9 @@ require (
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	h12.io/socks v1.0.3 // indirect
-	modernc.org/libc v1.54.2 // indirect
+	modernc.org/libc v1.55.2 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.8.0 // indirect
-	modernc.org/sqlite v1.30.1 // indirect
+	modernc.org/sqlite v1.30.2 // indirect
 	nhooyr.io/websocket v1.8.11 // indirect
 )
