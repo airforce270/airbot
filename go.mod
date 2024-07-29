@@ -16,7 +16,7 @@ require (
 	github.com/nicklaw5/helix/v2 v2.30.0
 	github.com/pelletier/go-toml/v2 v2.2.2
 	github.com/shirou/gopsutil/v3 v3.24.5
-	github.com/valkey-io/valkey-go v1.0.41
+	github.com/valkey-io/valkey-go v1.0.43
 	golang.org/x/exp v0.0.0-20240716175740-e3f259677ff7
 	golang.org/x/oauth2 v0.21.0
 	golang.org/x/sync v0.7.0
