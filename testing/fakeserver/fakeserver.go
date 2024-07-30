@@ -34,8 +34,6 @@ func New() *FakeServer {
 		// yes, this is hacky
 		if strings.Contains(s.Resps[respIndex], `"statusCode": 404`) {
 			w.WriteHeader(http.StatusNotFound)
-		} else if strings.Contains(s.Resps[respIndex], `"errors": [`) {
-			w.WriteHeader(http.StatusInternalServerError)
 		}
 
 		fmt.Fprint(w, s.Resps[respIndex])
