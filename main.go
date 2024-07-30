@@ -1,4 +1,6 @@
 // Package main contains the main logic for airbot.
+//
+//go:generate go run docs/gen.go
 package main
 
 import (

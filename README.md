@@ -44,7 +44,7 @@ To run the bot locally:
 
 Some documentation is generated.
 
-After making changes, run `./gen-docs.sh` from the main directory to regenerate
+After making changes, run `go generate` from the main directory to regenerate
 the docs.
 
 ## Running in production
