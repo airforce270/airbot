@@ -1,6 +1,6 @@
 module github.com/airforce270/airbot
 
-go 1.22.4
+go 1.22.6
 
 // To use local copies of dependencies here (for development),
 // add a `replace` directive.
@@ -17,9 +17,9 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.2
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/valkey-io/valkey-go v1.0.43
-	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
-	golang.org/x/oauth2 v0.21.0
-	golang.org/x/sync v0.7.0
+	golang.org/x/exp v0.0.0-20240808152545-0cdaa3abc0fa
+	golang.org/x/oauth2 v0.22.0
+	golang.org/x/sync v0.8.0
 	gonum.org/v1/gonum v0.15.0
 	gorm.io/driver/postgres v1.5.9
 	gorm.io/gorm v1.25.11
@@ -52,14 +52,14 @@ require (
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
 	github.com/tklauser/numcpus v0.8.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	golang.org/x/crypto v0.25.0 // indirect
-	golang.org/x/net v0.27.0 // indirect
-	golang.org/x/sys v0.22.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/crypto v0.26.0 // indirect
+	golang.org/x/net v0.28.0 // indirect
+	golang.org/x/sys v0.24.0 // indirect
+	golang.org/x/text v0.17.0 // indirect
 	h12.io/socks v1.0.3 // indirect
-	modernc.org/libc v1.55.6 // indirect
+	modernc.org/libc v1.59.0 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.8.0 // indirect
-	modernc.org/sqlite v1.31.1 // indirect
-	nhooyr.io/websocket v1.8.11 // indirect
+	modernc.org/sqlite v1.32.0 // indirect
+	nhooyr.io/websocket v1.8.17 // indirect
 )
