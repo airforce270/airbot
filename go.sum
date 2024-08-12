@@ -252,8 +252,8 @@ github.com/tklauser/go-sysconf v0.3.14 h1:g5vzr9iPFFz24v2KZXs/pvpvh8/V9Fw6vQK5ZZ
 github.com/tklauser/go-sysconf v0.3.14/go.mod h1:1ym4lWMLUOhuBOPGtRcJm7tEGX4SCYNEEEtghGG/8uY=
 github.com/tklauser/numcpus v0.8.0 h1:Mx4Wwe/FjZLeQsK/6kt2EOepwwSl7SmJrK5bV/dXYgY=
 github.com/tklauser/numcpus v0.8.0/go.mod h1:ZJZlAY+dmR4eut8epnzf0u/VwodKmryxR8txiloSqBE=
-github.com/valkey-io/valkey-go v1.0.43 h1:VptF6sYuz/aLokvWKsL7l7VvEXHsymRdFY1wESS9xwI=
-github.com/valkey-io/valkey-go v1.0.43/go.mod h1:LXqAbjygRuA1YRocojTslAGx2dQB4p8feaseGviWka4=
+github.com/valkey-io/valkey-go v1.0.44 h1:j3wPHiGLX2wQ0Jwe/hWODbEEj2dGLMx+Qoc8aAHOO2o=
+github.com/valkey-io/valkey-go v1.0.44/go.mod h1:LXqAbjygRuA1YRocojTslAGx2dQB4p8feaseGviWka4=
 github.com/viant/assertly v0.4.8/go.mod h1:aGifi++jvCrUaklKEKT0BU95igDNaqkvz+49uaYMPRU=
 github.com/viant/toolbox v0.24.0/go.mod h1:OxMCG57V0PXuIP2HNQrtJf2CjqdmbrOx5EkMILuUhzM=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
