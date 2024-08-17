@@ -67,7 +67,7 @@ Note: It's recommended to run the bot in a tmux or screen session so the bot
 continues running when you disconnect from the machine.
 
 By default, the SQLite database will be stored in the current directory. To
-change where the data is stored, set AIRBOT_SQLITE_DATA_DIR, i.e.
+change where the data is stored, set `AIRBOT_SQLITE_DATA_DIR`, i.e.
 `AIRBOT_SQLITE_DATA_DIR=/some/dir go run .`
 
 ### Maintenance
