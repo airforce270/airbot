@@ -5,7 +5,7 @@ services:
     environment:
       - RUNNING_IN_DOCKER=true
     depends_on:
-      database:
+      cache:
         condition: service_healthy
     stdin_open: true
     tty: true

@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"time"
 
 	"github.com/airforce270/airbot/apiclients/supinic"
@@ -64,7 +65,7 @@ func start(ctx context.Context) (cleanup.Cleaner, postStartupResources, error) {
 	configSrc.Close()
 
 	log.Printf("Connecting to database...")
-	db, err := database.Connect(ctx, os.Getenv("POSTGRES_DB"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"))
+	db, err := database.Connect(ctx, log.Default(), filepath.Join(os.Getenv("SQLITE_DATA_DIR"), "sqlite.db"))
 	if err != nil {
 		return nil, postStartupResources{}, fmt.Errorf("failed to connect to database: %w", err)
 	}

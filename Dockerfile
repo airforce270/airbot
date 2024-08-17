@@ -55,6 +55,10 @@ RUN adduser \
     --no-create-home \
     --uid "${UID}" \
     appuser
+
+RUN mkdir /data
+RUN chown appuser:appuser /data/
+
 USER appuser
 
 # Copy the executable from the "build" stage.

@@ -2,19 +2,22 @@
 package databasetest
 
 import (
+	"context"
+	"log"
 	"testing"
 
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/models"
 
-	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
 // New creates a new in-memory database for testing.
 func New(t *testing.T) *gorm.DB {
 	t.Helper()
-	db, err := gorm.Open(sqlite.Open(":memory:"))
+	ctx := context.TODO()
+
+	db, err := database.Connect(ctx, log.Default(), ":memory:")
 	if err != nil {
 		t.Fatalf("Failed to create new in-memory DB: %v", err)
 	}

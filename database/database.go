@@ -4,31 +4,39 @@ package database
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/airforce270/airbot/database/models"
 
-	"gorm.io/driver/postgres"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
+var pragmas = map[string]string{
+	"journal_mode": "WAL",
+	"synchronous":  "NORMAL",
+	"foreign_keys": "ON",
+
+	"user_version": "ON",
+
+	"temp_store": "2",
+	"cache_size": "-32000",
+}
+
 // Connect creates a connection to the database.
-func Connect(ctx context.Context, dbName, user, password string) (*gorm.DB, error) {
-	settings := map[string]string{
-		"host":     "database",
-		"dbname":   dbName,
-		"user":     user,
-		"password": password,
-		"port":     "5432",
-		"sslmode":  "disable",
-		"TimeZone": "UTC",
-	}
-	dsn := formatDSN(settings)
-	gormDB, err := gorm.Open(postgres.Open(dsn))
+func Connect(ctx context.Context, logger *log.Logger, dbFile string) (*gorm.DB, error) {
+	gormDB, err := gorm.Open(sqlite.Open(dbFile + formatPragmas(pragmas)))
 	if err != nil {
 		return nil, fmt.Errorf("failed to open DB connection: %w", err)
 	}
 	gormDB.WithContext(ctx)
+
+	context.AfterFunc(ctx, func() {
+		if err := close(gormDB); err != nil {
+			logger.Printf("failed to close DB cleanly: %v", err)
+		}
+	})
 
 	db, err := gormDB.DB()
 	if err != nil {
@@ -37,6 +45,18 @@ func Connect(ctx context.Context, dbName, user, password string) (*gorm.DB, erro
 	db.SetMaxOpenConns(100)
 
 	return gormDB, nil
+}
+
+func close(db *gorm.DB) error {
+	d, err := db.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get DB handle: %w", err)
+	}
+
+	d.Exec("PRAGMA analysis_limit = 400;")
+	d.Exec("PRAGMA optimize;")
+
+	return nil
 }
 
 // Migrate performs GORM auto-migrations for all data models.
@@ -68,11 +88,19 @@ func LeaveChannel(db *gorm.DB, platformName, channel string) error {
 	return nil
 }
 
-// formatDSN formats settings into a DSN for a Postgres GORM connection.
-func formatDSN(settings map[string]string) string {
-	parts := make([]string, len(settings))
-	for key, value := range settings {
-		parts = append(parts, key+"="+value)
+func formatPragmas(ps map[string]string) string {
+	var out strings.Builder
+
+	var i int
+	for p, v := range ps {
+		if i == 0 {
+			out.WriteString("?")
+		} else {
+			out.WriteString("&")
+		}
+		fmt.Fprintf(&out, "_pragma=%s(%s)", p, v)
+		i++
 	}
-	return strings.Join(parts, " ")
+
+	return out.String()
 }

@@ -2,19 +2,6 @@
 # https://github.com/docker/awesome-compose
 
 services:
-  database:
-    image: postgres:15
-    restart: always
-    env_file: .env
-    expose:
-      - 5432
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD", "pg_isready" ]
-      interval: 1s
-      timeout: 5s
-      retries: 10
   cache:
     image: valkey/valkey:7.2-alpine
     restart: always
@@ -25,6 +12,12 @@ services:
     command: valkey-server --save 30 1
     volumes:
       - redis-data:/data
+    healthcheck:
+      test: [ "CMD", "valkey-cli", "ping" ]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
   server:
     build:
       context: .
@@ -37,13 +30,13 @@ services:
     environment:
       - RUNNING_IN_DOCKER=true
     depends_on:
-      database:
+      cache:
         condition: service_healthy
     volumes:
+      - sqlite-data:/data
       - type: bind
         source: ./config.toml
         target: /config.toml
 volumes:
-  postgres-data:
-    name: airbot_postgres-15-data
   redis-data:
+  sqlite-data:
