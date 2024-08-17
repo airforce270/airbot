@@ -53,8 +53,12 @@ func close(db *gorm.DB) error {
 		return fmt.Errorf("failed to get DB handle: %w", err)
 	}
 
-	d.Exec("PRAGMA analysis_limit = 400;")
-	d.Exec("PRAGMA optimize;")
+	if _, err := d.Exec("PRAGMA analysis_limit = 400;"); err != nil {
+		return fmt.Errorf("failed to set analysis_limit: %w", err)
+	}
+	if _, err := d.Exec("PRAGMA optimize;"); err != nil {
+		return fmt.Errorf("failed to run optimize: %w", err)
+	}
 
 	return nil
 }
