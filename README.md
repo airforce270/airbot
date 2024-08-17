@@ -34,6 +34,7 @@ To have the bot leave your channel, type `$leave` in your chat.
 
 To run the bot locally:
 
+1. [Install Go](https://go.dev/doc/install)
 1. Clone the repository and `cd` into it
 1. Copy `config/config_example.toml` to `config.toml` in the main directory
 1. Fill in the empty fields in `config.toml`, notably API keys and usernames
@@ -54,6 +55,7 @@ regenerate the docs.
 
 To run in production:
 
+1. [Install Go](https://go.dev/doc/install)
 1. Clone the repository and `cd` into it
 1. Run `git switch release`
 1. Copy `config/config_example.toml` to `config.toml` in the main directory
