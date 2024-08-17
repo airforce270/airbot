@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"testing"
 	"time"
 
 	"github.com/airforce270/airbot/apiclients/ivr"
@@ -728,15 +729,17 @@ func New(username string, owners []string, clientID, clientSecret, accessToken, 
 }
 
 // New creates a new Twitch connection for testing.
-func NewForTesting(url string, db *gorm.DB) *Twitch {
+func NewForTesting(t *testing.T, url string, db *gorm.DB) *Twitch {
+	t.Helper()
 	helixClient, err := helix.NewClient(&helix.Options{
 		ClientID:        "fake-client-id",
 		UserAccessToken: "fake-access-token",
 		APIBaseURL:      url,
 	})
 	if err != nil {
-		panic(err)
+		t.Fatalf("Failed to create Helix client for test: %v", err)
 	}
+
 	return &Twitch{
 		username:      "fake-username",
 		id:            "",
@@ -751,7 +754,7 @@ func NewForTesting(url string, db *gorm.DB) *Twitch {
 		irc:         nil,
 		helix:       helixClient,
 		db:          db,
-		cdb:         cachetest.NewInMemory(),
+		cdb:         cachetest.NewSQLite(t, db),
 	}
 }
 

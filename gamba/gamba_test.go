@@ -170,7 +170,7 @@ func TestGrantPoints(t *testing.T) {
 	}
 
 	ps := map[string]base.Platform{
-		"FakeTwitch": twitch.NewForTesting(server.URL, db),
+		"FakeTwitch": twitch.NewForTesting(t, server.URL, db),
 	}
 
 	grantPoints(ps, db)
@@ -216,7 +216,7 @@ func TestGetInactiveUsers(t *testing.T) {
 	}
 
 	ps := map[string]base.Platform{
-		"FakeTwitch": twitch.NewForTesting(server.URL, db),
+		"FakeTwitch": twitch.NewForTesting(t, server.URL, db),
 	}
 
 	got := getInactiveUsers(ps, db)

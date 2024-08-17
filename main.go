@@ -71,7 +71,7 @@ func start(ctx context.Context) (cleanup.Cleaner, postStartupResources, error) {
 	}
 
 	log.Printf("Connecting to cache...")
-	cdb, err := cache.NewValkey()
+	cdb, err := cache.NewSQLite(db)
 	if err != nil {
 		return nil, postStartupResources{}, fmt.Errorf("failed to connect to cache: %w", err)
 	}

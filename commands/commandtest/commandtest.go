@@ -49,12 +49,12 @@ func Run(t *testing.T, tests []Case) {
 			server.Resps = tc.apiResps
 
 			db := databasetest.New(t)
-			cdb := cachetest.NewInMemory()
+			cdb := cachetest.NewSQLite(t, db)
 
 			var platform base.Platform
 			switch tc.platform {
 			case TwitchPlatform:
-				platform = twitch.NewForTesting(server.URL(t).String(), db)
+				platform = twitch.NewForTesting(t, server.URL(t).String(), db)
 			default:
 				t.Fatal("Platform must be set.")
 			}

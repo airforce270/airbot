@@ -2,22 +2,6 @@
 # https://github.com/docker/awesome-compose
 
 services:
-  cache:
-    image: valkey/valkey:7.2-alpine
-    restart: always
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-    expose:
-      - 6379
-    command: valkey-server --save 30 1
-    volumes:
-      - redis-data:/data
-    healthcheck:
-      test: [ "CMD", "valkey-cli", "ping" ]
-      interval: 1s
-      timeout: 5s
-      retries: 10
-
   server:
     build:
       context: .
@@ -29,14 +13,10 @@ services:
     env_file: .env
     environment:
       - RUNNING_IN_DOCKER=true
-    depends_on:
-      cache:
-        condition: service_healthy
     volumes:
       - sqlite-data:/data
       - type: bind
         source: ./config.toml
         target: /config.toml
 volumes:
-  redis-data:
   sqlite-data:

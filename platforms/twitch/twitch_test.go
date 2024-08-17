@@ -17,7 +17,7 @@ func TestTwitch_CurrentUsers(t *testing.T) {
 	t.Parallel()
 	db := databasetest.New(t)
 	server := newTestServer()
-	tw := NewForTesting(server.URL, db)
+	tw := NewForTesting(t, server.URL, db)
 
 	got, err := tw.CurrentUsers()
 	if err != nil {

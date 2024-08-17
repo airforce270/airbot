@@ -546,9 +546,9 @@ func TestReloadConfig(t *testing.T) {
 	ctx := context.Background()
 
 	db := databasetest.New(t)
-	cdb := cachetest.NewInMemory()
+	cdb := cachetest.NewSQLite(t, db)
 
-	platform := twitch.NewForTesting(server.URL(t).String(), db)
+	platform := twitch.NewForTesting(t, server.URL(t).String(), db)
 
 	const want = "something-specific"
 	cfg := func() string {

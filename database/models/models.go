@@ -10,6 +10,8 @@ import (
 // AllModels contains one of each defined data model, for auto-migrations.
 var AllModels = []any{
 	BotBan{},
+	CacheBoolItem{},
+	CacheStringItem{},
 	ChannelCommandCooldown{},
 	Duel{},
 	GambaTransaction{},
@@ -29,6 +31,34 @@ type BotBan struct {
 	Channel string
 	// JoinedAt is when the channel was joined.
 	BannedAt time.Time
+}
+
+// CacheBoolItem is a cache item of type bool.
+type CacheBoolItem struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+
+	// Key is the item's key.
+	Key string `gorm:"primarykey"`
+	// Value is the item's value.
+	Value bool
+	// ExpiresAt is when the item expires.
+	// If 0, the item never expires.
+	ExpiresAt time.Time
+}
+
+// CacheBoolItem is a cache item of type string.
+type CacheStringItem struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+
+	// Key is the item's key.
+	Key string `gorm:"primarykey"`
+	// Value is the item's value.
+	Value string
+	// ExpiresAt is when the item expires.
+	// If 0, the item never expires.
+	ExpiresAt time.Time
 }
 
 // ChannelCommandCooldown contains a record of a command cooldown in a channel.

@@ -1,11 +1,8 @@
-// Package cache provides an interface to the local Redis cache.
+// Package cache provides an interface to a cache.
 package cache
 
 import (
-	"context"
 	"time"
-
-	"github.com/valkey-io/valkey-go"
 )
 
 // A Cache stores and retrieves simple key-value data quickly.
@@ -43,64 +40,4 @@ const (
 // GlobalSlowmodeKey returns the global slowmode cache key for a platform.
 func GlobalSlowmodeKey(platformName string) string {
 	return "global_slowmode_" + platformName
-}
-
-// NewValkey creates a new Valkey-backed Cache.
-func NewValkey() (Valkey, error) {
-	c, err := valkey.NewClient(valkey.ClientOption{InitAddress: []string{"cache:6379"}})
-	if err != nil {
-		return Valkey{}, err
-	}
-	return Valkey{c: c}, nil
-}
-
-// Valkey implements Cache for a real Valkey database.
-type Valkey struct {
-	c valkey.Client
-}
-
-func (v *Valkey) StoreBool(key string, value bool) error {
-	return v.c.Do(context.TODO(), v.c.B().Set().Key(key).Value(strFromBool(value)).Build()).Error()
-}
-
-func (v *Valkey) StoreExpiringBool(key string, value bool, expiration time.Duration) error {
-	return v.c.Do(context.TODO(), v.c.B().Set().Key(key).Value(strFromBool(value)).Ex(expiration).Build()).Error()
-}
-
-func (v *Valkey) FetchBool(key string) (bool, error) {
-	resp, err := v.c.Do(context.TODO(), v.c.B().Get().Key(key).Build()).ToString()
-	if err != nil {
-		if valkey.IsValkeyNil(err) {
-			return false, nil
-		}
-		return false, err
-	}
-	return boolFromStr(resp), nil
-}
-
-func (v *Valkey) StoreString(key, value string) error {
-	return v.c.Do(context.TODO(), v.c.B().Set().Key(key).Value(value).Build()).Error()
-}
-
-func (v *Valkey) StoreExpiringString(key, value string, expiration time.Duration) error {
-	return v.c.Do(context.TODO(), v.c.B().Set().Key(key).Value(value).Ex(expiration).Build()).Error()
-}
-
-func (v *Valkey) FetchString(key string) (string, error) {
-	val, err := v.c.Do(context.TODO(), v.c.B().Get().Key(key).Build()).ToString()
-	if valkey.IsValkeyNil(err) {
-		return "", nil
-	}
-	return val, err
-}
-
-func strFromBool(b bool) string {
-	if b {
-		return "true"
-	}
-	return "false"
-}
-
-func boolFromStr(s string) bool {
-	return s == "true"
 }
