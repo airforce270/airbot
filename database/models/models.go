@@ -21,10 +21,7 @@ var AllModels = []any{
 
 // BotBan represents a bot being banned from a channel.
 type BotBan struct {
-	ID        uint           `gorm:"primarykey"`
-	CreatedAt time.Time      `gorm:"type:datetime"`
-	UpdatedAt time.Time      `gorm:"type:datetime"`
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	gorm.Model
 
 	// Platform contains the which platform this channel is on.
 	Platform string
@@ -36,10 +33,7 @@ type BotBan struct {
 
 // ChannelCommandCooldown contains a record of a command cooldown in a channel.
 type ChannelCommandCooldown struct {
-	ID        uint           `gorm:"primarykey"`
-	CreatedAt time.Time      `gorm:"type:datetime"`
-	UpdatedAt time.Time      `gorm:"type:datetime"`
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	gorm.Model
 
 	// Channel is the channel the command has a cooldown in.
 	Channel string
@@ -51,10 +45,7 @@ type ChannelCommandCooldown struct {
 
 // Duel represents a gamba duel.
 type Duel struct {
-	ID        uint           `gorm:"primarykey"`
-	CreatedAt time.Time      `gorm:"type:datetime"`
-	UpdatedAt time.Time      `gorm:"type:datetime"`
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	gorm.Model
 
 	// UserID is the ID of the user that initiated the duel.
 	UserID uint
@@ -76,10 +67,7 @@ type Duel struct {
 
 // GambaTransaction represents a single gamba transaction.
 type GambaTransaction struct {
-	ID        uint           `gorm:"primarykey"`
-	CreatedAt time.Time      `gorm:"type:datetime"`
-	UpdatedAt time.Time      `gorm:"type:datetime"`
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	gorm.Model
 
 	// UserID is the ID of the user that executed the transaction.
 	UserID uint
@@ -93,10 +81,7 @@ type GambaTransaction struct {
 
 // JoinedChannel represents a channel the bot should join.
 type JoinedChannel struct {
-	ID        uint           `gorm:"primarykey"`
-	CreatedAt time.Time      `gorm:"type:datetime"`
-	UpdatedAt time.Time      `gorm:"type:datetime"`
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	gorm.Model
 
 	// Platform contains the which platform this channel is on.
 	Platform string
@@ -112,10 +97,7 @@ type JoinedChannel struct {
 
 // Message represents a chat message.
 type Message struct {
-	ID        uint           `gorm:"primarykey"`
-	CreatedAt time.Time      `gorm:"type:datetime"`
-	UpdatedAt time.Time      `gorm:"type:datetime"`
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	gorm.Model
 
 	// Text contains the text of the message.
 	Text string
@@ -132,10 +114,7 @@ type Message struct {
 
 // User represents a user.
 type User struct {
-	ID        uint           `gorm:"primarykey"`
-	CreatedAt time.Time      `gorm:"type:datetime"`
-	UpdatedAt time.Time      `gorm:"type:datetime"`
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	gorm.Model
 
 	// TwitchID is the user's ID on Twitch, if known
 	TwitchID string
@@ -145,10 +124,7 @@ type User struct {
 
 // UserCommandCooldown contains a record of a command cooldown for a user.
 type UserCommandCooldown struct {
-	ID        uint           `gorm:"primarykey"`
-	CreatedAt time.Time      `gorm:"type:datetime"`
-	UpdatedAt time.Time      `gorm:"type:datetime"`
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	gorm.Model
 
 	// UserID is the ID of the user with the cooldown.
 	UserID uint

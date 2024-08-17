@@ -286,13 +286,17 @@ func TestDeduplicateByUser(t *testing.T) {
 			input: []grant{
 				{
 					User: models.User{
-						ID: 1,
+						Model: gorm.Model{
+							ID: 1,
+						},
 					},
 					IsActive: true,
 				},
 				{
 					User: models.User{
-						ID: 2,
+						Model: gorm.Model{
+							ID: 2,
+						},
 					},
 					IsActive: true,
 				},
@@ -300,13 +304,17 @@ func TestDeduplicateByUser(t *testing.T) {
 			want: []grant{
 				{
 					User: models.User{
-						ID: 1,
+						Model: gorm.Model{
+							ID: 1,
+						},
 					},
 					IsActive: true,
 				},
 				{
 					User: models.User{
-						ID: 2,
+						Model: gorm.Model{
+							ID: 2,
+						},
 					},
 					IsActive: true,
 				},
@@ -317,13 +325,17 @@ func TestDeduplicateByUser(t *testing.T) {
 			input: []grant{
 				{
 					User: models.User{
-						ID: 1,
+						Model: gorm.Model{
+							ID: 1,
+						},
 					},
 					IsActive: false,
 				},
 				{
 					User: models.User{
-						ID: 2,
+						Model: gorm.Model{
+							ID: 2,
+						},
 					},
 					IsActive: false,
 				},
@@ -331,13 +343,17 @@ func TestDeduplicateByUser(t *testing.T) {
 			want: []grant{
 				{
 					User: models.User{
-						ID: 1,
+						Model: gorm.Model{
+							ID: 1,
+						},
 					},
 					IsActive: false,
 				},
 				{
 					User: models.User{
-						ID: 2,
+						Model: gorm.Model{
+							ID: 2,
+						},
 					},
 					IsActive: false,
 				},
@@ -348,13 +364,17 @@ func TestDeduplicateByUser(t *testing.T) {
 			input: []grant{
 				{
 					User: models.User{
-						ID: 1,
+						Model: gorm.Model{
+							ID: 1,
+						},
 					},
 					IsActive: false,
 				},
 				{
 					User: models.User{
-						ID: 2,
+						Model: gorm.Model{
+							ID: 2,
+						},
 					},
 					IsActive: true,
 				},
@@ -362,13 +382,17 @@ func TestDeduplicateByUser(t *testing.T) {
 			want: []grant{
 				{
 					User: models.User{
-						ID: 2,
+						Model: gorm.Model{
+							ID: 2,
+						},
 					},
 					IsActive: true,
 				},
 				{
 					User: models.User{
-						ID: 1,
+						Model: gorm.Model{
+							ID: 1,
+						},
 					},
 					IsActive: false,
 				},
