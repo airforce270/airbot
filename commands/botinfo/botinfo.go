@@ -153,24 +153,22 @@ func stats(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 		return nil, fmt.Errorf("submetric failed: %w", err)
 	}
 
-	startPart := fmt.Sprintf("Airbot running on %s %s", sentenceCase(hostInfo.Platform), sentenceCase(hostInfo.OS))
+	var out strings.Builder
+	fmt.Fprintf(&out, "Airbot running on %s %s", sentenceCase(hostInfo.Platform), sentenceCase(hostInfo.OS))
 	if runningInDocker {
-		startPart += " (Docker)"
+		out.WriteString(" (Docker)")
 	}
 
-	parts := []string{
-		startPart,
-		fmt.Sprintf("bot uptime: %s", botUptime.Round(time.Second)),
-		fmt.Sprintf("system uptime: %s", (time.Duration(hostInfo.Uptime) * time.Second).Round(time.Second)),
-		fmt.Sprintf("CPU: %2.1f%%", cpuPercent),
-		fmt.Sprintf("RAM: %2.1f%%", memory.UsedPercent),
-		fmt.Sprintf("processed %d messages in %d channels in the last %d seconds", recentlyProcessedMessages, joinedChannels, int(recentlyProcessedMessagesInterval.Seconds())),
-	}
+	fmt.Fprintf(&out, ", bot uptime: %s", botUptime.Round(time.Second))
+	fmt.Fprintf(&out, ", system uptime: %s", (time.Duration(hostInfo.Uptime) * time.Second).Round(time.Second))
+	fmt.Fprintf(&out, ", CPU: %2.1f%%", cpuPercent)
+	fmt.Fprintf(&out, ", RAM: %2.1f%%", memory.UsedPercent)
+	fmt.Fprintf(&out, ", processed %d messages in %d channels in the last %d seconds", recentlyProcessedMessages, joinedChannels, int(recentlyProcessedMessagesInterval.Seconds()))
 
 	return []*base.Message{
 		{
 			Channel: msg.Message.Channel,
-			Text:    strings.Join(parts, ", "),
+			Text:    out.String(),
 		},
 	}, nil
 }
