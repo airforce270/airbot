@@ -27,25 +27,6 @@ jobs:
       - name: Run coverage
         run: go test -race -coverprofile=coverage.txt -covermode=atomic ./... -coverpkg ./...
 
-  build-docker:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4.1.7
-        with:
-          path: airbot
-
-      - name: Set up Go
-        uses: actions/setup-go@v5.0.2
-        with:
-          go-version-file: airbot/go.mod
-          cache-dependency-path: airbot/go.sum
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v6.6.1
-        with:
-          push: false
-
   lint:
     runs-on: ubuntu-latest
     steps:

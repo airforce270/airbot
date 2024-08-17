@@ -65,7 +65,7 @@ func start(ctx context.Context) (cleanup.Cleaner, postStartupResources, error) {
 	configSrc.Close()
 
 	log.Printf("Connecting to database...")
-	db, err := database.Connect(ctx, log.Default(), filepath.Join(os.Getenv("SQLITE_DATA_DIR"), "sqlite.db"))
+	db, err := database.Connect(ctx, log.Default(), filepath.Join(os.Getenv("AIRBOT_SQLITE_DATA_DIR"), "sqlite.db"))
 	if err != nil {
 		return nil, postStartupResources{}, fmt.Errorf("failed to connect to database: %w", err)
 	}

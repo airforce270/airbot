@@ -11,7 +11,7 @@ import (
 )
 
 // fileName contains the name of the config file to be read (when referenced by the binary).
-const filePath = "/config.toml"
+const filePath = "config.toml"
 
 // DefaultNewConfigSource is the default source of the latest config data.
 var DefaultNewConfigSource = func() (io.ReadCloser, error) {
