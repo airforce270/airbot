@@ -24,7 +24,7 @@ import (
 var Commands = [...]basecommand.Command{
 	{
 		Name:       "botinfo",
-		Aliases:    []string{"bot", "info", "botinfo", "about", "ping"},
+		Aliases:    []string{"bot", "info", "about", "ping"},
 		Desc:       "Replies with info about the bot.",
 		Permission: permission.Normal,
 		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {

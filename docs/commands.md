@@ -104,7 +104,7 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 
 - Replies with info about the bot.
 - > Usage: `$botinfo`
-- > Aliases: `$bot`, `$info`, `$botinfo`, `$about`, `$ping`
+- > Aliases: `$bot`, `$info`, `$about`, `$ping`
 
 ### $prefix
 
@@ -179,6 +179,11 @@ If it's wrapped in `[square brackets]`, it's an **optional** parameter.
 - Tells you the length :)
 - > Usage: `$cock [user]`
 - > Aliases: `$kok`
+
+### $fortune
+
+- Replies with a fortune. Fortunes from https://github.com/bmc/fortunes
+- > Usage: `$fortune`
 
 ### $iq
 

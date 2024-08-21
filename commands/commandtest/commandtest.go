@@ -70,7 +70,7 @@ func Run(t *testing.T, tests []Case) {
 					return io.NopCloser(strings.NewReader(tc.configData)), nil
 				},
 				Rand: base.RandResources{
-					Reader: bytes.NewBuffer([]byte{3}),
+					Reader: bytes.NewBuffer([]byte{3, 3, 3, 3, 3, 3, 3, 3}),
 					Source: fakeExpRandSource{Value: uint64(150)},
 				},
 				Clients: base.APIClients{

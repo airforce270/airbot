@@ -135,6 +135,26 @@ func TestFunCommands(t *testing.T) {
 		{
 			Input: base.IncomingMessage{
 				Message: base.Message{
+					Text:    "$fortune",
+					UserID:  "user1",
+					User:    "user1",
+					Channel: "user2",
+					Time:    time.Date(2020, 5, 15, 10, 7, 0, 0, time.UTC),
+				},
+				Prefix:          "$",
+				PermissionLevel: permission.Normal,
+			},
+			Platform: commandtest.TwitchPlatform,
+			Want: []*base.Message{
+				{
+					Text:    "Finagle's Creed: Science is true. Don't be misled by facts.",
+					Channel: "user2",
+				},
+			},
+		},
+		{
+			Input: base.IncomingMessage{
+				Message: base.Message{
 					Text:    "$iq",
 					UserID:  "user1",
 					User:    "user1",

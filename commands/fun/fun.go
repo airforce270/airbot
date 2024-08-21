@@ -3,6 +3,7 @@ package fun
 
 import (
 	"crypto/rand"
+	_ "embed"
 	"fmt"
 	"log"
 	"math"
@@ -21,6 +22,7 @@ import (
 var Commands = [...]basecommand.Command{
 	bibleVerseCommand,
 	cockCommand,
+	fortuneCommand,
 	iqCommand,
 	shipCommand,
 }
@@ -45,6 +47,30 @@ var (
 		Params:     []arg.Param{{Name: "user", Type: arg.Username, Required: false}},
 		Permission: permission.Normal,
 		Handler:    cock,
+	}
+
+	//go:embed data/fortunes.txt
+	fortunesText string
+
+	fortunes    = truncate(readFileWithoutNewlines(fortunesText), 480 /* maxLength */)
+	fortunesLen = big.NewInt(int64(len(fortunes)))
+
+	fortuneCommand = basecommand.Command{
+		Name:       "fortune",
+		Desc:       "Replies with a fortune. Fortunes from https://github.com/bmc/fortunes",
+		Permission: permission.Normal,
+		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+			i, err := rand.Int(msg.Resources.Rand.Reader, fortunesLen)
+			if err != nil {
+				return nil, fmt.Errorf("failed to generate random number: %w", err)
+			}
+			return []*base.Message{
+				{
+					Channel: msg.Message.Channel,
+					Text:    fortunes[int(i.Uint64())],
+				},
+			}, nil
+		},
 	}
 
 	iqCommand = basecommand.Command{
@@ -158,4 +184,30 @@ func ship(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			}, ""),
 		},
 	}, nil
+}
+
+func truncate(strings []string, maxLength int) []string {
+	truncated := make([]string, 0, maxLength)
+
+	for _, s := range strings {
+		if len(s) > maxLength {
+			truncated = append(truncated, s[:maxLength])
+		} else {
+			truncated = append(truncated, s)
+		}
+	}
+
+	return truncated
+}
+
+func readFileWithoutNewlines(text string) []string {
+	linesWithNewlines := strings.Split(text, "\n")
+	lines := make([]string, 0, len(linesWithNewlines))
+	for _, line := range linesWithNewlines {
+		if line == "" {
+			continue
+		}
+		lines = append(lines, line)
+	}
+	return lines
 }
