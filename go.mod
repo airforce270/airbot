@@ -14,7 +14,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/hasura/go-graphql-client v0.13.0
 	github.com/nicklaw5/helix/v2 v2.30.0
-	github.com/pelletier/go-toml/v2 v2.2.2
+	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/shirou/gopsutil/v3 v3.24.5
 	golang.org/x/exp v0.0.0-20240808152545-0cdaa3abc0fa
 	golang.org/x/oauth2 v0.22.0
