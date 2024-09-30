@@ -9,7 +9,7 @@ go 1.23.0
 
 require (
 	github.com/Danny-Dasilva/CycleTLS/cycletls v1.0.26
-	github.com/gempir/go-twitch-irc/v4 v4.0.0
+	github.com/gempir/go-twitch-irc/v4 v4.2.0
 	github.com/glebarez/sqlite v1.11.0
 	github.com/google/go-cmp v0.6.0
 	github.com/hasura/go-graphql-client v0.13.0
