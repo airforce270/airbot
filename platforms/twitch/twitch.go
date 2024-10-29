@@ -459,7 +459,10 @@ func (t *Twitch) updateCachedJoinedChannels() ([]*models.JoinedChannel, error) {
 			}
 		}
 		resp, err := t.helix.GetUsers(&helix.UsersParams{IDs: ids, Logins: logins})
-		if err != nil || resp.Error != "" {
+		if err != nil && resp == nil {
+			return nil, fmt.Errorf("failed to get users from Helix: %w", err)
+		}
+		if err != nil && resp != nil {
 			return nil, fmt.Errorf("failed to get users from Helix: %d %s %s %w", resp.ErrorStatus, resp.Error, resp.ErrorMessage, err)
 		}
 		for _, user := range resp.Data.Users {
