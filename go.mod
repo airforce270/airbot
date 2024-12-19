@@ -1,6 +1,6 @@
 module github.com/airforce270/airbot
 
-go 1.23.2
+go 1.23.4
 
 // To use local copies of dependencies here (for development),
 // add a `replace` directive.
@@ -16,7 +16,7 @@ require (
 	github.com/nicklaw5/helix/v2 v2.31.0
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/shirou/gopsutil/v3 v3.24.5
-	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c
+	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67
 	golang.org/x/oauth2 v0.24.0
 	golang.org/x/sync v0.10.0
 	gonum.org/v1/gonum v0.15.1
@@ -47,13 +47,13 @@ require (
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
 	github.com/tklauser/numcpus v0.9.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	golang.org/x/crypto v0.28.0 // indirect
-	golang.org/x/net v0.30.0 // indirect
-	golang.org/x/sys v0.26.0 // indirect
-	golang.org/x/text v0.19.0 // indirect
+	golang.org/x/crypto v0.31.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	h12.io/socks v1.0.3 // indirect
-	modernc.org/libc v1.61.0 // indirect
+	modernc.org/libc v1.61.4 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.8.0 // indirect
-	modernc.org/sqlite v1.33.1 // indirect
+	modernc.org/sqlite v1.34.3 // indirect
 )
