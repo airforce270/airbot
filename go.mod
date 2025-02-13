@@ -18,7 +18,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.24.5
 	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67
 	golang.org/x/oauth2 v0.26.0
-	golang.org/x/sync v0.10.0
+	golang.org/x/sync v0.11.0
 	gonum.org/v1/gonum v0.15.1
 	gorm.io/gorm v1.25.12
 )
