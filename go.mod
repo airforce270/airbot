@@ -16,10 +16,9 @@ require (
 	github.com/nicklaw5/helix/v2 v2.31.0
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/shirou/gopsutil/v3 v3.24.5
-	golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa
 	golang.org/x/oauth2 v0.26.0
 	golang.org/x/sync v0.11.0
-	gonum.org/v1/gonum v0.15.1
+	gonum.org/v1/gonum v0.15.2-0.20250214104957-d39b80c47eea
 	gorm.io/gorm v1.25.12
 )
 
@@ -48,6 +47,7 @@ require (
 	github.com/tklauser/numcpus v0.9.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	golang.org/x/crypto v0.34.0 // indirect
+	golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa // indirect
 	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect

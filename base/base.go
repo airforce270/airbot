@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"math/rand/v2"
 	"strings"
 	"time"
 
@@ -16,8 +17,6 @@ import (
 	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
 	"gorm.io/gorm"
-
-	exprand "golang.org/x/exp/rand"
 )
 
 var (
@@ -139,7 +138,7 @@ type RandResources struct {
 	Reader io.Reader
 	// Source is a source of random numbers.
 	// Optional - a default will be used if not provided.
-	Source exprand.Source
+	Source rand.Source
 }
 
 // APIClients contains external API clients.
