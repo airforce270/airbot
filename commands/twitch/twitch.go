@@ -2,6 +2,7 @@
 package twitch
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -132,7 +133,7 @@ var (
 	}
 )
 
-func banReason(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func banReason(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetUserArg := args[0]
 	if !targetUserArg.Present {
 		return nil, basecommand.ErrBadUsage
@@ -171,7 +172,7 @@ func banReason(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, erro
 	}, nil
 }
 
-func currentGame(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func currentGame(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
 	plat, ok := msg.Resources.PlatformByName(twitchplatform.Name)
@@ -207,7 +208,7 @@ func currentGame(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 	}, nil
 }
 
-func founders(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func founders(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
 	founders, err := msg.Resources.Clients.IVR.FetchFounders(targetChannel)
@@ -253,7 +254,7 @@ func founders(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error
 	return messages, nil
 }
 
-func logs(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func logs(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannelArg, targetUserArg := args[0], args[1]
 	if !targetChannelArg.Present || !targetUserArg.Present {
 		return nil, basecommand.ErrBadUsage
@@ -269,7 +270,7 @@ func logs(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	}, nil
 }
 
-func mods(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func mods(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
 	modsAndVIPs, err := msg.Resources.Clients.IVR.FetchModsAndVIPs(targetChannel)
@@ -306,7 +307,7 @@ func mods(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	return messages, nil
 }
 
-func nameColor(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func nameColor(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetUser := basecommand.FirstArgOrUsername(args, msg)
 
 	users, err := msg.Resources.Clients.IVR.FetchUsers(targetUser)
@@ -334,7 +335,7 @@ func nameColor(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, erro
 	}, nil
 }
 
-func subAge(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func subAge(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	userArg, channelArg := args[0], args[1]
 	if !userArg.Present || !channelArg.Present {
 		return nil, basecommand.ErrBadUsage
@@ -404,7 +405,7 @@ func subAge(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 	}, nil
 }
 
-func title(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func title(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
 	plat, ok := msg.Resources.PlatformByName(twitchplatform.Name)
@@ -431,7 +432,7 @@ func title(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	}, nil
 }
 
-func verifiedBot(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func verifiedBot(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	if true {
 		return []*base.Message{
 			{
@@ -475,7 +476,7 @@ func verifiedBot(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 	}, nil
 }
 
-func verifiedBotQuiet(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func verifiedBotQuiet(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	if true {
 		return []*base.Message{
 			{
@@ -519,7 +520,7 @@ func verifiedBotQuiet(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Messag
 	}, nil
 }
 
-func vips(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func vips(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetChannel := basecommand.FirstArgOrChannel(args, msg)
 
 	modsAndVIPs, err := msg.Resources.Clients.IVR.FetchModsAndVIPs(targetChannel)

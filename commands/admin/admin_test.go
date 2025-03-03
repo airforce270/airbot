@@ -543,12 +543,12 @@ func TestReloadConfig(t *testing.T) {
 	server := fakeserver.New()
 	defer server.Close()
 
-	ctx := context.Background()
+	ctx := t.Context()
 
-	db := databasetest.New(t)
-	cdb := cachetest.NewSQLite(t, db)
+	db, queries := databasetest.New(t)
+	cdb := cachetest.NewSQLite(t, queries)
 
-	platform := twitch.NewForTesting(t, server.URL(t).String(), db)
+	platform := twitch.NewForTestingWithDB(t, server.URL(t).String(), db, queries)
 
 	const want = "something-specific"
 	cfg := func() string {
@@ -603,9 +603,9 @@ func TestReloadConfig(t *testing.T) {
 		Resources:       resources,
 	}
 
-	handler := commands.NewHandlerForTest(db, cdb, resources.AllPlatforms, resources.NewConfigSource, resources.Rand, resources.Clients)
+	handler := commands.NewHandlerForTest(db, queries, cdb, resources.AllPlatforms, resources.NewConfigSource, resources.Rand, resources.Clients)
 
-	_, err := handler.Handle(&input)
+	_, err := handler.Handle(ctx, &input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -615,12 +615,12 @@ func TestReloadConfig(t *testing.T) {
 	}
 }
 
-var testConfig = config.Config{}
+var testConfig config.Config
 
 func joinOtherUser1(t testing.TB, r *base.Resources) {
 	t.Helper()
-	handler := commands.NewHandler(context.Background(), r.DB, r.Cache, &testConfig, nil)
-	_, err := handler.Handle(&base.IncomingMessage{
+	handler := commands.NewHandler(context.Background(), r.DB, r.Queries, r.Cache, &testConfig, nil)
+	_, err := handler.Handle(t.Context(), &base.IncomingMessage{
 		Message: base.Message{
 			Text:    "$joinother user1",
 			UserID:  "user1",
@@ -639,8 +639,8 @@ func joinOtherUser1(t testing.TB, r *base.Resources) {
 
 func enableBotSlowmode(t testing.TB, r *base.Resources) {
 	t.Helper()
-	handler := commands.NewHandler(context.Background(), r.DB, r.Cache, &testConfig, nil)
-	_, err := handler.Handle(&base.IncomingMessage{
+	handler := commands.NewHandler(t.Context(), r.DB, r.Queries, r.Cache, &testConfig, nil)
+	_, err := handler.Handle(t.Context(), &base.IncomingMessage{
 		Message: base.Message{
 			Text:    "$botslowmode on",
 			UserID:  "user1",

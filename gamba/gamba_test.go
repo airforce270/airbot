@@ -11,19 +11,19 @@ import (
 
 	"github.com/airforce270/airbot/apiclients/twitchtest"
 	"github.com/airforce270/airbot/base"
+	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/databasetest"
-	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/platforms/twitch"
+	"github.com/airforce270/airbot/utils/ptrs"
 
 	"github.com/google/go-cmp/cmp"
-	"gorm.io/gorm"
 )
 
 func TestHasOutboundPendingDuels(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		desc      string
-		runBefore []func(testing.TB, *gorm.DB)
+		runBefore []func(testing.TB, *database.Queries)
 		want      int
 	}{
 		{
@@ -33,7 +33,7 @@ func TestHasOutboundPendingDuels(t *testing.T) {
 		},
 		{
 			desc: "has outbound pending duels",
-			runBefore: []func(testing.TB, *gorm.DB){
+			runBefore: []func(testing.TB, *database.Queries){
 				add50PointsToUser1,
 				add50PointsToUser2,
 				startDuel,
@@ -43,28 +43,27 @@ func TestHasOutboundPendingDuels(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
 			t.Parallel()
-			db := databasetest.New(t)
-			if err := db.Where("1 = 1").Delete(&models.Duel{}).Error; err != nil {
+			ctx := t.Context()
+			_, queries := databasetest.New(t)
+			if err := queries.DeleteAllDuelsForTest(ctx); err != nil {
 				t.Fatal(err)
 			}
 
-			var user1 models.User
-			err := db.First(&user1, models.User{
-				TwitchID:   "user1",
-				TwitchName: "user1",
-			}).Error
+			user1, err := queries.SelectTwitchUser(ctx, database.SelectTwitchUserParams{
+				TwitchID:   ptrs.Ptr("user1"),
+				TwitchName: ptrs.Ptr("user1"),
+			})
 			if err != nil {
 				t.Fatalf("failed to find user1: %v", err)
 			}
 
 			for _, f := range tc.runBefore {
-				f(t, db)
+				f(t, queries)
 			}
 
-			got, err := OutboundPendingDuels(&user1, 30*time.Second, db)
+			got, err := OutboundPendingDuels(ctx, user1, 30*time.Second, queries)
 			if err != nil {
 				t.Fatalf("OutboundPendingDuels() unexpected err: %v", err)
 			}
@@ -79,7 +78,7 @@ func TestInboundPendingDuels(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		desc      string
-		runBefore []func(testing.TB, *gorm.DB)
+		runBefore []func(testing.TB, *database.Queries)
 		want      int
 	}{
 		{
@@ -89,7 +88,7 @@ func TestInboundPendingDuels(t *testing.T) {
 		},
 		{
 			desc: "has inbound pending duels",
-			runBefore: []func(testing.TB, *gorm.DB){
+			runBefore: []func(testing.TB, *database.Queries){
 				add50PointsToUser1,
 				add50PointsToUser2,
 				startDuel,
@@ -99,28 +98,27 @@ func TestInboundPendingDuels(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
 			t.Parallel()
-			db := databasetest.New(t)
-			if err := db.Where("1 = 1").Delete(&models.Duel{}).Error; err != nil {
+			ctx := t.Context()
+			_, queries := databasetest.New(t)
+			if err := queries.DeleteAllDuelsForTest(ctx); err != nil {
 				t.Fatal(err)
 			}
 
-			var user2 models.User
-			err := db.First(&user2, models.User{
-				TwitchID:   "user2",
-				TwitchName: "user2",
-			}).Error
+			user2, err := queries.SelectTwitchUser(ctx, database.SelectTwitchUserParams{
+				TwitchID:   ptrs.Ptr("user2"),
+				TwitchName: ptrs.Ptr("user2"),
+			})
 			if err != nil {
 				t.Fatalf("failed to find user2: %v", err)
 			}
 
 			for _, f := range tc.runBefore {
-				f(t, db)
+				f(t, queries)
 			}
 
-			got, err := InboundPendingDuels(&user2, 30*time.Second, db)
+			got, err := InboundPendingDuels(ctx, user2, 30*time.Second, queries)
 			if err != nil {
 				t.Fatalf("InboundPendingDuels() unexpected err: %v", err)
 			}
@@ -133,94 +131,108 @@ func TestInboundPendingDuels(t *testing.T) {
 
 func TestGrantPoints(t *testing.T) {
 	t.Parallel()
-	db := databasetest.New(t)
+	ctx := t.Context()
+	db, queries := databasetest.New(t)
 	server := newTestServer()
 
-	if err := db.Where("1 = 1").Delete(&models.User{}).Error; err != nil {
+	if err := queries.DeleteAllUsersForTest(ctx); err != nil {
 		t.Fatal(err)
 	}
 
-	user1 := models.User{TwitchID: "user1", TwitchName: "user1"}
-	if err := db.Create(&user1).Error; err != nil {
+	user1, err := queries.CreateTwitchUser(ctx, database.CreateTwitchUserParams{
+		TwitchID:   ptrs.Ptr("user1"),
+		TwitchName: ptrs.Ptr("user1"),
+	})
+	if err != nil {
 		t.Fatalf("failed to create user1: %v", err)
 	}
-	user2 := models.User{TwitchID: "user2", TwitchName: "user2"}
-	if err := db.Create(&user2).Error; err != nil {
+	user2, err := queries.CreateTwitchUser(ctx, database.CreateTwitchUserParams{
+		TwitchID:   ptrs.Ptr("user2"),
+		TwitchName: ptrs.Ptr("user2"),
+	})
+	if err != nil {
 		t.Fatalf("failed to create user2: %v", err)
 	}
 
-	messages := []models.Message{
+	messages := []database.CreateMessageParams{
 		{
-			User:    user1,
-			Channel: "channel1",
-			Text:    "something",
-			Time:    time.Now().Add(-1 * time.Minute),
+			UserID:  &user1.ID,
+			Channel: ptrs.Ptr("channel1"),
+			Text:    ptrs.Ptr("something"),
+			Time:    ptrs.Ptr(time.Now().Add(-1 * time.Minute)),
 		},
 		{
-			User:    user2,
-			Channel: "channel1",
-			Text:    "something else",
-			Time:    time.Now().Add(-50 * time.Minute),
+			UserID:  &user2.ID,
+			Channel: ptrs.Ptr("channel1"),
+			Text:    ptrs.Ptr("something else"),
+			Time:    ptrs.Ptr(time.Now().Add(-50 * time.Minute)),
 		},
 	}
 	for i, m := range messages {
-		if err := db.Create(&m).Error; err != nil {
+		if _, err := queries.CreateMessage(ctx, m); err != nil {
 			t.Fatalf("failed to create message %d: %v", i, err)
 		}
 	}
 
 	ps := map[string]base.Platform{
-		"FakeTwitch": twitch.NewForTesting(t, server.URL, db),
+		"FakeTwitch": twitch.NewForTestingWithDB(t, server.URL, db, queries),
 	}
 
-	grantPoints(ps, db)
+	grantPoints(ctx, ps, queries)
 
-	var transactions []models.GambaTransaction
-	if err := db.Find(&transactions).Error; err != nil {
+	transactions, err := queries.SelectAllGambaTransactions(ctx)
+	if err != nil {
 		t.Fatal(err)
 	}
 	if len(transactions) != 2 {
 		t.Fatalf("expected 2 gamba transactions, found %d: %v", len(transactions), transactions)
 	}
 
-	if transactions[0].Delta != int64(activeGrantAmount) {
+	if *transactions[0].Delta != activeGrantAmount {
 		t.Errorf("transaction 0 should have granted %d points, but granted %d", activeGrantAmount, transactions[0].Delta)
 	}
-	if transactions[0].UserID != user1.ID {
-		t.Errorf("transaction 0 should have been for user 1 but was for user %v", transactions[0].User)
+	if *transactions[0].UserID != user1.ID {
+		t.Errorf("transaction 0 should have been for user 1 but was for user %d", transactions[0].UserID)
 	}
-	if transactions[1].Delta != int64(inactiveGrantAmount) {
+	if *transactions[1].Delta != inactiveGrantAmount {
 		t.Errorf("transaction 1 should have granted %d points, but granted %d", inactiveGrantAmount, transactions[1].Delta)
 	}
-	if transactions[1].UserID != user2.ID {
-		t.Errorf("transaction 1 should have been for user 2 but was for user %v", transactions[1].User)
+	if *transactions[1].UserID != user2.ID {
+		t.Errorf("transaction 1 should have been for user 2 but was for user %d", transactions[1].UserID)
 	}
 }
 
 func TestGetInactiveUsers(t *testing.T) {
 	t.Parallel()
-	db := databasetest.New(t)
+	ctx := t.Context()
+	db, queries := databasetest.New(t)
 	server := newTestServer()
 
-	if err := db.Where("1 = 1").Delete(&models.User{}).Error; err != nil {
+	if err := queries.DeleteAllUsersForTest(ctx); err != nil {
 		t.Fatal(err)
 	}
 
-	user1 := models.User{TwitchID: "user1", TwitchName: "user1"}
-	if err := db.Create(&user1).Error; err != nil {
+	user1, err := queries.CreateTwitchUser(ctx, database.CreateTwitchUserParams{
+		TwitchID:   ptrs.Ptr("user1"),
+		TwitchName: ptrs.Ptr("user1"),
+	})
+	if err != nil {
 		t.Fatalf("failed to create user1: %v", err)
 	}
-	user2 := models.User{TwitchID: "user2", TwitchName: "user2"}
-	if err := db.Create(&user2).Error; err != nil {
+	user2, err := queries.CreateTwitchUser(ctx, database.CreateTwitchUserParams{
+		TwitchID:   ptrs.Ptr("user2"),
+		TwitchName: ptrs.Ptr("user2"),
+	})
+	if err != nil {
 		t.Fatalf("failed to create user2: %v", err)
 	}
 
 	ps := map[string]base.Platform{
-		"FakeTwitch": twitch.NewForTesting(t, server.URL, db),
+		"FakeTwitch": twitch.NewForTestingWithDB(t, server.URL, db, queries),
 	}
 
-	got := getInactiveUsers(ps, db)
-	want := []models.User{user1, user2}
+	got := getInactiveUsers(ctx, ps)
+	want := []database.User{user1, user2}
 
 	if len(got) != len(want) {
 		t.Fatalf("getInactiveUsers() got %d users, want %d: diff (-want +got):\n%s", len(got), len(want), cmp.Diff(want, got))
@@ -232,42 +244,49 @@ func TestGetInactiveUsers(t *testing.T) {
 
 func TestGetActiveUsers(t *testing.T) {
 	t.Parallel()
-	db := databasetest.New(t)
+	ctx := t.Context()
+	_, queries := databasetest.New(t)
 
-	user1 := models.User{TwitchID: "user1", TwitchName: "user1"}
-	if err := db.Create(&user1).Error; err != nil {
+	user1, err := queries.CreateTwitchUser(ctx, database.CreateTwitchUserParams{
+		TwitchID:   ptrs.Ptr("user1"),
+		TwitchName: ptrs.Ptr("user1"),
+	})
+	if err != nil {
 		t.Fatalf("failed to create user1: %v", err)
 	}
-	user2 := models.User{TwitchID: "user2", TwitchName: "user2"}
-	if err := db.Create(&user2).Error; err != nil {
+	user2, err := queries.CreateTwitchUser(ctx, database.CreateTwitchUserParams{
+		TwitchID:   ptrs.Ptr("user2"),
+		TwitchName: ptrs.Ptr("user2"),
+	})
+	if err != nil {
 		t.Fatalf("failed to create user2: %v", err)
 	}
 
-	messages := []models.Message{
+	messages := []database.CreateMessageParams{
 		{
-			User:    user1,
-			Channel: "channel1",
-			Text:    "something",
-			Time:    time.Now().Add(-1 * time.Minute),
+			UserID:  &user1.ID,
+			Channel: ptrs.Ptr("channel1"),
+			Text:    ptrs.Ptr("something"),
+			Time:    ptrs.Ptr(time.Now().Add(-1 * time.Minute)),
 		},
 		{
-			User:    user2,
-			Channel: "channel1",
-			Text:    "something else",
-			Time:    time.Now().Add(-50 * time.Minute),
+			UserID:  &user2.ID,
+			Channel: ptrs.Ptr("channel1"),
+			Text:    ptrs.Ptr("something else"),
+			Time:    ptrs.Ptr(time.Now().Add(-50 * time.Minute)),
 		},
 	}
 	for i, m := range messages {
-		if err := db.Create(&m).Error; err != nil {
+		if _, err := queries.CreateMessage(ctx, m); err != nil {
 			t.Fatalf("failed to create message %d: %v", i, err)
 		}
 	}
 
-	got, err := getActiveUsers(db)
+	got, err := getActiveUsers(ctx, queries)
 	if err != nil {
 		t.Fatalf("getActiveUsers() unexpected error: %v", err)
 	}
-	want := []models.User{user1}
+	want := []database.User{user1}
 
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("getActiveUsers() diff (-want +got):\n%s", diff)
@@ -285,37 +304,21 @@ func TestDeduplicateByUser(t *testing.T) {
 			desc: "all active",
 			input: []grant{
 				{
-					User: models.User{
-						Model: gorm.Model{
-							ID: 1,
-						},
-					},
+					User:     database.User{ID: 1},
 					IsActive: true,
 				},
 				{
-					User: models.User{
-						Model: gorm.Model{
-							ID: 2,
-						},
-					},
+					User:     database.User{ID: 2},
 					IsActive: true,
 				},
 			},
 			want: []grant{
 				{
-					User: models.User{
-						Model: gorm.Model{
-							ID: 1,
-						},
-					},
+					User:     database.User{ID: 1},
 					IsActive: true,
 				},
 				{
-					User: models.User{
-						Model: gorm.Model{
-							ID: 2,
-						},
-					},
+					User:     database.User{ID: 2},
 					IsActive: true,
 				},
 			},
@@ -324,37 +327,21 @@ func TestDeduplicateByUser(t *testing.T) {
 			desc: "all inactive",
 			input: []grant{
 				{
-					User: models.User{
-						Model: gorm.Model{
-							ID: 1,
-						},
-					},
+					User:     database.User{ID: 1},
 					IsActive: false,
 				},
 				{
-					User: models.User{
-						Model: gorm.Model{
-							ID: 2,
-						},
-					},
+					User:     database.User{ID: 2},
 					IsActive: false,
 				},
 			},
 			want: []grant{
 				{
-					User: models.User{
-						Model: gorm.Model{
-							ID: 1,
-						},
-					},
+					User:     database.User{ID: 1},
 					IsActive: false,
 				},
 				{
-					User: models.User{
-						Model: gorm.Model{
-							ID: 2,
-						},
-					},
+					User:     database.User{ID: 2},
 					IsActive: false,
 				},
 			},
@@ -363,37 +350,21 @@ func TestDeduplicateByUser(t *testing.T) {
 			desc: "inactive and active unsorted",
 			input: []grant{
 				{
-					User: models.User{
-						Model: gorm.Model{
-							ID: 1,
-						},
-					},
+					User:     database.User{ID: 1},
 					IsActive: false,
 				},
 				{
-					User: models.User{
-						Model: gorm.Model{
-							ID: 2,
-						},
-					},
+					User:     database.User{ID: 2},
 					IsActive: true,
 				},
 			},
 			want: []grant{
 				{
-					User: models.User{
-						Model: gorm.Model{
-							ID: 2,
-						},
-					},
+					User:     database.User{ID: 2},
 					IsActive: true,
 				},
 				{
-					User: models.User{
-						Model: gorm.Model{
-							ID: 1,
-						},
-					},
+					User:     database.User{ID: 1},
 					IsActive: false,
 				},
 			},
@@ -401,7 +372,6 @@ func TestDeduplicateByUser(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
 			t.Parallel()
 			got := deduplicateByUser(tc.input)
@@ -412,71 +382,70 @@ func TestDeduplicateByUser(t *testing.T) {
 	}
 }
 
-func startDuel(t testing.TB, db *gorm.DB) {
+func startDuel(t testing.TB, queries *database.Queries) {
 	t.Helper()
-	var user1, user2 models.User
-	err := db.First(&user1, models.User{
-		TwitchID:   "user1",
-		TwitchName: "user1",
-	}).Error
+	ctx := t.Context()
+	user1, err := queries.SelectTwitchUser(ctx, database.SelectTwitchUserParams{
+		TwitchID:   ptrs.Ptr("user1"),
+		TwitchName: ptrs.Ptr("user1"),
+	})
 	if err != nil {
 		t.Fatalf("Failed to find user1: %v", err)
 	}
-	err = db.First(&user2, models.User{
-		TwitchID:   "user2",
-		TwitchName: "user2",
-	}).Error
+	user2, err := queries.SelectTwitchUser(ctx, database.SelectTwitchUserParams{
+		TwitchID:   ptrs.Ptr("user2"),
+		TwitchName: ptrs.Ptr("user2"),
+	})
 	if err != nil {
 		t.Fatalf("Failed to find user2: %v", err)
 	}
-	err = db.Create(&models.Duel{
-		UserID:   user1.ID,
-		User:     user1,
-		TargetID: user2.ID,
-		Target:   user2,
-		Amount:   25,
-		Pending:  true,
-		Accepted: false,
-	}).Error
+	_, err = queries.CreateDuel(ctx, database.CreateDuelParams{
+		UserID:   &user1.ID,
+		TargetID: &user2.ID,
+		Amount:   ptrs.Ptr[int64](25),
+		Pending:  ptrs.TrueFloat,
+		Accepted: ptrs.FalseFloat,
+	})
 	if err != nil {
 		t.Fatalf("Failed to create duel: %v", err)
 	}
 }
 
-func add50PointsToUser1(t testing.TB, db *gorm.DB) {
+func add50PointsToUser1(t testing.TB, queries *database.Queries) {
 	t.Helper()
-	var user models.User
-	err := db.First(&user, models.User{
-		TwitchID:   "user1",
-		TwitchName: "user1",
-	}).Error
+	ctx := t.Context()
+	user, err := queries.SelectTwitchUser(ctx, database.SelectTwitchUserParams{
+		TwitchID:   ptrs.Ptr("user1"),
+		TwitchName: ptrs.Ptr("user1"),
+	})
 	if err != nil {
 		t.Fatalf("Failed to find user1: %v", err)
 	}
-	add50PointsToUser(t, user, db)
+	add50PointsToUser(t, user, queries)
 }
 
-func add50PointsToUser2(t testing.TB, db *gorm.DB) {
+func add50PointsToUser2(t testing.TB, queries *database.Queries) {
 	t.Helper()
-	var user models.User
-	err := db.First(&user, models.User{
-		TwitchID:   "user2",
-		TwitchName: "user2",
-	}).Error
+	ctx := t.Context()
+	user, err := queries.SelectTwitchUser(ctx, database.SelectTwitchUserParams{
+		TwitchID:   ptrs.Ptr("user2"),
+		TwitchName: ptrs.Ptr("user2"),
+	})
 	if err != nil {
 		t.Fatalf("Failed to find/create user2: %v", err)
 	}
-	add50PointsToUser(t, user, db)
+	add50PointsToUser(t, user, queries)
 }
 
-func add50PointsToUser(t testing.TB, user models.User, db *gorm.DB) {
+func add50PointsToUser(t testing.TB, user database.User, queries *database.Queries) {
 	t.Helper()
-	txn := models.GambaTransaction{
-		Game:  "FAKE - TEST",
-		User:  user,
-		Delta: 50,
-	}
-	if err := db.Create(&txn).Error; err != nil {
+	ctx := t.Context()
+	_, err := queries.CreateGambaTransaction(ctx, database.CreateGambaTransactionParams{
+		Game:   ptrs.Ptr("FAKE - TEST"),
+		UserID: &user.ID,
+		Delta:  ptrs.Ptr[int64](50),
+	})
+	if err != nil {
 		t.Fatalf("Failed to insert gamba transaction: %v", err)
 	}
 }

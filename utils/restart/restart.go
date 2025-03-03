@@ -2,6 +2,7 @@
 package restart
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -15,28 +16,28 @@ import (
 var C = make(chan bool, 1)
 
 // WriteRequester writes information about where the restart was requested from.
-func WriteRequester(c cache.Cache, platform, channel, id string) {
+func WriteRequester(ctx context.Context, c cache.Cache, platform, channel, id string) {
 	const expireIn = 30 * time.Second
 
 	go func() {
-		if err := c.StoreExpiringString(cache.KeyRestartRequestedOnPlatform, platform, expireIn); err != nil {
+		if err := c.StoreExpiringString(ctx, cache.KeyRestartRequestedOnPlatform, platform, expireIn); err != nil {
 			log.Printf("Failed to store platform that restart was requested from (%s): %v", platform, err)
 		}
 	}()
 	go func() {
-		if err := c.StoreExpiringString(cache.KeyRestartRequestedInChannel, channel, expireIn); err != nil {
+		if err := c.StoreExpiringString(ctx, cache.KeyRestartRequestedInChannel, channel, expireIn); err != nil {
 			log.Printf("Failed to store channel that restart was requested from (%s): %v", channel, err)
 		}
 	}()
 	go func() {
-		if err := c.StoreExpiringString(cache.KeyRestartRequestedByMessageID, id, expireIn); err != nil {
+		if err := c.StoreExpiringString(ctx, cache.KeyRestartRequestedByMessageID, id, expireIn); err != nil {
 			log.Printf("Failed to store message ID that requested restart (%s): %v", id, err)
 		}
 	}()
 }
 
 // Notify notifies interested parties that the restart has finished.
-func Notify(c cache.Cache, platforms map[string]base.Platform) error {
+func Notify(ctx context.Context, c cache.Cache, platforms map[string]base.Platform) error {
 	platformCh := make(chan string, 1)
 	channelCh := make(chan string, 1)
 	messageCh := make(chan string, 1)
@@ -44,7 +45,7 @@ func Notify(c cache.Cache, platforms map[string]base.Platform) error {
 	var eg errgroup.Group
 
 	eg.Go(func() error {
-		platform, err := c.FetchString(cache.KeyRestartRequestedOnPlatform)
+		platform, err := c.FetchString(ctx, cache.KeyRestartRequestedOnPlatform)
 		if err != nil {
 			return fmt.Errorf("failed to fetch platform that restart was requested from: %w", err)
 		}
@@ -52,7 +53,7 @@ func Notify(c cache.Cache, platforms map[string]base.Platform) error {
 		return nil
 	})
 	eg.Go(func() error {
-		channel, err := c.FetchString(cache.KeyRestartRequestedInChannel)
+		channel, err := c.FetchString(ctx, cache.KeyRestartRequestedInChannel)
 		if err != nil {
 			return fmt.Errorf("failed to fetch channel that restart was requested from: %w", err)
 		}
@@ -60,7 +61,7 @@ func Notify(c cache.Cache, platforms map[string]base.Platform) error {
 		return nil
 	})
 	eg.Go(func() error {
-		messageID, err := c.FetchString(cache.KeyRestartRequestedByMessageID)
+		messageID, err := c.FetchString(ctx, cache.KeyRestartRequestedByMessageID)
 		if err != nil {
 			return fmt.Errorf("failed to fetch message that requested restart: %w", err)
 		}
@@ -84,11 +85,11 @@ func Notify(c cache.Cache, platforms map[string]base.Platform) error {
 			Channel: channel,
 		}
 		if messageID != "" {
-			if err := p.Reply(msg, messageID); err != nil {
+			if err := p.Reply(ctx, msg, messageID); err != nil {
 				return fmt.Errorf("failed to notify restart to %s/%s: %w", platform, channel, err)
 			}
 		} else {
-			if err := p.Send(msg); err != nil {
+			if err := p.Send(ctx, msg); err != nil {
 				return fmt.Errorf("failed to notify restart to %s/%s: %w", platform, channel, err)
 			}
 		}

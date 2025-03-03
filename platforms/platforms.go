@@ -3,6 +3,7 @@ package platforms
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"runtime/debug"
 	"time"
@@ -11,19 +12,18 @@ import (
 	"github.com/airforce270/airbot/cache"
 	"github.com/airforce270/airbot/commands"
 	"github.com/airforce270/airbot/config"
+	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/platforms/twitch"
-
-	"gorm.io/gorm"
 )
 
 const ctxCheckInterval = 50 * time.Millisecond
 
 // Build builds connections to enabled platforms based on the config.
-func Build(cfg *config.Config, db *gorm.DB, cdb cache.Cache) (map[string]base.Platform, error) {
+func Build(cfg *config.Config, db *sql.DB, queries *database.Queries, cdb cache.Cache) (map[string]base.Platform, error) {
 	p := map[string]base.Platform{}
 	if twc := cfg.Platforms.Twitch; twc.Enabled {
 		log.Printf("Building Twitch platform...")
-		tw := twitch.New(twc.Username, twc.Owners, twc.ClientID, twc.ClientSecret, twc.AccessToken, twc.RefreshToken, db, cdb)
+		tw := twitch.New(twc.Username, twc.Owners, twc.ClientID, twc.ClientSecret, twc.AccessToken, twc.RefreshToken, db, queries, cdb)
 		p[twitch.Name] = tw
 	}
 	return p, nil
@@ -31,9 +31,9 @@ func Build(cfg *config.Config, db *gorm.DB, cdb cache.Cache) (map[string]base.Pl
 
 // StartHandling starts handling commands coming from the given platform.
 // This function blocks and should be run within a goroutine.
-func StartHandling(ctx context.Context, p base.Platform, db *gorm.DB, cdb cache.Cache, cfg *config.Config, allPlatforms map[string]base.Platform, logIncoming, logOutgoing bool) {
-	handler := commands.NewHandler(ctx, db, cdb, cfg, allPlatforms)
-	inC := p.Listen()
+func StartHandling(ctx context.Context, p base.Platform, db *sql.DB, queries *database.Queries, cdb cache.Cache, cfg *config.Config, allPlatforms map[string]base.Platform, logIncoming, logOutgoing bool) {
+	handler := commands.NewHandler(ctx, db, queries, cdb, cfg, allPlatforms)
+	inC := p.Listen(ctx)
 
 	outC := make(chan base.OutgoingMessage, 100)
 	go startSending(ctx, p, outC, cdb, logOutgoing)
@@ -50,7 +50,7 @@ func StartHandling(ctx context.Context, p base.Platform, db *gorm.DB, cdb cache.
 		select {
 		case <-timer.C:
 		case msg := <-inC:
-			go processMessage(&handler, db, p, outC, msg, logIncoming)
+			go processMessage(ctx, &handler, p, outC, msg, logIncoming)
 		}
 
 		timer.Reset(ctxCheckInterval)
@@ -58,7 +58,7 @@ func StartHandling(ctx context.Context, p base.Platform, db *gorm.DB, cdb cache.
 }
 
 // processMessage processes a single message and may queue messages to be sent in response.
-func processMessage(handler *commands.Handler, db *gorm.DB, p base.Platform, outC chan<- base.OutgoingMessage, msg base.IncomingMessage, logIncoming bool) {
+func processMessage(ctx context.Context, handler *commands.Handler, p base.Platform, outC chan<- base.OutgoingMessage, msg base.IncomingMessage, logIncoming bool) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("processMessage panicked, recovered: %v; %s", r, debug.Stack())
@@ -69,7 +69,7 @@ func processMessage(handler *commands.Handler, db *gorm.DB, p base.Platform, out
 		log.Printf("[%s<- %s/%s]: %s", p.Name(), msg.Message.Channel, msg.Message.User, msg.Message.Text)
 	}
 
-	outMsgs, err := handler.Handle(&msg)
+	outMsgs, err := handler.Handle(ctx, &msg)
 	if err != nil {
 		log.Printf("Failed to handle message %v: %v", msg, err)
 		return
@@ -104,16 +104,16 @@ func startSending(ctx context.Context, p base.Platform, outC <-chan base.Outgoin
 			}
 
 			if out.ReplyToID != "" {
-				if err := p.Reply(out.Message, out.ReplyToID); err != nil {
+				if err := p.Reply(ctx, out.Message, out.ReplyToID); err != nil {
 					log.Printf("Failed to send message (reply) %v: %v", out, err)
 				}
 			} else {
-				if err := p.Send(out.Message); err != nil {
+				if err := p.Send(ctx, out.Message); err != nil {
 					log.Printf("Failed to send message %v: %v", out, err)
 				}
 			}
 
-			slowmode, err := cdb.FetchBool(cache.GlobalSlowmodeKey(p.Name()))
+			slowmode, err := cdb.FetchBool(ctx, cache.GlobalSlowmodeKey(p.Name()))
 			if err != nil {
 				log.Printf("Failed to fetch slowmode status for %s: %v", p.Name(), err)
 			}

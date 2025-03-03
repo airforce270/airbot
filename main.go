@@ -1,6 +1,4 @@
 // Package main contains the main logic for airbot.
-//
-//go:generate go run docs/gen.go
 package main
 
 import (
@@ -43,7 +41,7 @@ func reStart(ctx context.Context) (cleanup.Cleaner, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := restart.Notify(resources.cache, resources.platforms); err != nil {
+	if err := restart.Notify(ctx, resources.cache, resources.platforms); err != nil {
 		log.Printf("Failed to notify restart: %v", err)
 	}
 	return cleaner, err
@@ -65,24 +63,24 @@ func start(ctx context.Context) (cleanup.Cleaner, postStartupResources, error) {
 	configSrc.Close()
 
 	log.Printf("Connecting to database...")
-	db, err := database.Connect(ctx, log.Default(), filepath.Join(os.Getenv("AIRBOT_SQLITE_DATA_DIR"), "sqlite.db"))
+	db, queries, err := database.Connect(ctx, log.Default(), filepath.Join(os.Getenv("AIRBOT_SQLITE_DATA_DIR"), "sqlite.db"))
 	if err != nil {
 		return nil, postStartupResources{}, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	log.Printf("Connecting to cache...")
-	cdb, err := cache.NewSQLite(db)
+	cdb, err := cache.NewSQLite(queries)
 	if err != nil {
 		return nil, postStartupResources{}, fmt.Errorf("failed to connect to cache: %w", err)
 	}
 
-	log.Printf("Performing database migrations...")
-	if err = database.Migrate(db); err != nil {
-		return nil, postStartupResources{}, fmt.Errorf("failed to perform database migrations: %w", err)
-	}
+	// log.Printf("Performing database migrations...")
+	// if err = database.Migrate(db); err != nil {
+	// 	return nil, postStartupResources{}, fmt.Errorf("failed to perform database migrations: %w", err)
+	// }
 
 	log.Printf("Preparing chat connections...")
-	ps, err := platforms.Build(cfg, db, &cdb)
+	ps, err := platforms.Build(cfg, db, queries, &cdb)
 	if err != nil {
 		return nil, postStartupResources{}, fmt.Errorf("failed to build platforms: %w", err)
 	}
@@ -94,11 +92,11 @@ func start(ctx context.Context) (cleanup.Cleaner, postStartupResources, error) {
 		}
 
 		log.Printf("Starting to handle messages on %s...", p.Name())
-		go platforms.StartHandling(ctx, p, db, &cdb, cfg, ps, cfg.LogIncoming, cfg.LogOutgoing)
+		go platforms.StartHandling(ctx, p, db, queries, &cdb, cfg, ps, cfg.LogIncoming, cfg.LogOutgoing)
 		cleaner.Register(cleanup.Func{Name: p.Name(), F: p.Disconnect})
 	}
 
-	go gamba.StartGrantingPoints(ctx, ps, db)
+	go gamba.StartGrantingPoints(ctx, ps, queries)
 
 	if cfg.Supinic.IsConfigured() && cfg.Supinic.ShouldPingAPI {
 		log.Println("Starting to ping the Supinic API...")

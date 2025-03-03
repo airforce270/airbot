@@ -10,21 +10,19 @@ import (
 	"time"
 
 	"github.com/airforce270/airbot/base"
-	"github.com/airforce270/airbot/database/models"
-
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
+	"github.com/airforce270/airbot/database"
+	"github.com/airforce270/airbot/utils/ptrs"
 )
 
 var (
-	grantInterval       = 10 * time.Minute
-	activeGrantAmount   = 10
-	inactiveGrantAmount = 3
+	grantInterval             = 10 * time.Minute
+	activeGrantAmount   int64 = 10
+	inactiveGrantAmount int64 = 3
 )
 
 // StartGrantingPoints starts a loop to grant points to all chatters on an interval.
 // This function blocks and should be run within a goroutine.
-func StartGrantingPoints(ctx context.Context, ps map[string]base.Platform, db *gorm.DB) {
+func StartGrantingPoints(ctx context.Context, ps map[string]base.Platform, queries *database.Queries) {
 	timer := time.NewTicker(grantInterval)
 	for {
 		select {
@@ -32,7 +30,7 @@ func StartGrantingPoints(ctx context.Context, ps map[string]base.Platform, db *g
 			log.Print("Stopping point granting, context cancelled")
 			return
 		case <-timer.C:
-			go grantPoints(ps, db)
+			go grantPoints(ctx, ps, queries)
 		}
 	}
 }
@@ -40,32 +38,34 @@ func StartGrantingPoints(ctx context.Context, ps map[string]base.Platform, db *g
 // grant represents a points grant that may be given to a user.
 type grant struct {
 	// User is the user the grant is for.
-	User models.User
+	User database.User
 	// IsActive is whether the user is currently active.
 	IsActive bool
 }
 
 // Persist persists the grant in the database. This is not an idempotent operation.
-func (g grant) Persist(db *gorm.DB) error {
+func (g grant) Persist(ctx context.Context, queries *database.Queries) error {
 	amount := activeGrantAmount
 	if !g.IsActive {
 		amount = inactiveGrantAmount
 	}
-	err := db.Create(&models.GambaTransaction{
-		User:  g.User,
-		Game:  "AutomaticGrant",
-		Delta: int64(amount),
-	}).Error
+	_, err := queries.CreateGambaTransaction(ctx, database.CreateGambaTransactionParams{
+		UserID: &g.User.ID,
+		Game:   ptrs.Ptr("AutomaticGrant"),
+		Delta:  ptrs.Ptr(int64(amount)),
+	})
 	if err != nil {
 		return fmt.Errorf("failed to create automatic grant (user %d, amount %d): %w", g.User.ID, amount, err)
 	}
 	return nil
 }
 
-// OutbboundPendingDuels returns the user's inbound pending duels.
-func OutboundPendingDuels(user *models.User, expire time.Duration, db *gorm.DB) ([]models.Duel, error) {
-	var duels []models.Duel
-	err := db.Where("user_id = ? AND created_at >= ?", user.ID, time.Now().Add(-expire)).Preload(clause.Associations).Find(&duels).Error
+// OutboundPendingDuels returns the user's outbound pending duels.
+func OutboundPendingDuels(ctx context.Context, user database.User, expire time.Duration, queries *database.Queries) ([]database.Duel, error) {
+	duels, err := queries.SelectUserOutboundDuels(ctx, database.SelectUserOutboundDuelsParams{
+		UserID:    &user.ID,
+		CreatedAt: ptrs.Ptr(time.Now().Add(-expire)),
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve pending outbound duels for user %d: %w", user.ID, err)
 	}
@@ -73,9 +73,11 @@ func OutboundPendingDuels(user *models.User, expire time.Duration, db *gorm.DB) 
 }
 
 // InboundPendingDuels returns the user's inbound pending duels.
-func InboundPendingDuels(user *models.User, expire time.Duration, db *gorm.DB) ([]models.Duel, error) {
-	var duels []models.Duel
-	err := db.Where("target_id = ? AND created_at >= ?", user.ID, time.Now().Add(-expire)).Preload(clause.Associations).Find(&duels).Error
+func InboundPendingDuels(ctx context.Context, user database.User, expire time.Duration, queries *database.Queries) ([]database.Duel, error) {
+	duels, err := queries.SelectUserInboundDuels(ctx, database.SelectUserInboundDuelsParams{
+		TargetID:  &user.ID,
+		CreatedAt: ptrs.Ptr(time.Now().Add(-expire)),
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve pending inbound duels for user %d: %w", user.ID, err)
 	}
@@ -83,17 +85,17 @@ func InboundPendingDuels(user *models.User, expire time.Duration, db *gorm.DB) (
 }
 
 // grantPoints performs a single point grant to all active and inactive users.
-func grantPoints(ps map[string]base.Platform, db *gorm.DB) {
+func grantPoints(ctx context.Context, ps map[string]base.Platform, queries *database.Queries) {
 	var grants []grant
 
-	for _, inactiveUser := range getInactiveUsers(ps, db) {
+	for _, inactiveUser := range getInactiveUsers(ctx, ps) {
 		grants = append(grants, grant{
 			User:     inactiveUser,
 			IsActive: false,
 		})
 	}
 
-	activeUsers, err := getActiveUsers(db)
+	activeUsers, err := getActiveUsers(ctx, queries)
 	if err != nil {
 		log.Printf("Failed to fetch users: %v", err)
 	}
@@ -107,7 +109,7 @@ func grantPoints(ps map[string]base.Platform, db *gorm.DB) {
 	grants = deduplicateByUser(grants)
 
 	for _, g := range grants {
-		err := g.Persist(db)
+		err := g.Persist(ctx, queries)
 		if err != nil {
 			log.Printf("Failed to grant points - failed to persist grant: %v", err)
 			return
@@ -117,8 +119,8 @@ func grantPoints(ps map[string]base.Platform, db *gorm.DB) {
 
 // getInactiveUsers gets all inactive users to grant points to.
 // The users returned are not guaranteed to be inactive, the results returned are overinclusive.
-func getInactiveUsers(ps map[string]base.Platform, db *gorm.DB) []models.User {
-	var users []models.User
+func getInactiveUsers(ctx context.Context, ps map[string]base.Platform) []database.User {
+	var users []database.User
 	for _, p := range ps {
 		allUsers, err := p.CurrentUsers()
 		if err != nil {
@@ -127,7 +129,7 @@ func getInactiveUsers(ps map[string]base.Platform, db *gorm.DB) []models.User {
 		}
 
 		for _, u := range allUsers {
-			user, err := p.User(u)
+			user, err := p.User(ctx, u)
 			if err != nil {
 				if errors.Is(err, base.ErrUserUnknown) {
 					// user needs to type something somewhere before they can get points automatically
@@ -144,20 +146,10 @@ func getInactiveUsers(ps map[string]base.Platform, db *gorm.DB) []models.User {
 
 // getActiveUsers gets all active users to grant points to.
 // The users returned are guaranteed to be active.
-func getActiveUsers(db *gorm.DB) ([]models.User, error) {
-	var recentMessagesUniqueByUser []models.Message
-	err := db.Select("user_id").Distinct("user_id").Where("time > ?", time.Now().Add(-grantInterval)).Find(&recentMessagesUniqueByUser).Error
+func getActiveUsers(ctx context.Context, queries *database.Queries) ([]database.User, error) {
+	activeUsers, err := queries.SelectActiveUsers(ctx, ptrs.Ptr(time.Now().Add(-grantInterval)))
 	if err != nil {
-		return nil, fmt.Errorf("failed to select recent user IDs: %w", err)
-	}
-	var recentUserIDs []uint
-	for _, m := range recentMessagesUniqueByUser {
-		recentUserIDs = append(recentUserIDs, m.UserID)
-	}
-
-	var activeUsers []models.User
-	if err := db.Where("id IN ?", recentUserIDs).Find(&activeUsers).Error; err != nil {
-		return nil, fmt.Errorf("failed to select recent users based on %d IDs: %w", len(recentUserIDs), err)
+		return nil, fmt.Errorf("failed to select recent user: %w", err)
 	}
 	return activeUsers, nil
 }
@@ -174,7 +166,7 @@ func deduplicateByUser(grants []grant) []grant {
 		return 1
 	})
 	var deduped []grant
-	var grantedIDs []uint
+	var grantedIDs []int64
 	for _, g := range sorted {
 		if slices.Contains(grantedIDs, g.User.ID) {
 			continue

@@ -38,7 +38,6 @@ type Case struct {
 func Run(t *testing.T, tests []Case) {
 	t.Helper()
 	for _, tc := range buildTestCases(tests) {
-		tc := tc
 		t.Run(fmt.Sprintf("[%s] %s", tc.input.PermissionLevel.Name(), tc.input.Message.Text), func(t *testing.T) {
 			t.Helper()
 			t.Parallel()
@@ -48,13 +47,13 @@ func Run(t *testing.T, tests []Case) {
 
 			server.Resps = tc.apiResps
 
-			db := databasetest.New(t)
-			cdb := cachetest.NewSQLite(t, db)
+			db, queries := databasetest.New(t)
+			cdb := cachetest.NewSQLite(t, queries)
 
 			var platform base.Platform
 			switch tc.platform {
 			case TwitchPlatform:
-				platform = twitch.NewForTesting(t, server.URL(t).String(), db)
+				platform = twitch.NewForTestingWithDB(t, server.URL(t).String(), db, queries)
 			default:
 				t.Fatal("Platform must be set.")
 			}
@@ -88,8 +87,8 @@ func Run(t *testing.T, tests []Case) {
 
 			tc.input.Resources = resources
 
-			handler := commands.NewHandlerForTest(db, cdb, resources.AllPlatforms, resources.NewConfigSource, resources.Rand, resources.Clients)
-			got, err := handler.Handle(&tc.input)
+			handler := commands.NewHandlerForTest(db, queries, cdb, resources.AllPlatforms, resources.NewConfigSource, resources.Rand, resources.Clients)
+			got, err := handler.Handle(ctx, &tc.input)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}

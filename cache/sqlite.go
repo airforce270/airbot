@@ -1,54 +1,51 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 	"time"
 
-	"github.com/airforce270/airbot/database/models"
-	"gorm.io/gorm"
+	"github.com/airforce270/airbot/database"
+	"github.com/airforce270/airbot/utils/ptrs"
 )
 
 // NewSQLite creates a new SQLite-backed Cache.
-func NewSQLite(db *gorm.DB) (SQLite, error) {
-	return SQLite{db}, nil
+func NewSQLite(queries *database.Queries) (SQLite, error) {
+	return SQLite{queries}, nil
 }
 
 // SQLite implements Cache for a SQLite database.
 type SQLite struct {
-	db *gorm.DB
+	queries *database.Queries
 }
 
-func (v *SQLite) StoreBool(key string, value bool) error {
-	item := models.CacheBoolItem{
-		Key:   key,
-		Value: value,
+func (v *SQLite) StoreBool(ctx context.Context, key string, value bool) error {
+	return v.StoreExpiringBool(ctx, key, value, -1 /* expiration */)
+}
+
+func (v *SQLite) StoreExpiringBool(ctx context.Context, key string, value bool, expiration time.Duration) error {
+	item := database.UpsertCacheBoolItemParams{
+		Keyy: ptrs.StringNil(key),
+	}
+	if value {
+		item.Value = ptrs.TrueFloat
+	} else {
+		item.Value = ptrs.FalseFloat
+	}
+	if expiration >= 0 {
+		item.ExpiresAt = ptrs.Ptr(time.Now().Add(expiration))
 	}
 
-	if err := v.db.Save(&item).Error; err != nil {
+	if err := v.queries.UpsertCacheBoolItem(ctx, item); err != nil {
 		return fmt.Errorf("failed to store %s=%v: %w", key, value, err)
 	}
 
 	return nil
 }
 
-func (v *SQLite) StoreExpiringBool(key string, value bool, expiration time.Duration) error {
-	item := models.CacheBoolItem{
-		Key:       key,
-		Value:     value,
-		ExpiresAt: time.Now().Add(expiration),
-	}
-
-	if err := v.db.Save(&item).Error; err != nil {
-		return fmt.Errorf("failed to store %q=%t: %w", key, value, err)
-	}
-
-	return nil
-}
-
-func (v *SQLite) FetchBool(key string) (bool, error) {
-	var item models.CacheBoolItem
-
-	if err := v.db.First(&item, "key = ?", key).Error; err != nil {
+func (v *SQLite) FetchBool(ctx context.Context, key string) (bool, error) {
+	item, err := v.queries.SelectCacheBoolItem(ctx, ptrs.StringNil(key))
+	if err != nil {
 		return false, fmt.Errorf("failed to fetch %q: %w", key, err)
 	}
 
@@ -56,40 +53,32 @@ func (v *SQLite) FetchBool(key string) (bool, error) {
 		return false, nil
 	}
 
-	return item.Value, nil
+	return item.Value == ptrs.TrueFloat, nil
 }
 
-func (v *SQLite) StoreString(key, value string) error {
-	item := models.CacheStringItem{
-		Key:   key,
-		Value: value,
+func (v *SQLite) StoreString(ctx context.Context, key, value string) error {
+	return v.StoreExpiringString(ctx, key, value, -1 /* expiration */)
+}
+
+func (v *SQLite) StoreExpiringString(ctx context.Context, key, value string, expiration time.Duration) error {
+	item := database.UpsertCacheStringItemParams{
+		Keyy:  ptrs.StringNil(key),
+		Value: ptrs.StringNil(value),
+	}
+	if expiration >= 0 {
+		item.ExpiresAt = ptrs.Ptr(time.Now().Add(expiration))
 	}
 
-	if err := v.db.Save(&item).Error; err != nil {
-		return fmt.Errorf("failed to store %q=%q: %w", key, value, err)
+	if err := v.queries.UpsertCacheStringItem(ctx, item); err != nil {
+		return fmt.Errorf("failed to store %s=%v: %w", key, value, err)
 	}
 
 	return nil
 }
 
-func (v *SQLite) StoreExpiringString(key, value string, expiration time.Duration) error {
-	item := models.CacheStringItem{
-		Key:       key,
-		Value:     value,
-		ExpiresAt: time.Now().Add(expiration),
-	}
-
-	if err := v.db.Save(&item).Error; err != nil {
-		return fmt.Errorf("failed to store %q=%q: %w", key, value, err)
-	}
-
-	return nil
-}
-
-func (v *SQLite) FetchString(key string) (string, error) {
-	var item models.CacheStringItem
-
-	if err := v.db.First(&item, "key = ?", key).Error; err != nil {
+func (v *SQLite) FetchString(ctx context.Context, key string) (string, error) {
+	item, err := v.queries.SelectCacheStringItem(ctx, ptrs.StringNil(key))
+	if err != nil {
 		return "", fmt.Errorf("failed to fetch %q: %w", key, err)
 	}
 
@@ -97,5 +86,9 @@ func (v *SQLite) FetchString(key string) (string, error) {
 		return "", nil
 	}
 
-	return item.Value, nil
+	if item.Value == nil {
+		return "", nil
+	}
+
+	return *item.Value, nil
 }

@@ -2,6 +2,7 @@
 package bulk
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/airforce270/airbot/apiclients/pastebin"
@@ -26,7 +27,7 @@ var (
 	}
 )
 
-func filesay(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func filesay(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	pastebinURLArg := args[0]
 	if !pastebinURLArg.Present {
 		return nil, basecommand.ErrBadUsage

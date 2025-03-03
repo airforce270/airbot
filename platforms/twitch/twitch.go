@@ -3,6 +3,7 @@ package twitch
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -20,13 +21,12 @@ import (
 	"github.com/airforce270/airbot/cache"
 	"github.com/airforce270/airbot/cache/cachetest"
 	"github.com/airforce270/airbot/database"
-	"github.com/airforce270/airbot/database/models"
+	"github.com/airforce270/airbot/database/databasetest"
 	"github.com/airforce270/airbot/permission"
-	"github.com/airforce270/airbot/utils"
+	"github.com/airforce270/airbot/utils/ptrs"
 
 	twitchirc "github.com/gempir/go-twitch-irc/v4"
 	"github.com/nicklaw5/helix/v2"
-	"gorm.io/gorm"
 )
 
 const (
@@ -74,7 +74,9 @@ type Twitch struct {
 	// helix is the Twitch API client.
 	helix *helix.Client
 	// db is a reference to the database connection.
-	db *gorm.DB
+	db *sql.DB
+	// queries is a reference to the database connection.
+	queries *database.Queries
 	// cdb is a reference to the cache.
 	cdb cache.Cache
 }
@@ -83,11 +85,11 @@ func (t *Twitch) Name() string { return Name }
 
 func (t *Twitch) Username() string { return t.username }
 
-func (t *Twitch) Send(msg base.Message) error {
-	return t.Reply(msg, "")
+func (t *Twitch) Send(ctx context.Context, msg base.Message) error {
+	return t.Reply(ctx, msg, "")
 }
 
-func (t *Twitch) Reply(msg base.Message, replyToID string) error {
+func (t *Twitch) Reply(ctx context.Context, msg base.Message, replyToID string) error {
 	var channel *twitchChannel
 	for _, c := range t.channels {
 		if strings.EqualFold(c.Name, msg.Channel) {
@@ -108,14 +110,14 @@ func (t *Twitch) Reply(msg base.Message, replyToID string) error {
 	text := strings.ReplaceAll(msg.Text, "\n", " ")
 
 	// Bypass 30-second same message detection.
-	lastSentMsg, err := t.cdb.FetchString(cache.KeyLastSentTwitchMessage)
+	lastSentMsg, err := t.cdb.FetchString(ctx, cache.KeyLastSentTwitchMessage)
 	if err != nil {
 		log.Printf("Failed to check if message (%q/%q) is in cache: %v", msg.Channel, text, err)
 	} else if lastSentMsg == text {
 		text = bypassSameMessageDetection(text)
 	}
 
-	go t.persistUserAndMessage(t.id, t.username, text, msg.Channel, msg.Time)
+	go t.persistUserAndMessage(ctx, t.id, t.username, text, msg.Channel, msg.Time)
 
 	if t.irc != nil {
 		if replyToID != "" {
@@ -127,16 +129,16 @@ func (t *Twitch) Reply(msg base.Message, replyToID string) error {
 		log.Print("Didn't actually send message - IRC client is nil. This is expected in test, but if you see this in production, something's broken!")
 	}
 
-	if err := t.cdb.StoreExpiringString(cache.KeyLastSentTwitchMessage, text, lastSentTwitchMessageExpiration); err != nil {
+	if err := t.cdb.StoreExpiringString(ctx, cache.KeyLastSentTwitchMessage, text, lastSentTwitchMessageExpiration); err != nil {
 		log.Printf("[Twitch.persistUserAndMessage]: Failed to persist message in cache, %q: %v", text, err)
 	}
 	return nil
 }
 
-func (t *Twitch) Listen() <-chan base.IncomingMessage {
+func (t *Twitch) Listen(ctx context.Context) <-chan base.IncomingMessage {
 	c := make(chan base.IncomingMessage)
 	t.irc.OnPrivateMessage(func(msg twitchirc.PrivateMessage) {
-		go t.persistUserAndMessage(msg.User.ID, msg.User.DisplayName, msg.Message, msg.Channel, msg.Time)
+		go t.persistUserAndMessage(ctx, msg.User.ID, msg.User.DisplayName, msg.Message, msg.Channel, msg.Time)
 		c <- base.IncomingMessage{
 			Message: base.Message{
 				Text:    msg.Message,
@@ -156,7 +158,7 @@ func (t *Twitch) Listen() <-chan base.IncomingMessage {
 	return c
 }
 
-func (t *Twitch) Join(channel string, prefix string) error {
+func (t *Twitch) Join(ctx context.Context, channel string, prefix string) error {
 	channelInfo, err := t.Channel(channel)
 	if err != nil {
 		return fmt.Errorf("failed to look up channel: %w", err)
@@ -174,8 +176,11 @@ func (t *Twitch) Join(channel string, prefix string) error {
 	// If we're banned, the IRC server will send a ban message about 150ms after we try to join.
 	time.Sleep(250 * time.Millisecond)
 
-	var banCount int64
-	err = t.db.Model(&models.BotBan{}).Where("platform = ? AND channel = ? AND banned_at > ?", t.Name(), strings.ToLower(channel), startTime).Count(&banCount).Error
+	banCount, err := t.queries.CountBotBansInChannel(ctx, database.CountBotBansInChannelParams{
+		Platform: ptrs.StringNil(t.Name()),
+		Channel:  ptrs.StringNil(strings.ToLower(channel)),
+		BannedAt: &startTime,
+	})
 	if err != nil {
 		return fmt.Errorf("failed to retrieve %s channels bot is banned in: %w", t.Name(), err)
 	}
@@ -212,10 +217,10 @@ func (t *Twitch) Leave(channel string) error {
 
 func (t *Twitch) Connect(ctx context.Context) error {
 	log.Printf("[%s] Initializing channel data...", t.Name())
-	if err := t.ensureSelfIsJoined(); err != nil {
+	if err := t.ensureSelfIsJoined(ctx); err != nil {
 		return fmt.Errorf("[%s] failed to join self: %w", t.Name(), err)
 	}
-	if err := t.populateInMemoryJoinedChannelCache(); err != nil {
+	if err := t.populateInMemoryJoinedChannelCache(ctx); err != nil {
 		return fmt.Errorf("[%s] failed to populate in-memory joined channel cache: %w", t.Name(), err)
 	}
 
@@ -255,12 +260,12 @@ func (t *Twitch) Connect(ctx context.Context) error {
 	t.id = botUser.ID
 
 	log.Printf("[%s] Updating cached joined channels...", t.Name())
-	if _, err := t.updateCachedJoinedChannels(); err != nil {
+	if _, err := t.updateCachedJoinedChannels(ctx); err != nil {
 		return fmt.Errorf("failed to update cached joined channels: %w", err)
 	}
 	go t.startWatchingForChannelRenames(ctx)
 
-	t.setUpIRCHandlers()
+	t.setUpIRCHandlers(ctx)
 
 	log.Printf("[%s] Checking if the bot is a verified bot...", t.Name())
 	ivrClient := ivr.NewDefaultClient()
@@ -325,14 +330,13 @@ func (t *Twitch) SetPrefix(channel, prefix string) error {
 	return fmt.Errorf("channel %s not joined", channel)
 }
 
-func (t *Twitch) User(username string) (models.User, error) {
-	var user models.User
-	err := t.db.Where("LOWER(twitch_name) = ?", strings.ToLower(username)).Limit(1).Find(&user).Error
+func (t *Twitch) User(ctx context.Context, username string) (database.User, error) {
+	user, err := t.queries.SelectTwitchUserByTwitchName(ctx, &username)
 	if err != nil {
-		return models.User{}, fmt.Errorf("failed to retrieve twitch user %s from db: %w", username, err)
+		return database.User{}, fmt.Errorf("failed to retrieve twitch user %s from db: %w", username, err)
 	}
 	if user.ID == 0 {
-		return models.User{}, fmt.Errorf("twitch user %s has never been seen by the bot: %w", username, base.ErrUserUnknown)
+		return database.User{}, fmt.Errorf("twitch user %s has never been seen by the bot: %w", username, base.ErrUserUnknown)
 	}
 	return user, nil
 }
@@ -365,8 +369,8 @@ func (t *Twitch) CurrentUsers() ([]string, error) {
 	return allChatters, nil
 }
 
-func (t *Twitch) Timeout(username, channel string, duration time.Duration) error {
-	return t.Send(base.Message{
+func (t *Twitch) Timeout(ctx context.Context, username, channel string, duration time.Duration) error {
+	return t.Send(ctx, base.Message{
 		Channel: channel,
 		Text:    fmt.Sprintf("/timeout %s %.f", username, duration.Seconds()),
 	})
@@ -412,13 +416,13 @@ func (t *Twitch) startWatchingForChannelRenames(ctx context.Context) {
 	for {
 		select {
 		case <-ticker.C:
-			renamed, err := t.updateCachedJoinedChannels()
+			renamed, err := t.updateCachedJoinedChannels(ctx)
 			if err != nil {
 				log.Printf("[%s] Failed to update cached joined channels: %v", t.Name(), err)
 			}
 			for _, channel := range renamed {
-				if err := t.Join(channel.Channel, channel.Prefix); err != nil {
-					log.Printf("[%s] Failed to rejoin renamed channel %s (%s)", t.Name(), channel.Channel, channel.ChannelID)
+				if err := t.Join(ctx, *channel.Channel, *channel.Prefix); err != nil {
+					log.Printf("[%s] Failed to rejoin renamed channel %s (%s)", t.Name(), *channel.Channel, *channel.ChannelID)
 				}
 			}
 		case <-ctx.Done():
@@ -439,23 +443,23 @@ func (t *Twitch) startWatchingForChannelRenames(ctx context.Context) {
 //
 // Importantly, renamed channels are not joined.
 // The caller is responsible for rejoining those channels.
-func (t *Twitch) updateCachedJoinedChannels() ([]*models.JoinedChannel, error) {
-	var renamed []*models.JoinedChannel
+func (t *Twitch) updateCachedJoinedChannels(ctx context.Context) ([]database.JoinedChannel, error) {
+	var renamed []database.JoinedChannel
 
-	var joinedChannels []*models.JoinedChannel
-	if err := t.db.Find(&joinedChannels).Error; err != nil {
+	joinedChannels, err := t.queries.SelectJoinedChannels(ctx, ptrs.StringNil(t.Name()))
+	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve joined channels (???): %w", err)
 	}
 
 	helixUsersByID := map[string]helix.User{}
-	for _, channelBatch := range utils.Chunk(joinedChannels, 100) {
+	for channelBatch := range slices.Chunk(joinedChannels, 100) {
 		ids := make([]string, 0, 100)
 		logins := make([]string, 0, 100)
 		for _, joinedChannel := range channelBatch {
-			if joinedChannel.ChannelID != "" {
-				ids = append(ids, joinedChannel.ChannelID)
+			if *joinedChannel.ChannelID != "" {
+				ids = append(ids, *joinedChannel.ChannelID)
 			} else {
-				logins = append(ids, joinedChannel.Channel)
+				logins = append(ids, *joinedChannel.Channel)
 			}
 		}
 		resp, err := t.helix.GetUsers(&helix.UsersParams{IDs: ids, Logins: logins})
@@ -471,13 +475,13 @@ func (t *Twitch) updateCachedJoinedChannels() ([]*models.JoinedChannel, error) {
 	}
 
 	for _, joinedChannel := range joinedChannels {
-		if joinedChannel.ChannelID == "" {
-			log.Printf("[%s] Detected joined channel with no ID (%s) - probably the bot. Attempting to fix.\n", t.Name(), joinedChannel.Channel)
+		if *joinedChannel.ChannelID == "" {
+			log.Printf("[%s] Detected joined channel with no ID (%s) - probably the bot. Attempting to fix.\n", t.Name(), *joinedChannel.Channel)
 			found := false
 			for id, user := range helixUsersByID {
-				if user.Login == joinedChannel.Channel {
-					log.Printf("[%s] Found ID for %s: %s", t.Name(), joinedChannel.Channel, id)
-					joinedChannel.ChannelID = id
+				if user.Login == *joinedChannel.Channel {
+					log.Printf("[%s] Found ID for %s: %s", t.Name(), *joinedChannel.Channel, id)
+					joinedChannel.ChannelID = &id
 					renamed = append(renamed, joinedChannel)
 					found = true
 					break
@@ -486,31 +490,35 @@ func (t *Twitch) updateCachedJoinedChannels() ([]*models.JoinedChannel, error) {
 			if found {
 				continue
 			}
-			log.Printf("[%s] Couldn't find ID for channel %s", t.Name(), joinedChannel.Channel)
+			log.Printf("[%s] Couldn't find ID for channel %s", t.Name(), *joinedChannel.Channel)
 		}
 
-		helixUser, ok := helixUsersByID[joinedChannel.ChannelID]
+		helixUser, ok := helixUsersByID[*joinedChannel.ChannelID]
 		if !ok {
-			log.Printf("[%s] User %s (%s) not found in Helix lookup", t.Name(), joinedChannel.ChannelID, joinedChannel.Channel)
+			log.Printf("[%s] User %s (%s) not found in Helix lookup", t.Name(), *joinedChannel.ChannelID, *joinedChannel.Channel)
 			continue
 		}
-		if joinedChannel.Channel != helixUser.Login {
-			log.Printf("[%s] Detected renamed channel (%s): %s->%s", t.Name(), helixUser.ID, joinedChannel.Channel, helixUser.Login)
-			joinedChannel.Channel = helixUser.Login
+		if *joinedChannel.Channel != helixUser.Login {
+			log.Printf("[%s] Detected renamed channel (%s): %s->%s", t.Name(), helixUser.ID, *joinedChannel.Channel, helixUser.Login)
+			*joinedChannel.Channel = helixUser.Login
 			renamed = append(renamed, joinedChannel)
 		}
 	}
 
 	for _, renamedChannel := range renamed {
-		if err := t.db.Save(renamedChannel).Error; err != nil {
-			log.Printf("[%s] Failed to persist rename of %s to %s: %v", t.Name(), renamedChannel.ChannelID, renamedChannel.Channel, err)
+		update := database.UpdateJoinedChannelNameParams{
+			ChannelID: renamedChannel.ChannelID,
+			Channel:   renamedChannel.Channel,
+		}
+		if err := t.queries.UpdateJoinedChannelName(ctx, update); err != nil {
+			log.Printf("[%s] Failed to persist rename of %s to %s: %v", t.Name(), *renamedChannel.ChannelID, *renamedChannel.Channel, err)
 		}
 	}
 
 	for _, channel := range t.channels {
 		for _, renamedChannel := range renamed {
-			if renamedChannel.ChannelID == channel.ID {
-				channel.Name = renamedChannel.Channel
+			if *renamedChannel.ChannelID == channel.ID {
+				channel.Name = *renamedChannel.Channel
 				break
 			}
 		}
@@ -521,18 +529,18 @@ func (t *Twitch) updateCachedJoinedChannels() ([]*models.JoinedChannel, error) {
 
 // populateInMemoryJoinedChannelCache populates the in-memory joined channel
 // data using the latest joined channel data from the database.
-func (t *Twitch) populateInMemoryJoinedChannelCache() error {
-	var dbChannels []models.JoinedChannel
-	if err := t.db.Where(models.JoinedChannel{Platform: t.Name()}).Find(&dbChannels).Error; err != nil {
+func (t *Twitch) populateInMemoryJoinedChannelCache(ctx context.Context) error {
+	dbChannels, err := t.queries.SelectJoinedChannels(ctx, ptrs.StringNil(t.Name()))
+	if err != nil {
 		return fmt.Errorf("failed to fetch channels for %s from DB: %w", t.Name(), err)
 	}
 
 	var channels []*twitchChannel
 	for _, dbChannel := range dbChannels {
 		channels = append(channels, &twitchChannel{
-			ID:     dbChannel.ChannelID,
-			Name:   dbChannel.Channel,
-			Prefix: dbChannel.Prefix,
+			ID:     *dbChannel.ChannelID,
+			Name:   *dbChannel.Channel,
+			Prefix: *dbChannel.Prefix,
 		})
 	}
 
@@ -571,18 +579,37 @@ func (t *Twitch) level(msg *twitchirc.PrivateMessage) permission.Level {
 	return permission.Normal
 }
 
-func (t *Twitch) ensureSelfIsJoined() error {
-	var botChannel models.JoinedChannel
-	result := t.db.Where(models.JoinedChannel{Platform: t.Name(), Channel: strings.ToLower(t.username)}).
-		Attrs(models.JoinedChannel{Prefix: defaultBotPrefix, JoinedAt: time.Now()}).
-		FirstOrCreate(&botChannel)
-	if err := result.Error; err != nil {
-		return fmt.Errorf("failed to fetch/create DB row for %s/%s: %w", t.Name(), strings.ToLower(t.username), err)
-	}
-	return nil
+func (t *Twitch) ensureSelfIsJoined(ctx context.Context) error {
+	_, err := database.WithinTxn(t.db, t.queries, func(queries *database.Queries) (struct{}, error) {
+		var zero struct{}
+		_, err := queries.SelectJoinedChannel(ctx, database.SelectJoinedChannelParams{
+			Platform: ptrs.StringNil(t.Name()),
+			Channel:  ptrs.StringNil(strings.ToLower(t.username)),
+		})
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return zero, fmt.Errorf("failed to fetch joined channels for %s/%s: %w", t.Name(), strings.ToLower(t.username), err)
+		}
+		if err != nil && errors.Is(err, sql.ErrNoRows) {
+			_, err := queries.CreateJoinedChannel(ctx, database.CreateJoinedChannelParams{
+				Platform:  ptrs.StringNil(t.Name()),
+				Channel:   ptrs.StringNil(strings.ToLower(t.username)),
+				ChannelID: ptrs.StringNil(t.id),
+				Prefix:    ptrs.StringNil(defaultBotPrefix),
+				JoinedAt:  ptrs.Ptr(time.Now()),
+			})
+			if err != nil {
+				return zero, fmt.Errorf("failed to create joined channels for %s/%s: %w", t.Name(), strings.ToLower(t.username), err)
+			}
+			return zero, nil
+		} else {
+			// Row already exists, do nothing
+			return zero, nil
+		}
+	})
+	return err
 }
 
-func (t *Twitch) setUpIRCHandlers() {
+func (t *Twitch) setUpIRCHandlers(ctx context.Context) {
 	t.irc.OnClearMessage(func(msg twitchirc.ClearMessage) {
 		log.Printf("[%s] CLEAR: %s", t.Name(), msg.Raw)
 	})
@@ -596,7 +623,7 @@ func (t *Twitch) setUpIRCHandlers() {
 
 		// This fires when we the bot tries to join a channel it's banned in.
 		if msg.MsgID == twitchMsgIdBanned {
-			t.handleBannedFromChannel(msg.Channel)
+			t.handleBannedFromChannel(ctx, msg.Channel)
 		}
 	})
 	t.irc.OnPingMessage(func(msg twitchirc.PingMessage) {})
@@ -629,23 +656,22 @@ func (t *Twitch) setUpIRCHandlers() {
 	t.irc.OnUserStateMessage(func(msg twitchirc.UserStateMessage) {})
 	t.irc.OnWhisperMessage(func(msg twitchirc.WhisperMessage) {
 		log.Printf("[%s] WHISPER: %s", t.Name(), msg.Raw)
-		t.persistUserAndMessage(msg.User.ID, msg.User.Name, msg.Message, "whisper-"+t.Username(), time.Now())
+		t.persistUserAndMessage(ctx, msg.User.ID, msg.User.Name, msg.Message, "whisper-"+t.Username(), time.Now())
 	})
 }
 
-func (t *Twitch) persistUserAndMessage(twitchID, twitchName, message, channel string, sentTime time.Time) {
-	var user models.User
-	result := t.db.Where(models.User{TwitchID: twitchID}).Assign(models.User{TwitchName: twitchName}).FirstOrCreate(&user)
-	if err := result.Error; err != nil {
+func (t *Twitch) persistUserAndMessage(ctx context.Context, twitchID, twitchName, message, channel string, sentTime time.Time) {
+	user, err := database.UpdateOrCreateTwitchUser(ctx, t.db, t.queries, twitchID, twitchName)
+	if err != nil {
 		log.Printf("[Twitch.persistUserAndMessage]: Failed to find/create user, twitchName:%q %v", twitchName, err)
 	}
-	result = t.db.Create(&models.Message{
-		Text:    message,
-		Channel: channel,
-		User:    user,
-		Time:    sentTime,
+	_, err = t.queries.CreateMessage(ctx, database.CreateMessageParams{
+		UserID:  &user.ID,
+		Channel: &channel,
+		Text:    &message,
+		Time:    &sentTime,
 	})
-	if err := result.Error; err != nil {
+	if err != nil {
 		log.Printf("[Twitch.persistUserAndMessage]: Failed to persist message in database, %q/%q: %v", channel, message, err)
 	}
 }
@@ -693,20 +719,20 @@ func (t *Twitch) updateVIPStatusForChannel(channel *twitchChannel, vips []*ivr.M
 	channel.BotIsVIP = false
 }
 
-func (t *Twitch) handleBannedFromChannel(channel string) {
+func (t *Twitch) handleBannedFromChannel(ctx context.Context, channel string) {
 	log.Printf("[%s] Banned from channel %s, leaving it", t.Name(), channel)
 	go func() {
-		err := t.db.Create(&models.BotBan{
-			Platform: t.Name(),
-			Channel:  strings.ToLower(channel),
-			BannedAt: time.Now(),
-		}).Error
+		_, err := t.queries.CreateBotBan(ctx, database.CreateBotBanParams{
+			Platform: ptrs.StringNil(t.Name()),
+			Channel:  ptrs.StringNil(strings.ToLower(channel)),
+			BannedAt: ptrs.Ptr(time.Now()),
+		})
 		if err != nil {
 			log.Printf("failed to create bot ban DB entry: %v", err)
 		}
 	}()
 	go func() {
-		if err := database.LeaveChannel(t.db, t.Name(), channel); err != nil {
+		if err := database.LeaveChannel(ctx, t.queries, t.Name(), channel); err != nil {
 			log.Printf("[%s] Failed to leave channel %s (database): %v", t.Name(), channel, err)
 		}
 	}()
@@ -718,7 +744,7 @@ func (t *Twitch) handleBannedFromChannel(channel string) {
 }
 
 // New creates a new Twitch connection.
-func New(username string, owners []string, clientID, clientSecret, accessToken, refreshToken string, db *gorm.DB, cdb cache.Cache) *Twitch {
+func New(username string, owners []string, clientID, clientSecret, accessToken, refreshToken string, db *sql.DB, queries *database.Queries, cdb cache.Cache) *Twitch {
 	return &Twitch{
 		username:     username,
 		owners:       lowercaseAll(owners),
@@ -727,12 +753,20 @@ func New(username string, owners []string, clientID, clientSecret, accessToken, 
 		accessToken:  accessToken,
 		refreshToken: refreshToken,
 		db:           db,
+		queries:      queries,
 		cdb:          cdb,
 	}
 }
 
+// NewForTesting creates a new Twitch connection for testing.
+func NewForTesting(t *testing.T, url string) *Twitch {
+	t.Helper()
+	db, queries := databasetest.New(t)
+	return NewForTestingWithDB(t, url, db, queries)
+}
+
 // New creates a new Twitch connection for testing.
-func NewForTesting(t *testing.T, url string, db *gorm.DB) *Twitch {
+func NewForTestingWithDB(t *testing.T, url string, db *sql.DB, queries *database.Queries) *Twitch {
 	t.Helper()
 	helixClient, err := helix.NewClient(&helix.Options{
 		ClientID:        "fake-client-id",
@@ -757,7 +791,8 @@ func NewForTesting(t *testing.T, url string, db *gorm.DB) *Twitch {
 		irc:         nil,
 		helix:       helixClient,
 		db:          db,
-		cdb:         cachetest.NewSQLite(t, db),
+		queries:     queries,
+		cdb:         cachetest.NewSQLite(t, queries),
 	}
 }
 

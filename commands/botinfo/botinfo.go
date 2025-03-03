@@ -2,6 +2,7 @@
 package botinfo
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -10,8 +11,8 @@ import (
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/base/arg"
 	"github.com/airforce270/airbot/commands/basecommand"
-	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
+	"github.com/airforce270/airbot/utils/ptrs"
 
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/host"
@@ -27,7 +28,7 @@ var Commands = [...]basecommand.Command{
 		Aliases:    []string{"bot", "info", "about", "ping"},
 		Desc:       "Replies with info about the bot.",
 		Permission: permission.Normal,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			var resp strings.Builder
 			fmt.Fprintf(&resp, "Beep boop, this is Airbot running as %s in %s", msg.Resources.Platform.Username(), msg.Message.Channel)
 			fmt.Fprintf(&resp, " with prefix %s on %s.", msg.Prefix, msg.Resources.Platform.Name())
@@ -44,7 +45,7 @@ var Commands = [...]basecommand.Command{
 		Name:       "prefix",
 		Desc:       "Replies with the prefix in this channel.",
 		Permission: permission.Normal,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
@@ -57,7 +58,7 @@ var Commands = [...]basecommand.Command{
 		Name:       "source",
 		Desc:       "Replies a link to the bot's source code.",
 		Permission: permission.Normal,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
@@ -74,7 +75,7 @@ var Commands = [...]basecommand.Command{
 	},
 }
 
-func stats(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func stats(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	var g errgroup.Group
 
 	var cpuPercent float64
@@ -133,7 +134,8 @@ func stats(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	const recentlyProcessedMessagesInterval = 60 * time.Second
 	var recentlyProcessedMessages int64
 	g.Go(func() error {
-		err := msg.Resources.DB.Model(&models.Message{}).Where("created_at > ?", time.Now().Add(-recentlyProcessedMessagesInterval)).Count(&recentlyProcessedMessages).Error
+		var err error
+		recentlyProcessedMessages, err = msg.Resources.Queries.CountMessagesCreatedSince(ctx, ptrs.Ptr(time.Now().Add(-recentlyProcessedMessagesInterval)))
 		if err != nil {
 			return fmt.Errorf("failed to count recently processed messages: %w", err)
 		}
@@ -142,7 +144,8 @@ func stats(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 
 	var joinedChannels int64
 	g.Go(func() error {
-		err := msg.Resources.DB.Model(&models.JoinedChannel{}).Count(&joinedChannels).Error
+		var err error
+		joinedChannels, err = msg.Resources.Queries.CountJoinedChannels(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to count joined channels: %w", err)
 		}

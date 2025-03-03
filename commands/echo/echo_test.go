@@ -6,7 +6,6 @@ import (
 
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/commands/commandtest"
-	"github.com/airforce270/airbot/database/databasetest"
 	"github.com/airforce270/airbot/permission"
 	"github.com/airforce270/airbot/platforms/twitch"
 )
@@ -26,7 +25,7 @@ func TestEchoCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 				Resources: base.Resources{
-					Platform: twitch.NewForTesting(t, "forsen", databasetest.New(t)),
+					Platform: twitch.NewForTesting(t, "forsen"),
 				},
 			},
 			Platform: commandtest.TwitchPlatform,
@@ -49,7 +48,7 @@ func TestEchoCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 				Resources: base.Resources{
-					Platform: twitch.NewForTesting(t, "forsen", databasetest.New(t)),
+					Platform: twitch.NewForTesting(t, "forsen"),
 				},
 			},
 			Platform: commandtest.TwitchPlatform,
@@ -72,7 +71,7 @@ func TestEchoCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Mod,
 				Resources: base.Resources{
-					Platform: twitch.NewForTesting(t, "forsen", databasetest.New(t)),
+					Platform: twitch.NewForTesting(t, "forsen"),
 				},
 			},
 			Platform: commandtest.TwitchPlatform,
@@ -118,7 +117,7 @@ func TestEchoCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Mod,
 				Resources: base.Resources{
-					Platform: twitch.NewForTesting(t, "forsen", databasetest.New(t)),
+					Platform: twitch.NewForTesting(t, "forsen"),
 				},
 			},
 			Platform: commandtest.TwitchPlatform,
@@ -173,7 +172,7 @@ func TestEchoCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Mod,
 				Resources: base.Resources{
-					Platform: twitch.NewForTesting(t, "forsen", databasetest.New(t)),
+					Platform: twitch.NewForTesting(t, "forsen"),
 				},
 			},
 			Platform: commandtest.TwitchPlatform,
@@ -211,7 +210,7 @@ func TestEchoCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 				Resources: base.Resources{
-					Platform: twitch.NewForTesting(t, "forsen", databasetest.New(t)),
+					Platform: twitch.NewForTesting(t, "forsen"),
 				},
 			},
 			Platform:   commandtest.TwitchPlatform,
@@ -235,7 +234,7 @@ func TestEchoCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 				Resources: base.Resources{
-					Platform: twitch.NewForTesting(t, "forsen", databasetest.New(t)),
+					Platform: twitch.NewForTesting(t, "forsen"),
 				},
 			},
 			Platform: commandtest.TwitchPlatform,
@@ -258,7 +257,7 @@ func TestEchoCommands(t *testing.T) {
 				Prefix:          "$",
 				PermissionLevel: permission.Normal,
 				Resources: base.Resources{
-					Platform: twitch.NewForTesting(t, "forsen", databasetest.New(t)),
+					Platform: twitch.NewForTesting(t, "forsen"),
 				},
 			},
 			Platform: commandtest.TwitchPlatform,

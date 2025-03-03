@@ -2,6 +2,7 @@
 package admin
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -14,10 +15,10 @@ import (
 	"github.com/airforce270/airbot/commands/basecommand"
 	"github.com/airforce270/airbot/config"
 	"github.com/airforce270/airbot/database"
-	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
 	twitchplatform "github.com/airforce270/airbot/platforms/twitch"
 	"github.com/airforce270/airbot/utils"
+	"github.com/airforce270/airbot/utils/ptrs"
 	"github.com/airforce270/airbot/utils/restart"
 )
 
@@ -34,6 +35,8 @@ var Commands = [...]basecommand.Command{
 	restartCommand,
 	setPrefixCommand,
 }
+
+const defaultPrefix = "$"
 
 var (
 	botSlowmodeCommand = basecommand.Command{
@@ -53,7 +56,7 @@ var (
 			{Name: "message", Type: arg.Variadic, Required: true},
 		},
 		Permission: permission.Owner,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			valueArg := args[0]
 			if !valueArg.Present {
 				return nil, basecommand.ErrBadUsage
@@ -72,12 +75,12 @@ var (
 		Desc:       "Tells the bot to join your chat.",
 		Params:     []arg.Param{{Name: "prefix", Type: arg.String, Required: false}},
 		Permission: permission.Normal,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			prefix := defaultPrefix
 			if prefixArg := args[0]; prefixArg.Present {
 				prefix = prefixArg.StringValue
 			}
-			return joinChannel(msg, msg.Message.User, prefix)
+			return joinChannel(ctx, msg, msg.Message.User, prefix)
 		},
 	}
 
@@ -96,7 +99,7 @@ var (
 			{Name: "prefix", Type: arg.String, Required: false},
 		},
 		Permission: permission.Owner,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			channelArg := args[0]
 			if !channelArg.Present {
 				return nil, basecommand.ErrBadUsage
@@ -106,7 +109,7 @@ var (
 			if prefixArg := args[1]; prefixArg.Present {
 				prefix = prefixArg.StringValue
 			}
-			return joinChannel(msg, channel, prefix)
+			return joinChannel(ctx, msg, channel, prefix)
 		},
 	}
 
@@ -114,8 +117,8 @@ var (
 		Name:       "leave",
 		Desc:       "Tells the bot to leave your chat.",
 		Permission: permission.Admin,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
-			return leaveChannel(msg, msg.Message.Channel)
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+			return leaveChannel(ctx, msg, msg.Message.Channel)
 		},
 	}
 
@@ -124,12 +127,12 @@ var (
 		Desc:       "Tells the bot to leave a chat.",
 		Params:     []arg.Param{{Name: "channel", Type: arg.Username, Required: true}},
 		Permission: permission.Owner,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			channelArg := args[0]
 			if !channelArg.Present {
 				return nil, basecommand.ErrBadUsage
 			}
-			return leaveChannel(msg, channelArg.StringValue)
+			return leaveChannel(ctx, msg, channelArg.StringValue)
 		},
 	}
 
@@ -156,12 +159,12 @@ var (
 	}
 )
 
-func botSlowmode(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func botSlowmode(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	enableArg := args[0]
 	key := cache.GlobalSlowmodeKey(msg.Resources.Platform.Name())
 
 	if !enableArg.Present {
-		enabled, err := msg.Resources.Cache.FetchBool(key)
+		enabled, err := msg.Resources.Cache.FetchBool(ctx, key)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch cache key %s (bool): %w", key, err)
 		}
@@ -179,7 +182,7 @@ func botSlowmode(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 
 	enable := enableArg.BoolValue
 
-	if err := msg.Resources.Cache.StoreBool(key, enable); err != nil {
+	if err := msg.Resources.Cache.StoreBool(ctx, key, enable); err != nil {
 		log.Printf("Failed to set bot slowmode to %t on %s: %v", enable, msg.Resources.Platform.Name(), err)
 		failureMsgStart := "Failed to enable"
 		if !enable {
@@ -205,14 +208,11 @@ func botSlowmode(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 	}, nil
 }
 
-const defaultPrefix = "$"
-
-func joinChannel(msg *base.IncomingMessage, targetChannel, prefix string) ([]*base.Message, error) {
-	var channels []models.JoinedChannel
-	msg.Resources.DB.Where(models.JoinedChannel{
-		Platform: msg.Resources.Platform.Name(),
-		Channel:  strings.ToLower(targetChannel),
-	}).Find(&channels)
+func joinChannel(ctx context.Context, msg *base.IncomingMessage, targetChannel, prefix string) ([]*base.Message, error) {
+	channels, err := msg.Resources.Queries.SelectJoinedChannels(ctx, ptrs.StringNil(msg.Resources.Platform.Name()))
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch channels matching %s/%s: %w", msg.Resources.Platform.Name(), strings.ToLower(targetChannel), err)
+	}
 
 	if len(channels) > 0 {
 		return []*base.Message{
@@ -223,17 +223,17 @@ func joinChannel(msg *base.IncomingMessage, targetChannel, prefix string) ([]*ba
 		}, nil
 	}
 
-	channelRecord := models.JoinedChannel{
-		Platform: msg.Resources.Platform.Name(),
-		Channel:  targetChannel,
-		Prefix:   prefix,
-		JoinedAt: time.Now(),
-	}
-	if err := msg.Resources.DB.Create(&channelRecord).Error; err != nil {
+	_, err = msg.Resources.Queries.CreateJoinedChannel(ctx, database.CreateJoinedChannelParams{
+		Platform: ptrs.StringNil(msg.Resources.Platform.Name()),
+		Channel:  ptrs.StringNil(targetChannel),
+		Prefix:   ptrs.StringNil(prefix),
+		JoinedAt: ptrs.Ptr(time.Now()),
+	})
+	if err != nil {
 		return nil, fmt.Errorf("failed to join channel %s: %w", targetChannel, err)
 	}
 
-	err := msg.Resources.Platform.Join(targetChannel, prefix)
+	err = msg.Resources.Platform.Join(ctx, targetChannel, prefix)
 
 	if errors.Is(err, twitchplatform.ErrChannelNotFound) {
 		return []*base.Message{
@@ -269,14 +269,14 @@ func joinChannel(msg *base.IncomingMessage, targetChannel, prefix string) ([]*ba
 
 const maxUsersPerMessage = 15
 
-func joined(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
-	var joinedChannels []*models.JoinedChannel
-	if err := msg.Resources.DB.Find(&joinedChannels).Error; err != nil {
-		return nil, fmt.Errorf("failed to find channels: %w", err)
+func joined(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+	joinedChannels, err := msg.Resources.Queries.SelectJoinedChannels(ctx, ptrs.StringNil(msg.Resources.Platform.Name()))
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch channels matching %s: %w", msg.Resources.Platform.Name(), err)
 	}
 	var channels []string
 	for _, c := range joinedChannels {
-		channels = append(channels, c.Channel)
+		channels = append(channels, *c.Channel)
 	}
 
 	channelsGroups := utils.Chunk(channels, maxUsersPerMessage)
@@ -299,8 +299,8 @@ func joined(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 	return messages, nil
 }
 
-func leaveChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Message, error) {
-	err := database.LeaveChannel(msg.Resources.DB, msg.Resources.Platform.Name(), targetChannel)
+func leaveChannel(ctx context.Context, msg *base.IncomingMessage, targetChannel string) ([]*base.Message, error) {
+	err := database.LeaveChannel(ctx, msg.Resources.Queries, msg.Resources.Platform.Name(), targetChannel)
 
 	if err != nil {
 		return []*base.Message{
@@ -333,7 +333,7 @@ func leaveChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Mess
 	return msgs, nil
 }
 
-func reloadConfig(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func reloadConfig(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	configSrc, err := msg.Resources.NewConfigSource()
 	if err != nil {
 		return nil, err
@@ -356,8 +356,8 @@ func reloadConfig(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, e
 	}, nil
 }
 
-func restartBot(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
-	go restart.WriteRequester(msg.Resources.Cache, msg.Resources.Platform.Name(), msg.Message.Channel, msg.Message.ID)
+func restartBot(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+	go restart.WriteRequester(ctx, msg.Resources.Cache, msg.Resources.Platform.Name(), msg.Message.Channel, msg.Message.ID)
 
 	const delay = 100 * time.Millisecond
 	time.AfterFunc(delay, func() { restart.C <- true })
@@ -370,36 +370,44 @@ func restartBot(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, err
 	}, nil
 }
 
-func setPrefix(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func setPrefix(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	prefixArg := args[0]
 	if !prefixArg.Present {
 		return nil, basecommand.ErrBadUsage
 	}
 	newPrefix := prefixArg.StringValue
 
-	var channels []models.JoinedChannel
-	err := msg.Resources.DB.Where("platform = ? AND LOWER(channel) = ?", msg.Resources.Platform.Name(), strings.ToLower(msg.Message.Channel)).Find(&channels).Error
+	channel, err := msg.Resources.Queries.SelectJoinedChannel(ctx, database.SelectJoinedChannelParams{
+		Platform: ptrs.StringNil(msg.Resources.Platform.Name()),
+		Channel:  ptrs.StringNil(strings.ToLower(msg.Message.Channel)),
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch channels matching %s/%s: %w", msg.Resources.Platform.Name(), strings.ToLower(msg.Message.Channel), err)
+		return nil, fmt.Errorf("failed to fetch channel matching %s/%s: %w", msg.Resources.Platform.Name(), strings.ToLower(msg.Message.Channel), err)
 	}
 
-	for _, channel := range channels {
-		channel.Prefix = newPrefix
+	affectedRows, err := msg.Resources.Queries.SetJoinedChannelPrefix(ctx, database.SetJoinedChannelPrefixParams{
+		Platform: ptrs.StringNil(msg.Resources.Platform.Name()),
+		Channel:  ptrs.StringNil(strings.ToLower(msg.Message.Channel)),
+		Prefix:   &newPrefix,
+	})
+	if err != nil {
+		log.Printf("Failed to save new prefix %s for channel %s: %v", newPrefix, *channel.Channel, err)
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "Failed to update prefix",
+			},
+		}, nil
+	}
 
-		result := msg.Resources.DB.Save(&channel)
-		if err := result.Error; err != nil {
-			return nil, fmt.Errorf("failed to save new prefix %s for channel %s: %w", newPrefix, channel.Channel, err)
-		}
-
-		if result.RowsAffected == 0 {
-			log.Printf("Failed to update prefix: %v", result.Error)
-			return []*base.Message{
-				{
-					Channel: msg.Message.Channel,
-					Text:    "Failed to update prefix",
-				},
-			}, nil
-		}
+	if affectedRows == 0 {
+		log.Printf("Failed to update prefix, no rows affected")
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    "Failed to update prefix",
+			},
+		}, nil
 	}
 
 	if err := msg.Resources.Platform.SetPrefix(msg.Message.Channel, newPrefix); err != nil {

@@ -10,9 +10,8 @@ import (
 	"github.com/airforce270/airbot/commands/gamba"
 	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/databasetest"
-	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
-	"gorm.io/gorm"
+	"github.com/airforce270/airbot/utils/ptrs"
 )
 
 func TestGambaCommands(t *testing.T) {
@@ -798,140 +797,133 @@ func TestGambaCommands(t *testing.T) {
 
 func TestFetchUserPoints(t *testing.T) {
 	t.Parallel()
-	db := databasetest.New(t)
-	var user1 models.User
-	err := db.FirstOrCreate(&user1, models.User{
-		TwitchID:   "user1",
-		TwitchName: "user1",
-	}).Error
+	ctx := t.Context()
+	db, queries := databasetest.New(t)
+	user1, err := database.SelectOrCreateTwitchUser(t.Context(), db, queries, "user1" /* id */, "user1" /* name */)
 	if err != nil {
 		t.Fatalf("failed to find/create user1: %v", err)
 	}
-	var user2 models.User
-	err = db.FirstOrCreate(&user2, models.User{
-		TwitchID:   "user2",
-		TwitchName: "user2",
-	}).Error
+	user2, err := database.SelectOrCreateTwitchUser(t.Context(), db, queries, "user2" /* id */, "user2" /* name */)
 	if err != nil {
 		t.Fatalf("failed to find/create user2: %v", err)
 	}
 
 	tests := []struct {
 		desc         string
-		transactions []models.GambaTransaction
+		transactions []database.CreateGambaTransactionParams
 		want         int64
 	}{
 		{
 			desc:         "no transactions",
-			transactions: []models.GambaTransaction{},
+			transactions: []database.CreateGambaTransactionParams{},
 			want:         0,
 		},
 		{
 			desc: "single transaction for single user",
-			transactions: []models.GambaTransaction{
+			transactions: []database.CreateGambaTransactionParams{
 				{
-					Game:  "FAKE - TEST",
-					User:  user1,
-					Delta: 50,
+					Game:   ptrs.Ptr("FAKE - TEST"),
+					UserID: ptrs.Ptr[int64](1),
+					Delta:  ptrs.Ptr[int64](50),
 				},
 			},
 			want: 50,
 		},
 		{
 			desc: "multiple transactions for single user",
-			transactions: []models.GambaTransaction{
+			transactions: []database.CreateGambaTransactionParams{
 				{
-					Game:  "FAKE - TEST",
-					User:  user1,
-					Delta: 50,
+					Game:   ptrs.Ptr("FAKE - TEST"),
+					UserID: &user1.ID,
+					Delta:  ptrs.Ptr[int64](50),
 				},
 				{
-					Game:  "FAKE - TEST",
-					User:  user1,
-					Delta: -20,
+					Game:   ptrs.Ptr("FAKE - TEST"),
+					UserID: &user1.ID,
+					Delta:  ptrs.Ptr[int64](-20),
 				},
 			},
 			want: 30,
 		},
 		{
 			desc: "multiple transactions +/- for single user",
-			transactions: []models.GambaTransaction{
+			transactions: []database.CreateGambaTransactionParams{
 				{
-					Game:  "FAKE - TEST",
-					User:  user1,
-					Delta: 50,
+					Game:   ptrs.StringNil("FAKE - TEST"),
+					UserID: ptrs.Int64Nil(user1.ID),
+					Delta:  ptrs.Int64Nil(50),
 				},
 				{
-					Game:  "FAKE - TEST",
-					User:  user1,
-					Delta: -20,
+					Game:   ptrs.StringNil("FAKE - TEST"),
+					UserID: ptrs.Int64Nil(user1.ID),
+					Delta:  ptrs.Int64Nil(-20),
 				},
 				{
-					Game:  "FAKE - TEST",
-					User:  user1,
-					Delta: 5,
+					Game:   ptrs.StringNil("FAKE - TEST"),
+					UserID: ptrs.Int64Nil(user1.ID),
+					Delta:  ptrs.Int64Nil(5),
 				},
 				{
-					Game:  "FAKE - TEST",
-					User:  user1,
-					Delta: 100,
+					Game:   ptrs.StringNil("FAKE - TEST"),
+					UserID: ptrs.Int64Nil(user1.ID),
+					Delta:  ptrs.Int64Nil(100),
 				},
 			},
 			want: 135,
 		},
 		{
 			desc: "single transaction for other user",
-			transactions: []models.GambaTransaction{
+			transactions: []database.CreateGambaTransactionParams{
 				{
-					Game:  "FAKE - TEST",
-					User:  user2,
-					Delta: 50,
+					Game:   ptrs.StringNil("FAKE - TEST"),
+					UserID: ptrs.Int64Nil(user2.ID),
+					Delta:  ptrs.Int64Nil(50),
 				},
 			},
 			want: 0,
 		},
 		{
 			desc: "multiple transactions +/- for multiple users",
-			transactions: []models.GambaTransaction{
+			transactions: []database.CreateGambaTransactionParams{
 				{
-					Game:  "FAKE - TEST",
-					User:  user1,
-					Delta: 50,
+					Game:   ptrs.Ptr("FAKE - TEST"),
+					UserID: &user1.ID,
+					Delta:  ptrs.Ptr[int64](50),
 				},
 				{
-					Game:  "FAKE - TEST",
-					User:  user1,
-					Delta: -20,
+					Game:   ptrs.Ptr("FAKE - TEST"),
+					UserID: &user1.ID,
+					Delta:  ptrs.Ptr[int64](-20),
 				},
 				{
-					Game:  "FAKE - TEST",
-					User:  user1,
-					Delta: 5,
+					Game:   ptrs.Ptr("FAKE - TEST"),
+					UserID: ptrs.Int64Nil(user1.ID),
+					Delta:  ptrs.Ptr[int64](5),
 				},
 				{
-					Game:  "FAKE - TEST",
-					User:  user1,
-					Delta: 100,
+					Game:   ptrs.Ptr("FAKE - TEST"),
+					UserID: &user1.ID,
+					Delta:  ptrs.Ptr[int64](100),
 				},
 				{
-					Game:  "FAKE - TEST",
-					User:  user2,
-					Delta: 50,
+					Game:   ptrs.Ptr("FAKE - TEST"),
+					UserID: &user2.ID,
+					Delta:  ptrs.Ptr[int64](50),
 				},
 				{
-					Game:  "FAKE - TEST",
-					User:  user2,
-					Delta: -20,
+					Game:   ptrs.StringNil("FAKE - TEST"),
+					UserID: &user2.ID,
+					Delta:  ptrs.Ptr[int64](-20),
 				},
 				{
-					Game:  "FAKE - TEST",
-					User:  user2,
-					Delta: 5,
+					Game:   ptrs.StringNil("FAKE - TEST"),
+					UserID: &user2.ID,
+					Delta:  ptrs.Ptr[int64](5),
 				},
 				{
-					Game:  "FAKE - TEST",
-					User:  user2,
-					Delta: 100,
+					Game:   ptrs.StringNil("FAKE - TEST"),
+					UserID: &user2.ID,
+					Delta:  ptrs.Ptr[int64](100),
 				},
 			},
 			want: 135,
@@ -940,20 +932,15 @@ func TestFetchUserPoints(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
-			if err := db.Migrator().DropTable(&models.GambaTransaction{}); err != nil {
-				t.Fatalf("failed to drop GambaTransaction table: %v", err)
-			}
-			if err := database.Migrate(db); err != nil {
-				t.Fatalf("failed to migrate db: %v", err)
+			if err := queries.DeleteAllGambaTransactionsForTest(ctx); err != nil {
+				t.Fatalf("failed to drop all gamba transactions: %v", err)
 			}
 
-			for _, txn := range tc.transactions {
-				if err := db.Create(&txn).Error; err != nil {
-					t.Fatalf("failed to insert gamba transaction: %v", err)
-				}
+			if _, err := database.CreateGambaTransactions(ctx, db, queries, tc.transactions); err != nil {
+				t.Fatalf("failed to insert gamba transactions: %v", err)
 			}
 
-			got, err := gamba.FetchUserPoints(db, user1)
+			got, err := gamba.FetchUserPoints(ctx, queries, user1)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -978,38 +965,35 @@ func waitForTransactionsToSettle(t testing.TB) {
 
 func deleteAllGambaTransactions(t testing.TB, r *base.Resources) {
 	t.Helper()
-	err := r.DB.Where("1=1").Delete(&models.GambaTransaction{}).Error
-	if err != nil {
+	if err := r.Queries.DeleteAllGambaTransactionsForTest(t.Context()); err != nil {
 		t.Fatalf("Failed to delete all gamba txns: %v", err)
 	}
 }
 
 func startDuel(t testing.TB, r *base.Resources) {
 	t.Helper()
-	var user1, user2 models.User
-	err := r.DB.First(&user1, models.User{
-		TwitchID:   "user1",
-		TwitchName: "user1",
-	}).Error
+
+	user1, err := r.Queries.SelectTwitchUser(t.Context(), database.SelectTwitchUserParams{
+		TwitchID:   ptrs.Ptr("user1"),
+		TwitchName: ptrs.Ptr("user1"),
+	})
 	if err != nil {
 		t.Fatalf("Failed to find user1: %v", err)
 	}
-	err = r.DB.First(&user2, models.User{
-		TwitchID:   "user2",
-		TwitchName: "user2",
-	}).Error
+	user2, err := r.Queries.SelectTwitchUser(t.Context(), database.SelectTwitchUserParams{
+		TwitchID:   ptrs.Ptr("user1"),
+		TwitchName: ptrs.Ptr("user1"),
+	})
 	if err != nil {
 		t.Fatalf("Failed to find user2: %v", err)
 	}
-	err = r.DB.Create(&models.Duel{
-		UserID:   user1.ID,
-		User:     user1,
-		TargetID: user2.ID,
-		Target:   user2,
-		Amount:   25,
-		Pending:  true,
-		Accepted: false,
-	}).Error
+	_, err = r.Queries.CreateDuel(t.Context(), database.CreateDuelParams{
+		UserID:   &user1.ID,
+		TargetID: &user2.ID,
+		Amount:   ptrs.Ptr[int64](25),
+		Pending:  ptrs.TrueFloat,
+		Accepted: ptrs.FalseFloat,
+	})
 	if err != nil {
 		t.Fatalf("Failed to create duel: %v", err)
 	}
@@ -1017,51 +1001,39 @@ func startDuel(t testing.TB, r *base.Resources) {
 
 func add50PointsToUser1(t testing.TB, r *base.Resources) {
 	t.Helper()
-	var user models.User
-	err := r.DB.First(&user, models.User{
-		TwitchID:   "user1",
-		TwitchName: "user1",
-	}).Error
+	user, err := database.SelectOrCreateTwitchUser(t.Context(), r.DB, r.Queries, "user1" /* id */, "user1" /* name */)
 	if err != nil {
 		t.Fatalf("Failed to find user1: %v", err)
 	}
-	add50PointsToUser(t, user, r.DB)
+	add50PointsToUser(t, user, r.Queries)
 }
 
 func add50PointsToUser2(t testing.TB, r *base.Resources) {
 	t.Helper()
-	var user models.User
-	err := r.DB.First(&user, models.User{
-		TwitchID:   "user2",
-		TwitchName: "user2",
-	}).Error
+	user, err := database.SelectOrCreateTwitchUser(t.Context(), r.DB, r.Queries, "user2" /* id */, "user2" /* name */)
 	if err != nil {
 		t.Fatalf("Failed to find/create user2: %v", err)
 	}
-	add50PointsToUser(t, user, r.DB)
+	add50PointsToUser(t, user, r.Queries)
 }
 
 func add50PointsToUser3(t testing.TB, r *base.Resources) {
 	t.Helper()
-	var user models.User
-	err := r.DB.First(&user, models.User{
-		TwitchID:   "user3",
-		TwitchName: "user3",
-	}).Error
+	user, err := database.SelectOrCreateTwitchUser(t.Context(), r.DB, r.Queries, "user3" /* id */, "user3" /* name */)
 	if err != nil {
 		t.Fatalf("Failed to find/create user3: %v", err)
 	}
-	add50PointsToUser(t, user, r.DB)
+	add50PointsToUser(t, user, r.Queries)
 }
 
-func add50PointsToUser(t testing.TB, user models.User, db *gorm.DB) {
+func add50PointsToUser(t testing.TB, user database.User, queries *database.Queries) {
 	t.Helper()
-	txn := models.GambaTransaction{
-		Game:  "FAKE - TEST",
-		User:  user,
-		Delta: 50,
+	txn := database.CreateGambaTransactionParams{
+		Game:   ptrs.StringNil("FAKE - TEST"),
+		UserID: ptrs.Int64Nil(user.ID),
+		Delta:  ptrs.Int64Nil(50),
 	}
-	if err := db.Create(&txn).Error; err != nil {
+	if _, err := queries.CreateGambaTransaction(t.Context(), txn); err != nil {
 		t.Fatalf("Failed to insert gamba transaction: %v", err)
 	}
 }

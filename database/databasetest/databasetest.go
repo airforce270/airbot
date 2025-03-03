@@ -2,40 +2,67 @@
 package databasetest
 
 import (
-	"context"
+	"database/sql"
 	"log"
 	"testing"
 
 	"github.com/airforce270/airbot/database"
-	"github.com/airforce270/airbot/database/models"
-
-	"gorm.io/gorm"
+	"github.com/airforce270/airbot/utils/ptrs"
 )
 
-// New creates a new in-memory database for testing.
-func New(t *testing.T) *gorm.DB {
+// New creates a new in-memory database connection for testing.
+func New(t *testing.T) (*sql.DB, *database.Queries) {
 	t.Helper()
-	ctx := context.TODO()
+	ctx := t.Context()
 
-	db, err := database.Connect(ctx, log.Default(), ":memory:")
+	db, queries, err := database.Connect(ctx, log.Default(), ":memory:")
 	if err != nil {
 		t.Fatalf("Failed to create new in-memory DB: %v", err)
 	}
 
-	if err := database.Migrate(db); err != nil {
-		t.Fatalf("Failed to migrate DB: %v", err)
-	}
+	// if err := database.Migrate(db); err != nil {
+	// 	t.Fatalf("Failed to migrate DB: %v", err)
+	// }
 
 	for _, user := range []string{"user1", "user2", "user3"} {
-		seedTwitchUser(t, db, user)
+		seedTwitchUser(t, queries, user)
 	}
 
+	return db, queries
+}
+
+// New creates a new in-memory database connection for testing.
+func NewDB(t *testing.T) *sql.DB {
+	t.Helper()
+	db, _ := New(t)
 	return db
 }
 
-func seedTwitchUser(t testing.TB, db *gorm.DB, user string) {
+// New creates a new in-memory database connection for testing.
+func NewQueries(t *testing.T) *database.Queries {
 	t.Helper()
-	err := db.Create(&models.User{TwitchID: user, TwitchName: user}).Error
+	_, queries := New(t)
+	return queries
+}
+
+func FirstTwitchUserOrInsert(t testing.TB, db *database.Queries, id, name string) database.User {
+	t.Helper()
+	u, err := db.SelectTwitchUser(t.Context(), database.SelectTwitchUserParams{
+		TwitchID:   ptrs.StringNil(id),
+		TwitchName: ptrs.StringNil(name),
+	})
+	if err != nil {
+		t.Fatalf("Failed to select user %s: %v", id, err)
+	}
+	return u
+}
+
+func seedTwitchUser(t testing.TB, db *database.Queries, user string) {
+	t.Helper()
+	_, err := db.CreateTwitchUser(t.Context(), database.CreateTwitchUserParams{
+		TwitchID:   ptrs.StringNil(user),
+		TwitchName: ptrs.StringNil(user),
+	})
 	if err != nil {
 		t.Fatalf("Failed to seed user %s: %v", user, err)
 	}

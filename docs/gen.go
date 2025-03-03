@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -16,17 +15,15 @@ import (
 )
 
 const (
-	directory = "docs"
-
 	generatedFileWarning       = "[//]: # ( !!! DO NOT EDIT MANUALLY !!!  This is a generated file, any changes will be overwritten! )"
 	disableMarkdownLintMessage = "<!-- markdownlint-disable line-length -->"
 	generatedFileMessage       = generatedFileWarning + "\n\n" + disableMarkdownLintMessage + "\n\n"
+	commandsFilePath           = "commands.md"
 )
 
 var (
 	//go:embed commands.md.gtpl
 	commandsTmplData string
-	commandsFilePath = filepath.Join(directory, "commands.md")
 
 	files = []fileToGenerate{
 		{

@@ -4,6 +4,7 @@ package commands
 import (
 	"context"
 	"crypto/rand"
+	"database/sql"
 	"errors"
 	"fmt"
 	"io"
@@ -31,10 +32,9 @@ import (
 	"github.com/airforce270/airbot/commands/seventv"
 	"github.com/airforce270/airbot/commands/twitch"
 	"github.com/airforce270/airbot/config"
-	"github.com/airforce270/airbot/database/models"
+	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/permission"
-
-	"gorm.io/gorm"
+	"github.com/airforce270/airbot/utils/ptrs"
 )
 
 // CommandGroups contains all groups of commands.
@@ -72,9 +72,10 @@ func init() {
 }
 
 // NewHandler creates a new Handler.
-func NewHandler(ctx context.Context, db *gorm.DB, cdb cache.Cache, cfg *config.Config, allPlatforms map[string]base.Platform) Handler {
+func NewHandler(ctx context.Context, db *sql.DB, queries *database.Queries, cdb cache.Cache, cfg *config.Config, allPlatforms map[string]base.Platform) Handler {
 	return Handler{
 		db:              db,
+		queries:         queries,
 		cache:           cdb,
 		allPlatforms:    allPlatforms,
 		newConfigSource: config.DefaultNewConfigSource,
@@ -91,9 +92,10 @@ func NewHandler(ctx context.Context, db *gorm.DB, cdb cache.Cache, cfg *config.C
 }
 
 // NewHandlerForTest creates a new Handler for use in testing.
-func NewHandlerForTest(db *gorm.DB, cdb cache.Cache, allPlatforms map[string]base.Platform, newConfigSource func() (io.ReadCloser, error), randOpts base.RandResources, clients base.APIClients) Handler {
+func NewHandlerForTest(db *sql.DB, queries *database.Queries, cdb cache.Cache, allPlatforms map[string]base.Platform, newConfigSource func() (io.ReadCloser, error), randOpts base.RandResources, clients base.APIClients) Handler {
 	return Handler{
 		db:              db,
+		queries:         queries,
 		cache:           cdb,
 		allPlatforms:    allPlatforms,
 		newConfigSource: newConfigSource,
@@ -105,7 +107,9 @@ func NewHandlerForTest(db *gorm.DB, cdb cache.Cache, allPlatforms map[string]bas
 // Handler handles messages.
 type Handler struct {
 	// db is a connection to the database.
-	db *gorm.DB
+	db *sql.DB
+	// queries is a reference to the database queries.
+	queries *database.Queries
 	// cache is a reference to the cache.
 	cache cache.Cache
 	// allPlatforms contains all registered and configured platforms.
@@ -120,7 +124,7 @@ type Handler struct {
 }
 
 // Handle handles incoming messages, possibly returning messages to be sent in response.
-func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, error) {
+func (h *Handler) Handle(ctx context.Context, msg *base.IncomingMessage) ([]*base.OutgoingMessage, error) {
 	h.setResources(msg)
 
 	var outMsgs []*base.OutgoingMessage
@@ -136,45 +140,38 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, er
 			continue
 		}
 
-		channelCooldown := models.ChannelCommandCooldown{}
 		shouldSetChannelCooldown := true
-		err := h.db.FirstOrCreate(&channelCooldown, models.ChannelCommandCooldown{
-			Channel: msg.Message.Channel,
-			Command: command.Name,
-		}).Error
+		channelCooldown, err := database.SelectOrCreateChannelCommandCooldown(ctx, h.db, h.queries, msg.Message.Channel, command.Name)
 		if err != nil {
 			return nil, fmt.Errorf("[%s] failed to get/create channel cooldown for channel %q, command %q: %w", msg.Resources.Platform.Name(), msg.Message.Channel, command.Name, err)
 		}
-		if command.ChannelCooldown > time.Since(channelCooldown.LastRun) {
-			log.Printf("Skipping %s%s: channel cooldown is %s but it has only been %s", msg.Prefix, command.Name, command.ChannelCooldown, time.Since(channelCooldown.LastRun))
+		if command.ChannelCooldown > time.Since(*channelCooldown.LastRun) {
+			log.Printf("Skipping %s%s: channel cooldown is %s but it has only been %s", msg.Prefix, command.Name, command.ChannelCooldown, time.Since(*channelCooldown.LastRun))
 			continue
 		}
 
-		user, err := msg.Resources.Platform.User(msg.Message.User)
+		user, err := msg.Resources.Platform.User(ctx, msg.Message.User)
 		if err != nil && !errors.Is(err, base.ErrUserUnknown) {
 			return nil, fmt.Errorf("failed to fetch user %q: %w", msg.Message.User, err)
 		}
-		userCooldown := models.UserCommandCooldown{}
+		var userCooldown database.UserCommandCooldown
 		shouldSetUserCooldown := false
 		if err == nil || errors.Is(err, base.ErrUserUnknown) {
 			shouldSetUserCooldown = true
-			err := h.db.FirstOrCreate(&userCooldown, models.UserCommandCooldown{
-				UserID:  user.ID,
-				User:    user,
-				Command: command.Name,
-			}).Error
+			var err error
+			userCooldown, err = database.SelectOrCreateUserCommandCooldown(ctx, h.db, h.queries, user, command.Name)
 			if err != nil {
 				return nil, fmt.Errorf("[%s] failed to get/create user cooldown for user %q, command %q, %w", msg.Resources.Platform.Name(), msg.Message.User, command.Name, err)
 			}
-			if command.UserCooldown > time.Since(userCooldown.LastRun) {
-				log.Printf("Skipping %s%s: user cooldown is %s but it has only been %s", msg.Prefix, command.Name, command.UserCooldown, time.Since(userCooldown.LastRun))
+			if userCooldown.LastRun != nil && command.UserCooldown > time.Since(*userCooldown.LastRun) {
+				log.Printf("Skipping %s%s: user cooldown is %s but it has only been %s", msg.Prefix, command.Name, command.UserCooldown, time.Since(*userCooldown.LastRun))
 				continue
 			}
 		}
 
 		args := parseArgs(msg, command, pattern)
 
-		respMsgs, err := command.Handler(msg, args)
+		respMsgs, err := command.Handler(ctx, msg, args)
 		if err != nil {
 			if !errors.Is(err, basecommand.ErrBadUsage) {
 				return nil, fmt.Errorf("failed to handle message: %w", err)
@@ -201,14 +198,22 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, er
 		}
 
 		if shouldSetChannelCooldown {
-			channelCooldown.LastRun = time.Now()
-			if err := h.db.Save(&channelCooldown).Error; err != nil {
+			err := h.queries.SetChannelCommandCooldownLastRun(ctx, database.SetChannelCommandCooldownLastRunParams{
+				Channel: ptrs.StringNil(msg.Message.Channel),
+				Command: ptrs.StringNil(command.Name),
+				LastRun: ptrs.Ptr(time.Now()),
+			})
+			if err != nil {
 				log.Printf("failed to save new channel cooldown: %v", err)
 			}
 		}
 		if shouldSetUserCooldown {
-			userCooldown.LastRun = time.Now()
-			if err := h.db.Save(&userCooldown).Error; err != nil {
+			err := h.queries.SetUserCommandCooldownLastRun(ctx, database.SetUserCommandCooldownLastRunParams{
+				UserID:  ptrs.Int64Nil(user.ID),
+				Command: ptrs.StringNil(command.Name),
+				LastRun: ptrs.Ptr(time.Now()),
+			})
+			if err != nil {
 				log.Printf("failed to save new user cooldown: %v", err)
 			}
 		}
@@ -250,7 +255,7 @@ var (
 	}
 )
 
-func help(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func help(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetCommandArg := args[0]
 	if !targetCommandArg.Present {
 		return []*base.Message{

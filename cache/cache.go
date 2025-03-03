@@ -2,28 +2,29 @@
 package cache
 
 import (
+	"context"
 	"time"
 )
 
 // A Cache stores and retrieves simple key-value data quickly.
 type Cache interface {
 	// StoreBool stores a bool value with no expiration.
-	StoreBool(key string, value bool) error
+	StoreBool(ctx context.Context, key string, value bool) error
 	// StoreExpiringBool stores a bool value with an expiration.
 	// If the key does not exist, false will be returned.
-	StoreExpiringBool(key string, value bool, expiration time.Duration) error
+	StoreExpiringBool(ctx context.Context, key string, value bool, expiration time.Duration) error
 	// FetchBool fetches a bool value.
 	// If the key does not exist, false will be returned.
-	FetchBool(key string) (bool, error)
+	FetchBool(ctx context.Context, key string) (bool, error)
 
 	// StoreString stores a string value with no expiration.
-	StoreString(key, value string) error
+	StoreString(ctx context.Context, key, value string) error
 	// StoreExpiringString stores a string value with an expiration.
 	// If the key does not exist, an empty string will be returned.
-	StoreExpiringString(key, value string, expiration time.Duration) error
+	StoreExpiringString(ctx context.Context, key, value string, expiration time.Duration) error
 	// FetchString fetches a string value.
 	// If the key does not exist, an empty string will be returned.
-	FetchString(key string) (string, error)
+	FetchString(ctx context.Context, key string) (string, error)
 }
 
 const (

@@ -2,6 +2,7 @@
 package basecommand
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"regexp"
@@ -40,7 +41,7 @@ type Command struct {
 	DisableReplies bool
 	// Handler is the function to be run if this command matches.
 	// args contains the arguments to the command as specified by Params.
-	Handler func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error)
+	Handler func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error)
 }
 
 // Pattern compiles the regexp to match this command.

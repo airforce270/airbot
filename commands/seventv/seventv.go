@@ -49,14 +49,14 @@ var (
 	}
 )
 
-func addEmote(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func addEmote(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	emoteIDArg, aliasArg := args[0], args[1]
 	if !emoteIDArg.Present {
 		return nil, basecommand.ErrBadUsage
 	}
 	emoteID := emoteIDArg.StringValue
 
-	channel, err := msg.Resources.Platform.User(msg.Message.Channel)
+	channel, err := msg.Resources.Platform.User(ctx, msg.Message.Channel)
 	if err != nil {
 		log.Printf("Looking up Twitch channel %s failed: %v", msg.Message.Channel, err)
 		return []*base.Message{
@@ -66,7 +66,16 @@ func addEmote(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error
 			},
 		}, nil
 	}
-	userConnection, err := msg.Resources.Clients.SevenTV.FetchUserConnectionByTwitchUserId(channel.TwitchID)
+	channelTwitchID := channel.TwitchID
+	if channelTwitchID == nil {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("Looking up Twitch channel %s failed - channel twitch ID unknown", msg.Message.Channel),
+			},
+		}, nil
+	}
+	userConnection, err := msg.Resources.Clients.SevenTV.FetchUserConnectionByTwitchUserId(*channelTwitchID)
 	if err != nil {
 		log.Printf("Failed to fetch 7TV user connection: %v", err)
 		return []*base.Message{
@@ -80,7 +89,6 @@ func addEmote(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error
 
 	emoteName := emoteID
 
-	ctx := context.Background()
 	if aliasArg.Present {
 		alias := aliasArg.StringValue
 		err = msg.Resources.Clients.SevenTV.AddEmoteWithAlias(ctx, emoteSetID, emoteID, alias)
@@ -132,7 +140,7 @@ func addEmote(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error
 	}, nil
 }
 
-func emoteCount(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func emoteCount(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	target := basecommand.FirstArgOrUsername(args, msg)
 
 	plat, ok := msg.Resources.PlatformByName(twitch.Name)
@@ -178,14 +186,14 @@ func emoteCount(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, err
 	}, nil
 }
 
-func removeEmote(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func removeEmote(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	emoteIDArg := args[0]
 	if !emoteIDArg.Present {
 		return nil, basecommand.ErrBadUsage
 	}
 	emoteID := emoteIDArg.StringValue
 
-	channel, err := msg.Resources.Platform.User(msg.Message.Channel)
+	channel, err := msg.Resources.Platform.User(ctx, msg.Message.Channel)
 	if err != nil {
 		log.Printf("Looking up Twitch channel %s failed: %v", msg.Message.Channel, err)
 		return []*base.Message{
@@ -195,7 +203,16 @@ func removeEmote(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 			},
 		}, nil
 	}
-	userConnection, err := msg.Resources.Clients.SevenTV.FetchUserConnectionByTwitchUserId(channel.TwitchID)
+	channelTwitchID := channel.TwitchID
+	if channelTwitchID == nil {
+		return []*base.Message{
+			{
+				Channel: msg.Message.Channel,
+				Text:    fmt.Sprintf("Looking up Twitch channel %s failed - channel twitch ID unknown", msg.Message.Channel),
+			},
+		}, nil
+	}
+	userConnection, err := msg.Resources.Clients.SevenTV.FetchUserConnectionByTwitchUserId(*channelTwitchID)
 	if err != nil {
 		log.Printf("Failed to fetch 7TV user connection: %v", err)
 		return []*base.Message{
@@ -207,7 +224,6 @@ func removeEmote(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 	}
 	emoteSetID := userConnection.EmoteSet.ID
 
-	ctx := context.Background()
 	err = msg.Resources.Clients.SevenTV.RemoveEmote(ctx, emoteSetID, emoteID)
 
 	if err != nil {

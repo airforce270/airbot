@@ -3,6 +3,7 @@ package base
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"io"
 	"math/rand/v2"
@@ -14,9 +15,8 @@ import (
 	"github.com/airforce270/airbot/apiclients/kick"
 	"github.com/airforce270/airbot/apiclients/seventv"
 	"github.com/airforce270/airbot/cache"
-	"github.com/airforce270/airbot/database/models"
+	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/permission"
-	"gorm.io/gorm"
 )
 
 var (
@@ -36,14 +36,14 @@ type Platform interface {
 	Disconnect() error
 
 	// Listen returns a channel that will provide incoming messages.
-	Listen() <-chan IncomingMessage
+	Listen(ctx context.Context) <-chan IncomingMessage
 	// Send sends a message.
-	Send(m Message) error
+	Send(ctx context.Context, m Message) error
 	// Reply sends a message in reply to another message.
-	Reply(m Message, replyToID string) error
+	Reply(ctx context.Context, m Message, replyToID string) error
 
 	// Join joins a channel.
-	Join(channel, prefix string) error
+	Join(ctx context.Context, channel, prefix string) error
 	// Leave leaves a channel.
 	Leave(channel string) error
 	// SetPrefix sets the prefix for a channel.
@@ -51,12 +51,12 @@ type Platform interface {
 
 	// User returns the (database) user for the username of a user on the platform.
 	// It will return ErrUserUnknown if the user has never been seen by the bot.
-	User(username string) (models.User, error)
+	User(ctx context.Context, username string) (database.User, error)
 	// CurrentUsers returns the names of the current users in all channels the bot has joined.
 	CurrentUsers() ([]string, error)
 
 	// Timeout times out a user in a channel.
-	Timeout(username, channel string, duration time.Duration) error
+	Timeout(ctx context.Context, username, channel string, duration time.Duration) error
 }
 
 // Message represents a chat message.
@@ -111,7 +111,9 @@ type Resources struct {
 	// Platform is the current platform.
 	Platform Platform
 	// DB is a reference to the database.
-	DB *gorm.DB
+	DB *sql.DB
+	// Queries is a reference to the database.
+	Queries *database.Queries
 	// Cache is a reference to the cache.
 	Cache cache.Cache
 	// AllPlatforms contains all platforms currently registered with the bot.

@@ -9,15 +9,13 @@ import (
 	"testing"
 
 	"github.com/airforce270/airbot/apiclients/twitchtest"
-	"github.com/airforce270/airbot/database/databasetest"
 	"github.com/google/go-cmp/cmp"
 )
 
 func TestTwitch_CurrentUsers(t *testing.T) {
 	t.Parallel()
-	db := databasetest.New(t)
 	server := newTestServer()
-	tw := NewForTesting(t, server.URL, db)
+	tw := NewForTesting(t, server.URL)
 
 	got, err := tw.CurrentUsers()
 	if err != nil {
