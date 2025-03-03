@@ -16,7 +16,7 @@ require (
 	github.com/nicklaw5/helix/v2 v2.31.0
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/shirou/gopsutil/v3 v3.24.5
-	golang.org/x/oauth2 v0.26.0
+	golang.org/x/oauth2 v0.27.0
 	golang.org/x/sync v0.11.0
 	gonum.org/v1/gonum v0.15.2-0.20250214104957-d39b80c47eea
 	gorm.io/gorm v1.25.12
