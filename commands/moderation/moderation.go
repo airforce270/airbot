@@ -2,6 +2,7 @@
 package moderation
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -21,7 +22,7 @@ var (
 		Name:       "vanish",
 		Desc:       "Times you out for 1 second.",
 		Permission: permission.Normal,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			err := msg.Resources.Platform.Timeout(msg.Message.User, msg.Message.Channel, 1*time.Second)
 			if err != nil {
 				return nil, fmt.Errorf("failed to time out %s/%s on %s: %w", msg.Message.Channel, msg.Message.User, msg.Resources.Platform.Name(), err)

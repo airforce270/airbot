@@ -2,6 +2,7 @@
 package echo
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -18,7 +19,7 @@ var Commands = [...]basecommand.Command{
 		Name:       "commands",
 		Desc:       "Replies with a link to the commands.",
 		Permission: permission.Normal,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
@@ -31,7 +32,7 @@ var Commands = [...]basecommand.Command{
 		Name:       "gn",
 		Desc:       "Says good night.",
 		Permission: permission.Normal,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
@@ -47,7 +48,7 @@ var Commands = [...]basecommand.Command{
 		Desc:       "Replies with TriHard 7.",
 		Permission: permission.Normal,
 		Aliases:    []string{"TriHard"},
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
@@ -101,7 +102,7 @@ var (
 	}
 )
 
-func spam(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func spam(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	countArg, textArg := args[0], args[1]
 	if !countArg.Present || !textArg.Present {
 		return nil, basecommand.ErrBadUsage
@@ -131,7 +132,7 @@ func spam(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	return msgs, nil
 }
 
-func pyramid(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func pyramid(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	widthArg, textArg := args[0], args[1]
 	if !widthArg.Present || !textArg.Present {
 		return nil, basecommand.ErrBadUsage
@@ -166,7 +167,7 @@ func pyramid(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error)
 	return msgs, nil
 }
 
-func tuck(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func tuck(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	userArg := args[0]
 	if !userArg.Present {
 		return nil, basecommand.ErrBadUsage

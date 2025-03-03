@@ -1,4 +1,8 @@
 // Package database handles connections to the database.
+//
+//go:generate sqlfluff fix .
+//go:generate sqlfluff fix .
+//go:generate sqlc generate
 package database
 
 import (

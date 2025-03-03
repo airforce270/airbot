@@ -49,7 +49,7 @@ var (
 	}
 )
 
-func addEmote(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func addEmote(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	emoteIDArg, aliasArg := args[0], args[1]
 	if !emoteIDArg.Present {
 		return nil, basecommand.ErrBadUsage
@@ -80,7 +80,6 @@ func addEmote(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error
 
 	emoteName := emoteID
 
-	ctx := context.Background()
 	if aliasArg.Present {
 		alias := aliasArg.StringValue
 		err = msg.Resources.Clients.SevenTV.AddEmoteWithAlias(ctx, emoteSetID, emoteID, alias)
@@ -132,7 +131,7 @@ func addEmote(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error
 	}, nil
 }
 
-func emoteCount(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func emoteCount(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	target := basecommand.FirstArgOrUsername(args, msg)
 
 	plat, ok := msg.Resources.PlatformByName(twitch.Name)
@@ -178,7 +177,7 @@ func emoteCount(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, err
 	}, nil
 }
 
-func removeEmote(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func removeEmote(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	emoteIDArg := args[0]
 	if !emoteIDArg.Present {
 		return nil, basecommand.ErrBadUsage
@@ -207,7 +206,6 @@ func removeEmote(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, er
 	}
 	emoteSetID := userConnection.EmoteSet.ID
 
-	ctx := context.Background()
 	err = msg.Resources.Clients.SevenTV.RemoveEmote(ctx, emoteSetID, emoteID)
 
 	if err != nil {

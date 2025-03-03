@@ -44,12 +44,24 @@ To run the bot locally:
 
 To run tests, run `go test ./...`
 
-#### Documentation
+### Database
 
-Some documentation is generated.
+SQLite is used for the database.
 
-After making changes, run `go generate ./...` from the main directory to
-regenerate the docs.
+sqlc is used for generating query code.
+
+SQLFluff is used for linting and formatting the SQL.
+
+### Generated code 
+
+Some code and docs are generated.
+
+First, install:
+
+- [sqlc](https://docs.sqlc.dev/en/latest/overview/install.html)
+- [sqlfluff](https://docs.sqlfluff.com/en/stable/install.html)
+
+Then, run `go generate ./...` to lint and fix SQL, regenerate query code, and regenerate docs.
 
 ## Running in production
 

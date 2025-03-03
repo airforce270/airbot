@@ -2,6 +2,7 @@
 package kick
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -38,7 +39,7 @@ var (
 	}
 )
 
-func isLive(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func isLive(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	channelArg := args[0]
 	if !channelArg.Present {
 		return nil, basecommand.ErrBadUsage
@@ -76,7 +77,7 @@ func isLive(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 	}, nil
 }
 
-func title(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func title(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	channelArg := args[0]
 	if !channelArg.Present {
 		return nil, basecommand.ErrBadUsage

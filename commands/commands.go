@@ -120,7 +120,7 @@ type Handler struct {
 }
 
 // Handle handles incoming messages, possibly returning messages to be sent in response.
-func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, error) {
+func (h *Handler) Handle(ctx context.Context, msg *base.IncomingMessage) ([]*base.OutgoingMessage, error) {
 	h.setResources(msg)
 
 	var outMsgs []*base.OutgoingMessage
@@ -174,7 +174,7 @@ func (h *Handler) Handle(msg *base.IncomingMessage) ([]*base.OutgoingMessage, er
 
 		args := parseArgs(msg, command, pattern)
 
-		respMsgs, err := command.Handler(msg, args)
+		respMsgs, err := command.Handler(ctx, msg, args)
 		if err != nil {
 			if !errors.Is(err, basecommand.ErrBadUsage) {
 				return nil, fmt.Errorf("failed to handle message: %w", err)
@@ -250,7 +250,7 @@ var (
 	}
 )
 
-func help(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func help(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetCommandArg := args[0]
 	if !targetCommandArg.Present {
 		return []*base.Message{

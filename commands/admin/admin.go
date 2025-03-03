@@ -2,6 +2,7 @@
 package admin
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -53,7 +54,7 @@ var (
 			{Name: "message", Type: arg.Variadic, Required: true},
 		},
 		Permission: permission.Owner,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			valueArg := args[0]
 			if !valueArg.Present {
 				return nil, basecommand.ErrBadUsage
@@ -72,7 +73,7 @@ var (
 		Desc:       "Tells the bot to join your chat.",
 		Params:     []arg.Param{{Name: "prefix", Type: arg.String, Required: false}},
 		Permission: permission.Normal,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			prefix := defaultPrefix
 			if prefixArg := args[0]; prefixArg.Present {
 				prefix = prefixArg.StringValue
@@ -96,7 +97,7 @@ var (
 			{Name: "prefix", Type: arg.String, Required: false},
 		},
 		Permission: permission.Owner,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			channelArg := args[0]
 			if !channelArg.Present {
 				return nil, basecommand.ErrBadUsage
@@ -114,7 +115,7 @@ var (
 		Name:       "leave",
 		Desc:       "Tells the bot to leave your chat.",
 		Permission: permission.Admin,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return leaveChannel(msg, msg.Message.Channel)
 		},
 	}
@@ -124,7 +125,7 @@ var (
 		Desc:       "Tells the bot to leave a chat.",
 		Params:     []arg.Param{{Name: "channel", Type: arg.Username, Required: true}},
 		Permission: permission.Owner,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			channelArg := args[0]
 			if !channelArg.Present {
 				return nil, basecommand.ErrBadUsage
@@ -156,7 +157,7 @@ var (
 	}
 )
 
-func botSlowmode(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func botSlowmode(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	enableArg := args[0]
 	key := cache.GlobalSlowmodeKey(msg.Resources.Platform.Name())
 
@@ -269,7 +270,7 @@ func joinChannel(msg *base.IncomingMessage, targetChannel, prefix string) ([]*ba
 
 const maxUsersPerMessage = 15
 
-func joined(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func joined(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	var joinedChannels []*models.JoinedChannel
 	if err := msg.Resources.DB.Find(&joinedChannels).Error; err != nil {
 		return nil, fmt.Errorf("failed to find channels: %w", err)
@@ -333,7 +334,7 @@ func leaveChannel(msg *base.IncomingMessage, targetChannel string) ([]*base.Mess
 	return msgs, nil
 }
 
-func reloadConfig(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func reloadConfig(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	configSrc, err := msg.Resources.NewConfigSource()
 	if err != nil {
 		return nil, err
@@ -356,7 +357,7 @@ func reloadConfig(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, e
 	}, nil
 }
 
-func restartBot(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func restartBot(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	go restart.WriteRequester(msg.Resources.Cache, msg.Resources.Platform.Name(), msg.Message.Channel, msg.Message.ID)
 
 	const delay = 100 * time.Millisecond
@@ -370,7 +371,7 @@ func restartBot(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, err
 	}, nil
 }
 
-func setPrefix(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func setPrefix(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	prefixArg := args[0]
 	if !prefixArg.Present {
 		return nil, basecommand.ErrBadUsage

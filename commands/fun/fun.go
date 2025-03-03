@@ -2,6 +2,7 @@
 package fun
 
 import (
+	"context"
 	"crypto/rand"
 	_ "embed"
 	"fmt"
@@ -59,7 +60,7 @@ var (
 		Name:       "fortune",
 		Desc:       "Replies with a fortune. Fortunes from https://github.com/bmc/fortunes",
 		Permission: permission.Normal,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			i, err := rand.Int(msg.Resources.Rand.Reader, fortunesLen)
 			if err != nil {
 				return nil, fmt.Errorf("failed to generate random number: %w", err)
@@ -93,7 +94,7 @@ var (
 	}
 )
 
-func bibleVerse(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func bibleVerse(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	bookArg, chapterVerseArg := args[0], args[1]
 	if !bookArg.Present || !chapterVerseArg.Present {
 		return nil, basecommand.ErrBadUsage
@@ -116,7 +117,7 @@ func bibleVerse(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, err
 
 const cockMaxLength = 14
 
-func cock(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func cock(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	target := basecommand.FirstArgOrUsername(args, msg)
 
 	length, err := rand.Int(msg.Resources.Rand.Reader, big.NewInt(cockMaxLength+1))
@@ -132,7 +133,7 @@ func cock(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	}, nil
 }
 
-func iq(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func iq(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	target := basecommand.FirstArgOrUsername(args, msg)
 
 	userIqFloat := distuv.Normal{Mu: 100, Sigma: 15, Src: msg.Resources.Rand.Source}.Rand()
@@ -146,7 +147,7 @@ func iq(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	}, nil
 }
 
-func ship(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func ship(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	person1Arg, person2Arg := args[0], args[1]
 	if !person1Arg.Present || !person2Arg.Present {
 		return nil, basecommand.ErrBadUsage

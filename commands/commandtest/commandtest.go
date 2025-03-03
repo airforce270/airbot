@@ -89,7 +89,7 @@ func Run(t *testing.T, tests []Case) {
 			tc.input.Resources = resources
 
 			handler := commands.NewHandlerForTest(db, cdb, resources.AllPlatforms, resources.NewConfigSource, resources.Rand, resources.Clients)
-			got, err := handler.Handle(&tc.input)
+			got, err := handler.Handle(ctx, &tc.input)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}

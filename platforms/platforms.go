@@ -50,7 +50,7 @@ func StartHandling(ctx context.Context, p base.Platform, db *gorm.DB, cdb cache.
 		select {
 		case <-timer.C:
 		case msg := <-inC:
-			go processMessage(&handler, db, p, outC, msg, logIncoming)
+			go processMessage(ctx, &handler, p, outC, msg, logIncoming)
 		}
 
 		timer.Reset(ctxCheckInterval)
@@ -58,7 +58,7 @@ func StartHandling(ctx context.Context, p base.Platform, db *gorm.DB, cdb cache.
 }
 
 // processMessage processes a single message and may queue messages to be sent in response.
-func processMessage(handler *commands.Handler, db *gorm.DB, p base.Platform, outC chan<- base.OutgoingMessage, msg base.IncomingMessage, logIncoming bool) {
+func processMessage(ctx context.Context, handler *commands.Handler, p base.Platform, outC chan<- base.OutgoingMessage, msg base.IncomingMessage, logIncoming bool) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("processMessage panicked, recovered: %v; %s", r, debug.Stack())
@@ -69,7 +69,7 @@ func processMessage(handler *commands.Handler, db *gorm.DB, p base.Platform, out
 		log.Printf("[%s<- %s/%s]: %s", p.Name(), msg.Message.Channel, msg.Message.User, msg.Message.Text)
 	}
 
-	outMsgs, err := handler.Handle(&msg)
+	outMsgs, err := handler.Handle(ctx, &msg)
 	if err != nil {
 		log.Printf("Failed to handle message %v: %v", msg, err)
 		return

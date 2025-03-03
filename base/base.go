@@ -14,6 +14,7 @@ import (
 	"github.com/airforce270/airbot/apiclients/kick"
 	"github.com/airforce270/airbot/apiclients/seventv"
 	"github.com/airforce270/airbot/cache"
+	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/permission"
 	"gorm.io/gorm"
@@ -112,6 +113,8 @@ type Resources struct {
 	Platform Platform
 	// DB is a reference to the database.
 	DB *gorm.DB
+	// DB2 is a reference to the database.
+	DB2 *database.Queries
 	// Cache is a reference to the cache.
 	Cache cache.Cache
 	// AllPlatforms contains all platforms currently registered with the bot.

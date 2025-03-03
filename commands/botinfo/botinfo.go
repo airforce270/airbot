@@ -2,6 +2,7 @@
 package botinfo
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -27,7 +28,7 @@ var Commands = [...]basecommand.Command{
 		Aliases:    []string{"bot", "info", "about", "ping"},
 		Desc:       "Replies with info about the bot.",
 		Permission: permission.Normal,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			var resp strings.Builder
 			fmt.Fprintf(&resp, "Beep boop, this is Airbot running as %s in %s", msg.Resources.Platform.Username(), msg.Message.Channel)
 			fmt.Fprintf(&resp, " with prefix %s on %s.", msg.Prefix, msg.Resources.Platform.Name())
@@ -44,7 +45,7 @@ var Commands = [...]basecommand.Command{
 		Name:       "prefix",
 		Desc:       "Replies with the prefix in this channel.",
 		Permission: permission.Normal,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
@@ -57,7 +58,7 @@ var Commands = [...]basecommand.Command{
 		Name:       "source",
 		Desc:       "Replies a link to the bot's source code.",
 		Permission: permission.Normal,
-		Handler: func(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+		Handler: func(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 			return []*base.Message{
 				{
 					Channel: msg.Message.Channel,
@@ -74,7 +75,7 @@ var Commands = [...]basecommand.Command{
 	},
 }
 
-func stats(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func stats(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	var g errgroup.Group
 
 	var cpuPercent float64

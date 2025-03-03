@@ -2,7 +2,9 @@
 package gamba
 
 import (
+	"context"
 	"crypto/rand"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -15,11 +17,10 @@ import (
 	"github.com/airforce270/airbot/base"
 	"github.com/airforce270/airbot/base/arg"
 	"github.com/airforce270/airbot/commands/basecommand"
+	"github.com/airforce270/airbot/database"
 	"github.com/airforce270/airbot/database/models"
 	"github.com/airforce270/airbot/gamba"
 	"github.com/airforce270/airbot/permission"
-
-	"gorm.io/gorm"
 )
 
 // Commands contains this package's commands.
@@ -96,7 +97,7 @@ const (
 	duelPendingDuration = duelPendingSecs * time.Second
 )
 
-func accept(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func accept(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	user, err := msg.Resources.Platform.User(msg.Message.User)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch %s user %s: %w", msg.Resources.Platform.Name(), msg.Message.User, err)
@@ -165,7 +166,7 @@ func accept(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 	return outMsgs, nil
 }
 
-func decline(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func decline(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	user, err := msg.Resources.Platform.User(msg.Message.User)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch %s user %s: %w", msg.Resources.Platform.Name(), msg.Message.User, err)
@@ -200,7 +201,7 @@ func decline(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error)
 	}, nil
 }
 
-func duel(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func duel(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetArg, pointsArg := args[0], args[1]
 	if !targetArg.Present || !pointsArg.Present {
 		return nil, basecommand.ErrBadUsage
@@ -258,7 +259,7 @@ func duel(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 		return nil, fmt.Errorf("user %s on %s is unknown to the bot: %w", msg.Message.User, msg.Resources.Platform.Name(), err)
 	}
 
-	userPoints, err := FetchUserPoints(msg.Resources.DB, user)
+	userPoints, err := FetchUserPoints(ctx, msg.Resources.DB2, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch user points for user %d: %w", user.ID, err)
 	}
@@ -271,7 +272,7 @@ func duel(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 		}, nil
 	}
 
-	targetUserPoints, err := FetchUserPoints(msg.Resources.DB, targetUser)
+	targetUserPoints, err := FetchUserPoints(ctx, msg.Resources.DB2, targetUser)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch user points for user %d: %w", targetUser.ID, err)
 	}
@@ -332,7 +333,7 @@ func duel(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	}, nil
 }
 
-func givePoints(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func givePoints(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	targetArg, pointsArg := args[0], args[1]
 	if !targetArg.Present || !pointsArg.Present {
 		return nil, basecommand.ErrBadUsage
@@ -394,7 +395,7 @@ func givePoints(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, err
 		return nil, fmt.Errorf("failed to retrieve db user %s: %w", msg.Message.User, err)
 	}
 
-	userPoints, err := FetchUserPoints(msg.Resources.DB, user)
+	userPoints, err := FetchUserPoints(ctx, msg.Resources.DB2, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch points for user %d: %w", user.ID, err)
 	}
@@ -431,7 +432,7 @@ func givePoints(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, err
 	}, nil
 }
 
-func points(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func points(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	target := basecommand.FirstArgOrUsername(args, msg)
 	user, err := msg.Resources.Platform.User(target)
 	if err != nil {
@@ -446,7 +447,7 @@ func points(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 		return nil, fmt.Errorf("user %s on %s is unknown to the bot: %w", target, msg.Resources.Platform.Name(), err)
 	}
 
-	pointsCount, err := FetchUserPoints(msg.Resources.DB, user)
+	pointsCount, err := FetchUserPoints(ctx, msg.Resources.DB2, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch points for user %d: %w", user.ID, err)
 	}
@@ -459,7 +460,7 @@ func points(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 	}, nil
 }
 
-func roulette(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
+func roulette(ctx context.Context, msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) {
 	amountArg := args[0]
 	if !amountArg.Present {
 		return nil, basecommand.ErrBadUsage
@@ -479,7 +480,7 @@ func roulette(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error
 		return nil, fmt.Errorf("user %s on %s is unknown to the bot: %w", msg.Message.User, msg.Resources.Platform.Name(), err)
 	}
 
-	points, err := FetchUserPoints(msg.Resources.DB, user)
+	points, err := FetchUserPoints(ctx, msg.Resources.DB2, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch points for user %d: %w", user.ID, err)
 	}
@@ -550,9 +551,9 @@ func roulette(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error
 }
 
 // FetchUserPoints fetches user points. Only exported for testing, do not use.
-func FetchUserPoints(db *gorm.DB, user models.User) (int64, error) {
-	var points int64
-	if err := db.Model(&models.GambaTransaction{}).Select("COALESCE(SUM(delta), 0)").Where(models.GambaTransaction{UserID: user.ID}).Scan(&points).Error; err != nil {
+func FetchUserPoints(ctx context.Context, q *database.Queries, user models.User) (int64, error) {
+	points, err := q.SelectUserPoints(ctx, sql.NullInt64{Int64: int64(user.ID), Valid: true})
+	if err != nil {
 		return 0, fmt.Errorf("failed to fetch points for user %d: %w", user.ID, err)
 	}
 	return points, nil

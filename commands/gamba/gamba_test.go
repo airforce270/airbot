@@ -798,7 +798,8 @@ func TestGambaCommands(t *testing.T) {
 
 func TestFetchUserPoints(t *testing.T) {
 	t.Parallel()
-	db := databasetest.New(t)
+	ctx := t.Context()
+	db := databasetest.New2(t)
 	var user1 models.User
 	err := db.FirstOrCreate(&user1, models.User{
 		TwitchID:   "user1",
@@ -953,7 +954,7 @@ func TestFetchUserPoints(t *testing.T) {
 				}
 			}
 
-			got, err := gamba.FetchUserPoints(db, user1)
+			got, err := gamba.FetchUserPoints(ctx, db, user1)
 			if err != nil {
 				t.Fatal(err)
 			}
