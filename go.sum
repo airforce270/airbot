@@ -138,8 +138,8 @@ github.com/ncruces/go-strftime v0.1.9 h1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdh
 github.com/ncruces/go-strftime v0.1.9/go.mod h1:Fwc5htZGVVkseilnfgOVb9mKy6w1naJmn9CehxcKcls=
 github.com/neelance/astrewrite v0.0.0-20160511093645-99348263ae86/go.mod h1:kHJEU3ofeGjhHklVoIGuVj85JJwZ6kWPaJwCIxgnFmo=
 github.com/neelance/sourcemap v0.0.0-20151028013722-8c68805598ab/go.mod h1:Qr6/a/Q4r9LP1IltGz7tA7iOK1WonHEYhu1HRBA7ZiM=
-github.com/nicklaw5/helix/v2 v2.31.0 h1:/8E5H20D/f3PGmSWT5NWtjwt+M8/GeCjnK/AkoLIFQA=
-github.com/nicklaw5/helix/v2 v2.31.0/go.mod h1:e1GsZq4NDk9sQlPJ0Nr3+14R9cizqg09VAk7/IonpOU=
+github.com/nicklaw5/helix/v2 v2.31.1 h1:HFO6Bc+3/CalHDW2nFGqIPdJ1ix+oO9xzoo4cnuz9Oo=
+github.com/nicklaw5/helix/v2 v2.31.1/go.mod h1:e1GsZq4NDk9sQlPJ0Nr3+14R9cizqg09VAk7/IonpOU=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
