@@ -18,7 +18,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.24.5
 	golang.org/x/oauth2 v0.28.0
 	golang.org/x/sync v0.12.0
-	gonum.org/v1/gonum v0.15.2-0.20250214104957-d39b80c47eea
+	gonum.org/v1/gonum v0.16.0
 	gorm.io/gorm v1.25.12
 )
 
@@ -50,7 +50,7 @@ require (
 	golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa // indirect
 	golang.org/x/net v0.36.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	h12.io/socks v1.0.3 // indirect
 	modernc.org/libc v1.61.13 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
