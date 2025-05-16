@@ -59,10 +59,13 @@ func start(ctx context.Context) (cleanup.Cleaner, postStartupResources, error) {
 	}
 	cfg, err := config.Read(configSrc)
 	if err != nil {
-		configSrc.Close()
+		_ = configSrc.Close() // ignore error
 		return nil, postStartupResources{}, fmt.Errorf("failed to read config: %w", err)
 	}
-	configSrc.Close()
+	err = configSrc.Close()
+	if err != nil {
+		return nil, postStartupResources{}, fmt.Errorf("failed to close config after reading: %w", err)
+	}
 
 	log.Printf("Connecting to database...")
 	db, err := database.Connect(ctx, log.Default(), filepath.Join(os.Getenv("AIRBOT_SQLITE_DATA_DIR"), "sqlite.db"))

@@ -89,7 +89,7 @@ func get(reqURL string) (respBody []byte, err error) {
 	if httpResp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("bad response from Bible API (URL:%s): %v", reqURL, httpResp)
 	}
-	defer httpResp.Body.Close()
+	defer func() { _ = httpResp.Body.Close() }() // ignore error
 
 	body, err := io.ReadAll(httpResp.Body)
 	if err != nil {

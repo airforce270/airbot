@@ -34,7 +34,7 @@ func (c *Client) FetchPaste(pasteURL string) (Paste, error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("bad response from Pastebin API (URL:%s): %v", reqURL, resp)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }() // ignore error
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
