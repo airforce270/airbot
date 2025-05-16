@@ -132,7 +132,7 @@ func (c *Client) FetchUserConnectionByTwitchUserId(uid string) (*PlatformConnect
 	if rawResp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("bad response from getting 7tv user connection for twitch user %q: %v", uid, rawResp)
 	}
-	defer rawResp.Body.Close()
+	defer func() { _ = rawResp.Body.Close() }() // ignore error
 
 	respBody, err := io.ReadAll(rawResp.Body)
 	if err != nil {

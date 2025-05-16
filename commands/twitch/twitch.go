@@ -363,11 +363,12 @@ func subAge(msg *base.IncomingMessage, args []arg.Arg) ([]*base.Message, error) 
 
 	if sub.Streak != nil && sub.Cumulative != nil {
 		tier := ""
-		if sub.Metadata.Type == "prime" {
+		switch sub.Metadata.Type {
+		case "prime":
 			tier = "Prime"
-		} else if sub.Metadata.Type == "gift" {
+		case "gift":
 			tier = fmt.Sprintf("Tier %s gifted", sub.Metadata.Tier)
-		} else {
+		default:
 			tier = fmt.Sprintf("Tier %s paid", sub.Metadata.Tier)
 		}
 

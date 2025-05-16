@@ -79,7 +79,7 @@ func (c *Client) FetchFounders(channel string) (*FoundersResponse, error) {
 	if httpResp.Body == nil {
 		return nil, fmt.Errorf("no data returned from IVR API: %v", httpResp)
 	}
-	defer httpResp.Body.Close()
+	defer func() { _ = httpResp.Body.Close() }() // ignore error
 
 	body, err := io.ReadAll(httpResp.Body)
 	if err != nil {
@@ -112,7 +112,7 @@ func (c *Client) FetchSubAge(user, channel string) (*SubAgeResponse, error) {
 	if httpResp.Body == nil {
 		return nil, fmt.Errorf("no data returned from IVR API: %v", httpResp)
 	}
-	defer httpResp.Body.Close()
+	defer func() { _ = httpResp.Body.Close() }() // ignore error
 
 	body, err := io.ReadAll(httpResp.Body)
 	if err != nil {
@@ -404,7 +404,7 @@ func get(reqURL string) (respBody []byte, err error) {
 	if httpResp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("bad response from IVR API (URL:%s): %v", reqURL, httpResp)
 	}
-	defer httpResp.Body.Close()
+	defer func() { _ = httpResp.Body.Close() }() // ignore error
 
 	body, err := io.ReadAll(httpResp.Body)
 	if err != nil {

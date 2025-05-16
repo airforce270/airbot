@@ -127,7 +127,7 @@ func (c *Client) call(method, path string, body io.Reader) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("supinic API call failed (req: %v): %w", req, err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }() // ignore error
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
