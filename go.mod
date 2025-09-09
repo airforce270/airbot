@@ -19,7 +19,7 @@ require (
 	golang.org/x/oauth2 v0.31.0
 	golang.org/x/sync v0.16.0
 	gonum.org/v1/gonum v0.16.0
-	gorm.io/gorm v1.30.2
+	gorm.io/gorm v1.30.5
 )
 
 require (
