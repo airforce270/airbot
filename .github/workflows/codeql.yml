@@ -20,10 +20,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v6.0.1
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4.31.3
+        uses: github/codeql-action/init@v4.31.9
         with:
           languages: go
           # If you wish to specify custom queries, you can do so here or in a config file.
@@ -34,7 +34,7 @@ jobs:
           # queries: security-extended,security-and-quality
 
       - name: Set up Go
-        uses: actions/setup-go@v6.0.0
+        uses: actions/setup-go@v6.1.0
         with:
           go-version-file: go.mod
 
@@ -42,6 +42,6 @@ jobs:
         run: go build -v ./...
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4.31.3
+        uses: github/codeql-action/analyze@v4.31.9
         with:
           category: "/language:go"

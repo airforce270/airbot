@@ -9,15 +9,15 @@ go 1.25.4
 
 require (
 	github.com/Danny-Dasilva/CycleTLS/cycletls v1.0.30
-	github.com/gempir/go-twitch-irc/v4 v4.2.0
+	github.com/gempir/go-twitch-irc/v4 v4.3.1
 	github.com/glebarez/sqlite v1.11.0
 	github.com/google/go-cmp v0.7.0
-	github.com/hasura/go-graphql-client v0.15.0
+	github.com/hasura/go-graphql-client v0.15.1
 	github.com/nicklaw5/helix/v2 v2.32.0
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/shirou/gopsutil/v3 v3.24.5
-	golang.org/x/oauth2 v0.33.0
-	golang.org/x/sync v0.18.0
+	golang.org/x/oauth2 v0.34.0
+	golang.org/x/sync v0.19.0
 	gonum.org/v1/gonum v0.16.0
 	gorm.io/gorm v1.31.1
 )
