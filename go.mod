@@ -12,7 +12,7 @@ require (
 	github.com/gempir/go-twitch-irc/v4 v4.2.0
 	github.com/glebarez/sqlite v1.11.0
 	github.com/google/go-cmp v0.7.0
-	github.com/hasura/go-graphql-client v0.15.0
+	github.com/hasura/go-graphql-client v0.15.1
 	github.com/nicklaw5/helix/v2 v2.32.0
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/shirou/gopsutil/v3 v3.24.5
