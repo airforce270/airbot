@@ -17,7 +17,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.4.3
 	github.com/shirou/gopsutil/v3 v3.24.5
 	golang.org/x/oauth2 v0.36.0
-	golang.org/x/sync v0.22.0
+	golang.org/x/sync v0.23.0
 	gonum.org/v1/gonum v0.17.0
 	gorm.io/gorm v1.31.2
 )
